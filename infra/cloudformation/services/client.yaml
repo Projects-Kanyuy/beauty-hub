@@ -86,7 +86,7 @@ Resources:
   ExecutionRole:
     Type: AWS::IAM::Role
     Properties:
-      RoleName: !Sub "${AppName}-EcsExecutionRole"
+      RoleName: !Sub "${EnvId}-${AppName}--EcsExecutionRole"
       AssumeRolePolicyDocument:
         Statement:
           - Effect: Allow
@@ -136,7 +136,7 @@ Resources:
       HealthCheckTimeoutSeconds: 5
       UnhealthyThresholdCount: 2
       HealthyThresholdCount: 2
-      Name: !Sub "${AppName}-tg"
+      Name: !Sub "${EnvId}-${AppName}--tg"
       Protocol: HTTP
       Port: !Ref ContainerPort
       TargetGroupAttributes:
