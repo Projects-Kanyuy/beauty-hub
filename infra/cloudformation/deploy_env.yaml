@@ -171,54 +171,54 @@ Resources:
         ]
 
   # --- SERVER STACK (Lambda + API Gateway) ---
-  # ServerStack:
-  #   Type: AWS::CloudFormation::Stack
-  #   DependsOn:
-  #     - VpcStack
-  #   Properties:
-  #     TemplateURL: !Join [
-  #       "",
-  #       [
-  #         "https://s3.amazonaws.com/",
-  #         !Ref InfraArtifactsBucket,
-  #         "/cloudformation/",
-  #         !Ref InfraReleaseHash,
-  #         "/services/server.yaml",
-  #       ],
-  #     ]
-  #     Parameters:
-  #       EnvId: !Sub "${ProjectId}-${EnvId}"
-  #       DomainName: !Ref DomainName
-  #       InfraArtifactsBucket: !Ref InfraArtifactsBucket
+  ServerStack:
+    Type: AWS::CloudFormation::Stack
+    DependsOn:
+      - VpcStack
+    Properties:
+      TemplateURL: !Join [
+        "",
+        [
+          "https://s3.amazonaws.com/",
+          !Ref InfraArtifactsBucket,
+          "/cloudformation/",
+          !Ref InfraReleaseHash,
+          "/services/server.yaml",
+        ],
+      ]
+      Parameters:
+        EnvId: !Sub "${ProjectId}-${EnvId}"
+        DomainName: !Ref DomainName
+        InfraArtifactsBucket: !Ref InfraArtifactsBucket
 
-  #       # --- Docker Image Tag ---
-  #       ImageTag: !Ref ServerImageTag
+        # --- Docker Image Tag ---
+        ImageTag: !Ref ServerImageTag
 
-  #       # --- VPC Networking ---
-  #       VpcId: !GetAtt VpcStack.Outputs.VPC
+        # --- VPC Networking ---
+        VpcId: !GetAtt VpcStack.Outputs.VPC
 
-  #       PublicSubnetIds: !Join [
-  #         ",",
-  #         [
-  #           !GetAtt VpcStack.Outputs.SubnetAPublic,
-  #           !GetAtt VpcStack.Outputs.SubnetBPublic
-  #         ]
-  #       ]
+        PublicSubnetIds: !Join [
+          ",",
+          [
+            !GetAtt VpcStack.Outputs.SubnetAPublic,
+            !GetAtt VpcStack.Outputs.SubnetBPublic
+          ]
+        ]
 
-  #       PrivateSubnetIds: !Join [
-  #         ",",
-  #         [
-  #           !GetAtt VpcStack.Outputs.SubnetAPrivate,
-  #           !GetAtt VpcStack.Outputs.SubnetBPrivate
-  #         ]
-  #       ]
+        PrivateSubnetIds: !Join [
+          ",",
+          [
+            !GetAtt VpcStack.Outputs.SubnetAPrivate,
+            !GetAtt VpcStack.Outputs.SubnetBPrivate
+          ]
+        ]
 
-  #       # --- HTTPS Cert ---
-  #       WebCertArn: !Ref WebCert
+        # --- HTTPS Cert ---
+        WebCertArn: !Ref WebCert
 
-  #       # --- Third-party secret ARNs ---
-  #       MongoDBSecretArn: !GetAtt ThirdPartySecretsStack.Outputs.MongoDBSecretArn
-  #       JWTSecretArn: !GetAtt ThirdPartySecretsStack.Outputs.JWTSecretArn
+        # --- Third-party secret ARNs ---
+        MongoDBSecretArn: !GetAtt ThirdPartySecretsStack.Outputs.MongoDBSecretArn
+        JWTSecretArn: !GetAtt ThirdPartySecretsStack.Outputs.JWTSecretArn
 
 # Outputs:
 #   ClientDistributionDomain:

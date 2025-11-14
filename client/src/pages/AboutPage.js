@@ -54,7 +54,7 @@ const AboutPage = () => {
         </div>
       </section>
       
-      {/* Call to Action Section */}
+      {/* Call to Action Section. */}
        <section className="bg-gray-50 py-20 px-6">
         <div className="container mx-auto text-center">
           <h2 className="text-3xl font-bold text-text-main mb-4">Join Our Growing Platform</h2>
