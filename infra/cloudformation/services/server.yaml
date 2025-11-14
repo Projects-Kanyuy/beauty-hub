@@ -1,89 +1,152 @@
-AWSTemplateFormatVersion: 2010-09-09
-Description: The Jsonproxy API service
+AWSTemplateFormatVersion: "2010-09-09"
+Description: "Deploy Node.js/Express API to ECS Fargate with ALB & Route53"
+
 Parameters:
   EnvId:
     Type: String
-    Description: Environment Id (used to namespace resources)
-    AllowedPattern: "^[a-z][a-z0-9-]{2,49}$"
-    ConstraintDescription: Must be lower case letters, digits, or hyphens (3-50 characters).
-
-  VPC:
-    Type: AWS::EC2::VPC::Id
-
-  LogGroupName:
-    Type: String
-    Description: LogGroup name that should be use for the service
-
-  ClusterArn:
-    Type: String
-
-  SubnetIds:
-    Type: List<AWS::EC2::Subnet::Id>
-
-  Image:
-    Type: String
-
-  DesiredCount:
-    Type: Number
-    Default: 1
-
   DomainName:
     Type: String
-    Description: The domain name for the environment where the service register a DNS record.
-
-  LoadBalancerDNSName:
+  InfraArtifactsBucket:
     Type: String
-    Description: The DNS name of the load balancer that the service is registered with. A DNS record will created that points to this value.
-
-  LoadBalancerCanonicalHostedZoneID:
+  ImageTag:
     Type: String
-    Description: The canonical hosted zone ID of the load balancer that the service is registered with.
-
-  HttpsListener:
+  WebCertArn:
     Type: String
-    Description: The ARN of the HTTPS listener that the service is registered with.
-
-  MongoDBSecretArn:
+  VpcId:
     Type: String
-
-  JWTSecretArn:
-    Type: String
-
-  # The following are optional parameters and are treated more like constants and input values.
+  PublicSubnetIds:
+    Type: CommaDelimitedList
+  PrivateSubnetIds:
+    Type: CommaDelimitedList
   ContainerPort:
     Type: Number
     Default: 8000
-
   AppName:
     Type: String
     Default: "server"
 
+  # Secrets
+  MongoDBSecretArn:
+    Type: String
+  JWTSecretArn:
+    Type: String
+
+# ----------------------------
+# Security Groups
+# ----------------------------
 Resources:
-  TaskDefinition:
-    Type: AWS::ECS::TaskDefinition
+  ServerSGALB:
+    Type: AWS::EC2::SecurityGroup
     Properties:
-      # Name of the task definition. Subsequent versions of the task definition are grouped together under this name.
-      Family: !Sub "${EnvId}-${AppName}"
-      NetworkMode: bridge
-      RequiresCompatibilities:
-        - EC2
-      Memory: 84 # 84 MB = 20 for golang service container + 64MB for Service Connect proxy
-      ExecutionRoleArn: !Ref ExecutionRole
-      # "The Amazon Resource Name (ARN) of an AWS Identity and Access Management (IAM) role that grants containers in the task permission to call AWS APIs on your behalf."
-      TaskRoleArn: !Ref TaskRole
+      GroupDescription: !Sub "ALB security group for ECS API (${EnvId})"
+      VpcId: !Ref VpcId
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          CidrIp: 0.0.0.0/0
+      SecurityGroupEgress:
+        - IpProtocol: -1
+          CidrIp: 0.0.0.0/0
+
+  ServerSG:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: !Sub "Security group for ECS API (${EnvId})"
+      VpcId: !Ref VpcId
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: !Ref ContainerPort
+          ToPort: !Ref ContainerPort
+          SourceSecurityGroupId: !Ref ServerSGALB
+      SecurityGroupEgress:
+        - IpProtocol: -1
+          CidrIp: 0.0.0.0/0
+
+# ----------------------------
+# ECS Cluster
+# ----------------------------
+  ServerCluster:
+    Type: AWS::ECS::Cluster
+    Properties:
+      ClusterName: !Sub "${EnvId}-server-cluster"
+
+# ----------------------------
+# CloudWatch Logs
+# ----------------------------
+  ServerLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/ecs/${EnvId}/server"
+      RetentionInDays: 30
+
+# ----------------------------
+# IAM Roles
+# ----------------------------
+  ServerTaskExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub "${EnvId}-server-exec-role"
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
+      Policies:
+        - PolicyName: AllowSecrets
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "secretsmanager:GetSecretValue"
+                  - "secretsmanager:DescribeSecret"
+                  - "secretsmanager:ListSecrets"
+                Resource:
+                  - !Ref MongoDBSecretArn
+                  - !Ref JWTSecretArn
+
+  ServerTaskRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub "${EnvId}-server-task-role"
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+            Action: sts:AssumeRole
+
+# ----------------------------
+# ECS Task Definition
+# ----------------------------
+  ServerTaskDefinition:
+    Type: AWS::ECS::TaskDefinition
+    DependsOn: ServerLogGroup
+    Properties:
+      Family: !Sub "${EnvId}-server-task"
+      Cpu: "512"
+      Memory: "1024"
+      NetworkMode: awsvpc
+      RequiresCompatibilities: ["FARGATE"]
+      ExecutionRoleArn: !GetAtt ServerTaskExecutionRole.Arn
+      TaskRoleArn: !GetAtt ServerTaskRole.Arn
       ContainerDefinitions:
-        - Name: !Ref AppName
-          Image: !Ref Image
+        - Name: server
+          Image: !Ref ImageTag
+          Essential: true
           PortMappings:
             - ContainerPort: !Ref ContainerPort
-              Name: !Ref AppName
-          # Send logs to CloudWatch Logs
-          LogConfiguration:
-            LogDriver: awslogs
-            Options:
-              awslogs-region: !Ref AWS::Region
-              awslogs-group: !Ref LogGroupName
-              awslogs-stream-prefix: !Ref AppName
+              Protocol: tcp
           Environment:
             - Name: PORT
               Value: !Ref ContainerPort
@@ -98,106 +161,95 @@ Resources:
               ValueFrom: !Sub "${MongoDBSecretArn}:mongo_uri::"
             - Name: JWT_SECRET
               ValueFrom: !Sub "${JWTSecretArn}:jwt_secret::"
-            
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group: !Ref ServerLogGroup
+              awslogs-region: !Ref "AWS::Region"
+              awslogs-stream-prefix: !Ref AppName
 
-
-    # A role needed by ECS to Start the Ecs Service
-  ExecutionRole:
-    Type: AWS::IAM::Role
+# ----------------------------
+# ALB + Target Group + Listener
+# ----------------------------
+  ServerALB:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
     Properties:
-      RoleName: !Sub "${EnvId}-${AppName}-EcsExecutionRole"
-      AssumeRolePolicyDocument:
-        Statement:
-          - Effect: Allow
-            Principal:
-              Service: ecs-tasks.amazonaws.com
-            Action: "sts:AssumeRole"
-      ManagedPolicyArns:
-        - "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
-      Policies:
-        - PolicyName: root
-          PolicyDocument:
-            Version: "2012-10-17"
-            Statement:
-              - Effect: Allow
-                Action:
-                  - "secretsmanager:GetResourcePolicy"
-                  - "secretsmanager:GetSecretValue"
-                  - "secretsmanager:DescribeSecret"
-                  - "secretsmanager:ListSecretVersionIds"
-                  - "secretsmanager:ListSecrets"
-                Resource:
-                  - !Ref MongoDBSecretArn
-                  - !Ref JWTSecretArn
-                
-  # A role for the containers
-  TaskRole:
-    Type: AWS::IAM::Role
-    Properties:
-      RoleName: !Sub "${EnvId}-${AppName}-TaskRole"
-      AssumeRolePolicyDocument:
-        Statement:
-          - Effect: Allow
-            Principal:
-              Service: ecs-tasks.amazonaws.com
-            Action:
-              - "sts:AssumeRole"
+      Name: !Sub "${EnvId}-alb"
+      Scheme: internet-facing
+      SecurityGroups:
+        - !Ref ServerSGALB
+      Subnets: !Ref PublicSubnetIds
 
-  EcsService:
-    Type: AWS::ECS::Service
-    DependsOn: [TargetGroup, ListenerRule]
-    Properties:
-      ServiceName: !Sub "${EnvId}-${AppName}"
-      Cluster: !Ref ClusterArn
-      TaskDefinition: !Ref TaskDefinition
-      DeploymentConfiguration:
-        MinimumHealthyPercent: 100
-        MaximumPercent: 200
-      DesiredCount: !Ref DesiredCount
-      LaunchType: EC2
-      LoadBalancers:
-        - ContainerName: !Ref AppName
-          ContainerPort: !Ref ContainerPort
-          TargetGroupArn: !Ref TargetGroup
-
-
-  TargetGroup:
+  ServerTargetGroup:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
     Properties:
-      HealthCheckIntervalSeconds: 10
-      HealthCheckPath: "/"
-      HealthCheckTimeoutSeconds: 5
-      UnhealthyThresholdCount: 2
-      HealthyThresholdCount: 2
-      Name: !Sub "${EnvId}-${AppName}-TargetGroup"
-      Protocol: HTTP
+      Name: !Sub "${EnvId}-tg"
       Port: !Ref ContainerPort
-      TargetGroupAttributes:
-        - Key: deregistration_delay.timeout_seconds
-          Value: 60 # default is 300
-      TargetType: instance
-      VpcId: !Ref VPC
+      Protocol: HTTP
+      TargetType: ip
+      VpcId: !Ref VpcId
+      HealthCheckProtocol: HTTP
+      HealthCheckPath: /
+      HealthCheckIntervalSeconds: 15
+      HealthCheckTimeoutSeconds: 5
+      HealthyThresholdCount: 2
+      UnhealthyThresholdCount: 3
 
-  ListenerRule:
-    Type: "AWS::ElasticLoadBalancingV2::ListenerRule"
+  ServerALBListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
     Properties:
-      Actions:
+      LoadBalancerArn: !Ref ServerALB
+      Port: 443
+      Protocol: HTTPS
+      Certificates:
+        - CertificateArn: !Ref WebCertArn
+      DefaultActions:
         - Type: forward
-          TargetGroupArn: !Ref TargetGroup
-      Conditions:
-        - Field: host-header
-          HostHeaderConfig:
-            Values:
-              - !Sub "api.${DomainName}"
-      ListenerArn: !Ref HttpsListener
-      Priority: 1
+          TargetGroupArn: !Ref ServerTargetGroup
 
-  DNSRecord:
+# ----------------------------
+# ECS Service
+# ----------------------------
+  ServerECSService:
+    Type: AWS::ECS::Service
+    DependsOn: ServerALBListener
+    Properties:
+      Cluster: !Ref ServerCluster
+      DesiredCount: 1
+      LaunchType: FARGATE
+      TaskDefinition: !Ref ServerTaskDefinition
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: ENABLED
+          Subnets: !Ref PrivateSubnetIds
+          SecurityGroups:
+            - !Ref ServerSG
+      LoadBalancers:
+        - TargetGroupArn: !Ref ServerTargetGroup
+          ContainerName: !Ref AppName
+          ContainerPort: !Ref ContainerPort
+
+# ----------------------------
+# Route53 DNS
+# ----------------------------
+  ServerDNSRecord:
     Type: AWS::Route53::RecordSet
     Properties:
       HostedZoneName: !Sub "${DomainName}."
       Name: !Sub "api.${DomainName}"
       Type: A
       AliasTarget:
-        DNSName: !Ref LoadBalancerDNSName
-        HostedZoneId: !Ref LoadBalancerCanonicalHostedZoneID
+        DNSName: !GetAtt ServerALB.DNSName
+        HostedZoneId: !GetAtt ServerALB.CanonicalHostedZoneID
+
+# ----------------------------
+# Outputs
+# ----------------------------
+Outputs:
+  ServerApiUrl:
+    Description: API URL
+    Value: !Sub "https://api.${DomainName}"
+
+  ServerECSServiceName:
+    Description: ECS Service Name
+    Value: !Ref ServerECSService
