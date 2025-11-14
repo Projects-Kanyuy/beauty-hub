@@ -26,19 +26,19 @@ app.use('/api/salons', salonRoutes);
 app.use('/api/appointments', appointmentRoutes);
 app.use('/api/analytics', analyticsRoutes);
 app.use('/api/messages',messageRoutes)
-const path = require('path');
-if (process.env.NODE_ENV === 'production') {
-  // 1. Set the build folder to be a static folder
-  app.use(express.static(path.join(__dirname, '../client/build')));
-  app.get('*', (req, res) =>
-    res.sendFile(path.resolve(__dirname, '../', 'client', 'build', 'index.html'))
-  );
-} else {
+// const path = require('path');
+// if (process.env.NODE_ENV === 'production') {
+//   // 1. Set the build folder to be a static folder
+//   app.use(express.static(path.join(__dirname, '../client/build')));
+//   app.get('*', (req, res) =>
+//     res.sendFile(path.resolve(__dirname, '../', 'client', 'build', 'index.html'))
+//   );
+// } else {
   // In development, just run the API
-  app.get('/', (req, res) => {
-    res.send('BeautyHub API is running...');
-  });
-}
+  // app.get('/', (req, res) => {
+  //   res.send('BeautyHub API is running...');
+  // });
+// }
 
 app.use(notFound);
 app.use(errorHandler);
