@@ -62,8 +62,8 @@ function App() {
 
       <Routes>
         {/* === PUBLIC ROUTES === */}
-        <Route path="/" element={<MainLayout><HomePage /></MainLayout>} />
-        <Route path="/explore" element={<MainLayout><ExploreSalonsPage /></MainLayout>} />
+        <Route path="/" element={<MainLayout><ExploreSalonsPage /></MainLayout>} />
+        <Route path="/explore" element={<MainLayout><HomePage /></MainLayout>} />
         <Route path="/tips" element={<MainLayout><BeautyTipsPage /></MainLayout>} />
         <Route path="/about" element={<MainLayout><AboutPage /></MainLayout>} />
         <Route path="/contact" element={<MainLayout><ContactPage /></MainLayout>} />

@@ -60,7 +60,7 @@ const Navbar = ({ isLoggedIn, user, handleLogout }) => {
             // Guest View
             <>
               <NavItem to="/">Home</NavItem>
-              <NavItem to="/explore">Explore Salons</NavItem>
+              <NavItem to="/explore">Add your Saloon</NavItem>
               <NavItem to="/tips">Beauty Tips</NavItem>
               <NavItem to="/about">About Us</NavItem>
               <NavItem to="/contact">Contact</NavItem>
