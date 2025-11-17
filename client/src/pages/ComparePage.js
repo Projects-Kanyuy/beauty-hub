@@ -64,7 +64,7 @@ const ComparePage = () => {
             <GoGitCompare className="text-5xl text-gray-300 mx-auto mb-4" />
             <h2 className="text-2xl font-bold text-text-main">Nothing to Compare</h2>
             <p className="text-text-muted mt-2 mb-6">Add salons to your compare list to see them here.</p>
-            <Link to="/explore" className="px-6 py-3 rounded-lg font-bold text-white bg-gradient-to-r from-primary-pink to-primary-purple hover:opacity-90 transition-opacity">
+            <Link to="/" className="px-6 py-3 rounded-lg font-bold text-white bg-gradient-to-r from-primary-pink to-primary-purple hover:opacity-90 transition-opacity">
               Explore Salons
             </Link>
           </div>
