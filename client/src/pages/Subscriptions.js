@@ -16,6 +16,7 @@ import heroBg from "../assets/hero-main-bg.jpg";
 const Subscriptions = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const [selectedPlan, setSelectedPlan] = useState("pro");
 
   const plans = [
     {
@@ -99,7 +100,7 @@ const Subscriptions = () => {
         "For nationwide or international beauty brands aiming to dominate.",
       features: [
         "Everything in Premium, plus:",
-        "20× more targeted traffic",
+        "20x more targeted traffic",
         "Sponsored homepage visibility",
         "Unlimited client reminders",
         "Unlimited bulk promotions",
@@ -111,6 +112,8 @@ const Subscriptions = () => {
   ];
 
   const handleSelectPlan = (plan) => {
+    setSelectedPlan(plan.id);
+
     if (user) {
       // Returning user - go directly to payment
       navigate(`/payment?plan=${plan.id}`, { state: { plan } });
@@ -164,48 +167,53 @@ const Subscriptions = () => {
           {plans.map((plan) => (
             <div
               key={plan.id}
-              className={`rounded-lg shadow-md overflow-hidden transition-all duration-300 flex flex-col ${
-                plan.highlighted
+              className={`rounded-lg shadow-md overflow-hidden transition-all duration-300 flex flex-col cursor-pointer ${
+                selectedPlan === plan.id
                   ? "ring-2 ring-primary-pink scale-105 md:scale-110 lg:scale-100"
                   : "hover:shadow-lg"
               }`}
+              onClick={() => setSelectedPlan(plan.id)}
             >
               {/* Card Header */}
               <div
                 className={`p-6 ${
-                  plan.highlighted
+                  selectedPlan === plan.id
                     ? "bg-gradient-to-r from-primary-pink to-primary-purple text-white"
                     : "bg-gray-50"
                 }`}
               >
-                {plan.highlighted && (
+                {selectedPlan === "pro" && (
                   <span className="inline-block bg-white text-primary-pink px-3 py-1 rounded-full text-sm font-bold mb-3">
                     Most Popular
                   </span>
                 )}
                 <h3
                   className={`text-2xl font-bold mb-2 ${
-                    plan.highlighted ? "text-white" : "text-text-main"
+                    selectedPlan === plan.id ? "text-white" : "text-text-main"
                   }`}
                 >
                   {plan.name}
                 </h3>
                 <p
                   className={`text-sm mb-4 ${
-                    plan.highlighted ? "text-pink-100" : "text-text-muted"
+                    selectedPlan === plan.id
+                      ? "text-pink-100"
+                      : "text-text-muted"
                   }`}
                 >
                   {plan.description}
                 </p>
                 <div
                   className={`flex items-baseline ${
-                    plan.highlighted ? "text-white" : "text-text-main"
+                    selectedPlan === plan.id ? "text-white" : "text-text-main"
                   }`}
                 >
                   <span className="text-4xl font-bold">${plan.price}</span>
                   <span
                     className={`ml-2 ${
-                      plan.highlighted ? "text-pink-100" : "text-text-muted"
+                      selectedPlan === plan.id
+                        ? "text-pink-100"
+                        : "text-text-muted"
                     }`}
                   >
                     /{plan.period}
@@ -228,7 +236,7 @@ const Subscriptions = () => {
                       {!feature.includes("Everything") && (
                         <FaCheckCircle
                           className={`mr-2 mt-0.5 flex-shrink-0 ${
-                            plan.highlighted
+                            selectedPlan === plan.id
                               ? "text-primary-pink"
                               : "text-green-500"
                           }`}
@@ -245,7 +253,7 @@ const Subscriptions = () => {
                 <button
                   onClick={() => handleSelectPlan(plan)}
                   className={`w-full py-3 px-4 rounded-lg font-semibold transition-all ${
-                    plan.highlighted
+                    selectedPlan === plan.id
                       ? "bg-gradient-to-r from-primary-pink to-primary-purple text-white hover:shadow-lg"
                       : "bg-gray-100 text-text-main hover:bg-gray-200"
                   }`}
