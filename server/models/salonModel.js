@@ -1,6 +1,57 @@
 // server/models/salonModel.js
 const mongoose = require('mongoose');
 
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *     Salon:
+ *       type: object
+ *       properties:
+ *         _idId:
+ *           type: string
+ *         owner:
+ *           type: string
+ *         name:
+ *           type: string
+ *         description:
+ *           type: string
+ *         address:
+ *           type: string
+ *         city:
+ *           type: string
+ *         phone:
+ *           type: string
+ *         photos:
+ *           type: array
+ *           items:
+ *             type: string
+ *         openingHours:
+ *           type: object
+ *           additionalProperties:
+ *             type: string
+ *         services:
+ *           type: array
+ *           items:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *               description:
+ *                 type: string
+ *               price:
+ *                 type: number
+ *               duration:
+ *                 type: string
+ *         averageRating:
+ *           type: number
+ *           minimum: 0
+ *           maximum: 5
+ *         reviews:
+ *           type: array
+ *           items:
+ *             type: string
+ */
 // We define the schema for a service as a sub-document
 const serviceSchema = mongoose.Schema({
   name: { type: String, required: true },

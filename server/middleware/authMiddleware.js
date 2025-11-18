@@ -3,29 +3,25 @@ const jwt = require('jsonwebtoken');
 const asyncHandler = require('express-async-handler');
 const User = require('../models/userModel');
 
+// Existing protect middleware (unchanged)
 const protect = asyncHandler(async (req, res, next) => {
   let token;
 
-  // Check if the token is in the headers and starts with 'Bearer'
   if (
     req.headers.authorization &&
     req.headers.authorization.startsWith('Bearer')
   ) {
     try {
-      // Get token from header (e.g., "Bearer eyJhbGciOiJIUz...")
       token = req.headers.authorization.split(' ')[1];
 
-      // Verify the token using our secret
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-      // Find the user by the ID from the token's payload
-      // We exclude the password from the user object we attach to the request
       req.user = await User.findById(decoded.id).select('-password');
 
-      next(); // Move on to the next middleware or the controller
+      next();
     } catch (error) {
       console.error(error);
-      res.status(401); // Unauthorized
+      res.status(401);
       throw new Error('Not authorized, token failed');
     }
   }
@@ -36,4 +32,15 @@ const protect = asyncHandler(async (req, res, next) => {
   }
 });
 
-module.exports = { protect };
+// NEW: Admin-only middleware
+const admin = (req, res, next) => {
+  if (req.user && req.user.role === 'admin') {
+    next();
+  } else {
+    res.status(403);
+    throw new Error('Not authorized as an admin');
+  }
+};
+
+// Export BOTH
+module.exports = { protect, admin };

@@ -2,6 +2,49 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *     UserAuthResponse:
+ *       type: object
+ *       properties:
+ *         _id:
+ *           type: string
+ *         name:
+ *           type: string
+ *         email:
+ *           type: string
+ *           format: email
+ *         role:
+ *           type: string
+ *           enum: [customer, salon_owner]
+ *         token:
+ *           type: string
+ *           description: JWT Bearer token
+ *       example:
+ *         _id: "66789abc123def456789abcd"
+ *         name: "Sarah Johnson"
+ *         email: "sarah@example.com"
+ *         role: "customer"
+ *         token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.x..."
+ *
+ *     User:
+ *       type: object
+ *       properties:
+ *         _id:
+ *           type: string
+ *         name:
+ *           type: string
+ *         email:
+ *           type: string
+ *         role:
+ *           type: string
+ *           enum: [customer, salon_owner]
+ *         createdAt:
+ *           type: string
+ *           format: date-time
+ */
 const userSchema = mongoose.Schema(
   {
     name: {

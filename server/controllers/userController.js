@@ -3,16 +3,57 @@ const asyncHandler = require('express-async-handler');
 const User = require('../models/userModel');
 const generateToken = require('../utils/generateToken');
 
-// @desc    Register a new user
-// @route   POST /api/users
-// @access  Public
+/**
+ * @swagger
+ * /api/users:
+ *   post:
+ *     summary: Register a new user
+ *     description: Creates a new customer or salon owner account. Returns user data and JWT token.
+ *     tags: [Users]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - name
+ *               - email
+ *               - password
+ *               - role
+ *             properties:
+ *               name:
+ *                 type: string
+ *                 example: "Sarah Johnson"
+ *               email:
+ *                 type: string
+ *                 format: email
+ *                 example: "sarah@example.com"
+ *               password:
+ *                 type: string
+ *                 format: password
+ *                 minLength: 6
+ *                 example: "mypassword123"
+ *               role:
+ *                 type: string
+ *                 enum: [customer, salon_owner]
+ *                 example: "customer"
+ *     responses:
+ *       201:
+ *         description: User registered successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/UserAuthResponse'
+ *       400:
+ *         description: User already exists or invalid data
+ */
 const registerUser = asyncHandler(async (req, res) => {
   const { name, email, password, role } = req.body;
 
   const userExists = await User.findOne({ email });
-
   if (userExists) {
-    res.status(400); // Bad Request
+    res.status(400);
     throw new Error('User already exists');
   }
 
@@ -20,7 +61,7 @@ const registerUser = asyncHandler(async (req, res) => {
     name,
     email,
     password,
-    role, // 'customer' or 'salon_owner'
+    role: role || 'customer',
   });
 
   if (user) {
@@ -37,9 +78,39 @@ const registerUser = asyncHandler(async (req, res) => {
   }
 });
 
-// @desc    Auth user & get token (Login)
-// @route   POST /api/users/login
-// @access  Public
+/**
+ * @swagger
+ * /api/users/login:
+ *   post:
+ *     summary: Authenticate user (Login)
+ *     description: Logs in a user and returns JWT token for subsequent authenticated requests.
+ *     tags: [Users]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *               - password
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *               password:
+ *                 type: string
+ *                 format: password
+ *     responses:
+ *       200:
+ *         description: Login successful
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/UserAuthResponse'
+ *       401:
+ *         description: Invalid email or password
+ */
 const authUser = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
 
@@ -54,19 +125,54 @@ const authUser = asyncHandler(async (req, res) => {
       token: generateToken(user._id),
     });
   } else {
-    res.status(401); // Unauthorized
+    res.status(401);
     throw new Error('Invalid email or password');
   }
 });
+
+/**
+ * @swagger
+ * /api/users/profile:
+ *   put:
+ *     summary: Update logged-in user's profile
+ *     description: Update name and/or password. Requires valid JWT.
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *                 example: "Sarah J."
+ *               password:
+ *                 type: string
+ *                 format: password
+ *                 description: New password (will be hashed automatically)
+ *     responses:
+ *       200:
+ *         description: Profile updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/UserAuthResponse'
+ *       404:
+ *         description: User not found
+ *       401:
+ *         description: Not authorized
+ */
 const updateUserProfile = asyncHandler(async (req, res) => {
   const user = await User.findById(req.user._id);
 
   if (user) {
     user.name = req.body.name || user.name;
-    // You might want to add more checks if you allow email changes
 
     if (req.body.password) {
-      user.password = req.body.password; // The 'pre-save' hook in userModel will hash it
+      user.password = req.body.password; // pre-save hook hashes it
     }
 
     const updatedUser = await user.save();
@@ -76,10 +182,11 @@ const updateUserProfile = asyncHandler(async (req, res) => {
       name: updatedUser.name,
       email: updatedUser.email,
       role: updatedUser.role,
-      token: generateToken(updatedUser._id), // Re-issue token with new info
+      token: generateToken(updatedUser._id),
     });
   } else {
-    res.status(404); throw new Error('User not found');
+    res.status(404);
+    throw new Error('User not found');
   }
 });
 

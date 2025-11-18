@@ -3,6 +3,8 @@ const express = require('express');
 const dotenv = require('dotenv');
 const cors = require('cors');
 const connectDB = require('./config/db');
+
+const subscriptionTypeRoutes = require('./routes/subscriptionTypeRoutes');
 const userRoutes = require('./routes/userRoutes');
 const salonRoutes = require('./routes/salonRoutes');
 const appointmentRoutes = require('./routes/appointmentRoutes');
@@ -10,40 +12,47 @@ const analyticsRoutes = require('./routes/analyticsRoutes');
 const messageRoutes = require('./routes/messageRoutes');
 const { notFound, errorHandler } = require('./middleware/errorMiddleware');
 
+// Swagger dependencies
+const swaggerSpec = require('./config/swagger');        // ← our spec
+const swaggerUi = require('swagger-ui-express');
+
 dotenv.config();
-connectDB(); // Establish database connection
+connectDB();
+
 const app = express();
 app.use(cors());
 app.use(express.json());
 
-app.get('/', (req, res) => {
-  res.send('BeautyHub API is running...');
+// === Swagger Documentation Routes ===
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+
+// Optional: GET raw OpenAPI JSON
+app.get('/api-docs.json', (req, res) => {
+  res.setHeader('Content-Type', 'application/json');
+  res.send(swaggerSpec);
 });
 
-// --- Use our new routes ---
+// Root route
+app.get('/', (req, res) => {
+  res.send(`
+    <h1>BeautyHub API is running!</h1>
+    <p><a href="/api-docs" target="_blank">📚 Open API Documentation (Swagger UI)</a></p>
+  `);
+});
+
+// === Your API routes ===
+app.use('/api/subscriptions', subscriptionTypeRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/salons', salonRoutes);
 app.use('/api/appointments', appointmentRoutes);
 app.use('/api/analytics', analyticsRoutes);
-app.use('/api/messages',messageRoutes)
-// const path = require('path');
-// if (process.env.NODE_ENV === 'production') {
-//   // 1. Set the build folder to be a static folder
-//   app.use(express.static(path.join(__dirname, '../client/build')));
-//   app.get('*', (req, res) =>
-//     res.sendFile(path.resolve(__dirname, '../', 'client', 'build', 'index.html'))
-//   );
-// } else {
-  // In development, just run the API
-  // app.get('/', (req, res) => {
-  //   res.send('BeautyHub API is running...');
-  // });
-// }
+app.use('/api/messages', messageRoutes);
 
 app.use(notFound);
 app.use(errorHandler);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
+  console.log(`Server running on port ${PORT}`);
+  console.log(`Swagger UI → http://localhost:${PORT}/api-docs`);
 });
