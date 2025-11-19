@@ -66,7 +66,7 @@ const Navbar = ({ isLoggedIn, user, handleLogout }) => {
             // Guest View
             <>
               <NavItem to="/">Home</NavItem>
-              <NavItem to="/subscriptions">Add Your Salon</NavItem>
+              <NavItem to="/subscriptions">Add Your Business</NavItem>
               <NavItem to="/tips">Beauty Tips</NavItem>
               <NavItem to="/about">About Us</NavItem>
               <NavItem to="/contact">Contact</NavItem>
@@ -137,7 +137,7 @@ const Navbar = ({ isLoggedIn, user, handleLogout }) => {
                     Home
                   </NavItem>
                   <NavItem to="/subscriptions" onClick={closeDrawer}>
-                    Add Your Salon
+                    Add Your Business
                   </NavItem>
                   <NavItem to="/tips" onClick={closeDrawer}>
                     Beauty Tips
