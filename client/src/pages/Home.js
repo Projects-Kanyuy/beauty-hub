@@ -7,11 +7,11 @@ import { fetchSalons } from "../api";
 import {
   FaSpinner,
   FaArrowRight,
-  FaShieldAlt,
-  FaMapMarkerAlt,
-  FaHeartbeat,
+  // FaShieldAlt,
+  // FaMapMarkerAlt,
+  // FaHeartbeat,
 } from "react-icons/fa";
-import { BsChatDots } from "react-icons/bs";
+// import { BsChatDots } from "react-icons/bs";
 import Button from "../components/Button";
 
 const HomePage = () => {
@@ -39,7 +39,7 @@ const HomePage = () => {
   return (
     <div className="bg-white">
       {/* Hero Section */}
-      <section className="relative bg-gradient-to-b from-slate-900 to-slate-800 text-white py-24 px-4">
+      {/* <section className="relative bg-gradient-to-b from-slate-900 to-slate-800 text-white py-24 px-4">
         <div className="container mx-auto text-center">
           <h1 className="text-5xl md:text-6xl font-bold mb-6 leading-tight">
             Discover & Book Beauty Services Locally
@@ -50,7 +50,6 @@ const HomePage = () => {
             providers.
           </p>
 
-          {/* Quick Stats */}
           <div className="grid grid-cols-3 gap-6 text-center mt-16">
             <div>
               <div className="text-3xl font-bold mb-2">1000+</div>
@@ -66,10 +65,10 @@ const HomePage = () => {
             </div>
           </div>
         </div>
-      </section>
+      </section> */}
 
       {/* Featured Benefits Section */}
-      <section className="bg-slate-50 py-16 px-4">
+      {/* <section className="bg-slate-50 py-16 px-4">
         <div className="container mx-auto">
           <h2 className="text-3xl font-bold text-center mb-12">
             Why Choose BeautyHub
@@ -101,7 +100,7 @@ const HomePage = () => {
             </div>
           </div>
         </div>
-      </section>
+      </section> */}
 
       {/* Salons Grid Section */}
       <section className="bg-white py-16 px-4">
@@ -159,7 +158,10 @@ const HomePage = () => {
           {!loading && salons.length > 0 && (
             <div className="mt-16 text-center">
               <Link to="/salons">
-                <Button variant="gradient" className="px-8 py-3 flex flex-row items-center justify-center">
+                <Button
+                  variant="gradient"
+                  className="px-8 py-3 flex flex-row items-center justify-center"
+                >
                   Explore All Salons <FaArrowRight className="ml-2" />
                 </Button>
               </Link>

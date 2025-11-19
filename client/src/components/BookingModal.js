@@ -16,7 +16,6 @@ const BookingModal = ({
     preferredDate: "",
     preferredTime: "",
     location: "salon", // "salon" or "home"
-    notes: "",
   });
 
   const [loading, setLoading] = useState(false);
@@ -48,14 +47,13 @@ const BookingModal = ({
         preferredDate: formData.preferredDate,
         preferredTime: formData.preferredTime,
         location: formData.location,
-        notes: formData.notes,
       };
 
       const chatMessage = `Hello ${salonName}, I want to book an appointment for ${
         service.name
       } on ${formData.preferredDate} at ${formData.preferredTime} at ${
         formData.location === "home" ? "my home" : "your salon"
-      }.`;
+      }.\n Here is my phone number: ${formData.customerPhone}`;
 
       // Call the parent's booking confirmation handler
       onBookingConfirmed({
@@ -81,7 +79,7 @@ const BookingModal = ({
 
       {/* Modal */}
       <div
-        className={`fixed bottom-0 left-0 right-0 z-50 bg-white rounded-t-2xl shadow-2xl max-w-2xl mx-auto w-full transition-transform duration-300 ${
+        className={`fixed bottom-[4vh] rounded-2xl left-0 right-0 z-50 bg-white rounded-t-2xl shadow-2xl max-w-2xl mx-auto w-full transition-transform duration-300 ${
           isOpen ? "translate-y-0" : "translate-y-full"
         }`}
         style={{ maxHeight: "90vh", overflowY: "auto" }}
@@ -201,7 +199,7 @@ const BookingModal = ({
             </div>
 
             {/* Additional Notes */}
-            <div>
+            {/* <div>
               <label className="block text-sm font-semibold text-gray-700 mb-3">
                 Additional Notes (Optional)
               </label>
@@ -213,7 +211,7 @@ const BookingModal = ({
                 rows="3"
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-purple resize-none"
               />
-            </div>
+            </div> */}
 
             {/* Submit Section */}
             <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg">

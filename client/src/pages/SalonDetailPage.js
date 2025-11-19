@@ -66,22 +66,20 @@ const SalonDetailPage = () => {
       //   notes: bookingData.notes,
       // });
 
-      // create appoitment
-
-      const chatPayload = {
-        salonId: bookingData.salonId,
-        customerName: bookingData.customerName,
-        initialMessage: bookingData.chatMessage,
-      };
+      // TODO: create appoitment
 
       toast.success(
         "Appointment requested successfully! Opening chat with the salon..."
       );
+
       setIsModalOpen(false);
 
-      setTimeout(() => {
-        navigate("/chat");
-      }, 1500);
+      // open the chat on whastapp
+      const whatsappUrl = `https://wa.me/${salon?.phone?.replace(
+        /[^0-9]/g,
+        ""
+      )}?text=${bookingData?.chatMessage}`;
+      window.open(whatsappUrl, "_blank");
     } catch (err) {
       toast.error(
         err.response?.data?.message || "Booking failed. Please try again."
@@ -89,6 +87,8 @@ const SalonDetailPage = () => {
       console.error(err);
     }
   };
+
+  console.log({ salon });
 
   if (loading) {
     return <div className="text-center py-20">Loading salon details...</div>;
