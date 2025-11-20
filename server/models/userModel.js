@@ -63,7 +63,7 @@ const userSchema = mongoose.Schema(
     role: {
       type: String,
       required: true,
-      enum: ['customer', 'salon_owner'], // The role must be one of these values
+      enum: ['customer', 'salon_owner', 'admin'], // The role must be one of these values
       default: 'customer',
     },
   },
