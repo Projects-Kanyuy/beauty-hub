@@ -89,7 +89,7 @@ const Footer = () => {
             {/* <FaWhatsapp size={20} />
             <span>WhatsApp Support: +237 6XX XXX XXX</span> */}
             <FaEnvelope size={20} />
-            <span>Contact Support: support@beautyheaven.site</span>
+            <span>Contact Support</span>
           </a>
         </div>
       </div>
