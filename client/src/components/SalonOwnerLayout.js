@@ -22,7 +22,7 @@ const SalonOwnerLayout = ({ children }) => {
       <aside className="w-64 bg-gray-800 text-white p-6 hidden lg:block">
         <Link to="/" className="text-3xl font-extrabold mb-8 block">
           <span className="bg-gradient-to-r from-primary-pink to-primary-purple text-transparent bg-clip-text">
-            BeautyHub
+            BeautyHeaven
           </span>
           <span className="text-xs font-semibold text-gray-400 ml-2">OWNER PORTAL</span>
         </Link>

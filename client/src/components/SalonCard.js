@@ -31,7 +31,7 @@ const SalonCard = ({ salon }) => {
   const displayImage =
     salon.photos && salon.photos.length > 0
       ? salon.photos[0]
-      : "https://via.placeholder.com/400x300.png?text=BeautyHub";
+      : "https://via.placeholder.com/400x300.png?text=BeautyHeaven";
 
   const offersHomeServices =
     salon.services &&

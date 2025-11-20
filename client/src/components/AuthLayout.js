@@ -11,7 +11,7 @@ const AuthLayout = ({ children }) => {
       <div className="relative hidden lg:flex flex-col justify-center items-center p-12 text-white" style={{ backgroundImage: `url(${authBgImage})`, backgroundSize: 'cover', backgroundPosition: 'center' }}>
         <div className="absolute inset-0 bg-gradient-to-br from-primary-pink to-primary-purple opacity-80"></div>
         <div className="relative z-10 w-full max-w-md">
-          <Link to="/" className="text-5xl font-extrabold mb-8 block">BeautyHub ♡</Link>
+          <Link to="/" className="text-5xl font-extrabold mb-8 block">BeautyHeaven ♡</Link>
           <h1 className="text-4xl font-bold mb-4">Grow Your Beauty Business</h1>
           <p className="text-purple-200 mb-8">
             Join Cameroon's premier beauty platform and connect with thousands of potential customers.
@@ -22,7 +22,7 @@ const AuthLayout = ({ children }) => {
             <li className="flex items-center space-x-3"><FaBook /><span className="font-semibold">Booking Management</span></li>
           </ul>
           <div className="bg-white bg-opacity-20 p-6 rounded-lg backdrop-blur-sm">
-            <p className="italic">"BeautyHub helped me double my clientele in 3 months!"</p>
+            <p className="italic">"BeautyHeaven helped me double my clientele in 3 months!"</p>
             <p className="font-bold mt-2">- Marie, Salon Elegance Douala</p>
           </div>
         </div>

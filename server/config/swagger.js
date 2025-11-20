@@ -1,46 +1,49 @@
 // config/swagger.js
-const swaggerJSDoc = require('swagger-jsdoc');
+const swaggerJSDoc = require("swagger-jsdoc");
 
 const options = {
   definition: {
-    openapi: '3.0.0',
+    openapi: "3.0.0",
     info: {
-      title: 'BeautyHub API',
-      version: '1.0.0',
-      description: 'A complete backend API for salon booking platform with user auth, appointments, messaging, and analytics',
+      title: "BeautyHeaven API",
+      version: "1.0.0",
+      description:
+        "A complete backend API for salon booking platform with user auth, appointments, messaging, and analytics",
       contact: {
-        name: 'Your Name',
-        email: 'your-email@example.com',
+        name: "Your Name",
+        email: "your-email@example.com",
       },
     },
     servers: [
       {
-        url: 'http://localhost:8000',
-        description: 'Development server',
+        url: "http://localhost:8000",
+        description: "Development server",
       },
       {
-        url: 'https://api.beautyhope.site/',
-        description: 'Production server',
+        url: "https://api.beautyhope.site/",
+        description: "Production server",
       },
     ],
     components: {
       securitySchemes: {
         bearerAuth: {
-          type: 'http',
-          scheme: 'bearer',
-          bearerFormat: 'JWT',
+          type: "http",
+          scheme: "bearer",
+          bearerFormat: "JWT",
         },
       },
     },
-    security: [{
-      bearerAuth: [],
-    }],
+    security: [
+      {
+        bearerAuth: [],
+      },
+    ],
   },
   // Path to the API files where you will write JSDoc comments
   apis: [
-    './routes/*.js',              // Your route files
-    './controllers/*.js',         // Your controller functions (best place for JSDoc)
-    './models/*.js',              // Optional: to pull schemas for request/response bodies
+    "./routes/*.js", // Your route files
+    "./controllers/*.js", // Your controller functions (best place for JSDoc)
+    "./models/*.js", // Optional: to pull schemas for request/response bodies
   ],
 };
 

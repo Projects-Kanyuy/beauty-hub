@@ -1,7 +1,7 @@
 // src/components/Footer.js
 import React from "react";
 import { Link } from "react-router-dom";
-import { FaInstagram, FaTwitter, FaWhatsapp } from "react-icons/fa";
+import { FaEnvelope, FaInstagram, FaTwitter, FaWhatsapp } from "react-icons/fa";
 
 const Footer = () => {
   return (
@@ -10,7 +10,7 @@ const Footer = () => {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {/* Column 1: About & Socials */}
           <div className="md:col-span-2">
-            <h3 className="text-3xl font-extrabold mb-4">BeautyHub</h3>
+            <h3 className="text-3xl font-extrabold mb-4">BeautyHeaven</h3>
             <p className="text-gray-400 max-w-md mb-6">
               Your trusted platform to discover and connect with the best beauty
               professionals across Africa. Find top-rated salons, nail artists,
@@ -78,16 +78,18 @@ const Footer = () => {
 
         <div className="mt-12 border-t border-gray-700 pt-8 flex flex-col sm:flex-row justify-between items-center">
           <p className="text-gray-500 text-sm">
-            &copy; {new Date().getFullYear()} BeautyHub. All rights reserved.
+            &copy; {new Date().getFullYear()} BeautyHeaven. All rights reserved.
           </p>
           <a
-            href="https://wa.me/237xxxxxxxx"
-            target="_blank"
+            href="mailto:support@beautyheaven.site"
+            target={"_blank"}
             rel="noopener noreferrer"
             className="flex items-center space-x-2 text-green-400 hover:text-white mt-4 sm:mt-0"
           >
-            <FaWhatsapp size={20} />
-            <span>WhatsApp Support: +237 6XX XXX XXX</span>
+            {/* <FaWhatsapp size={20} />
+            <span>WhatsApp Support: +237 6XX XXX XXX</span> */}
+            <FaEnvelope size={20} />
+            <span>Contact Support: support@beautyheaven.site</span>
           </a>
         </div>
       </div>

@@ -27,7 +27,7 @@ const Subscriptions = () => {
       description: "Ideal for small beauty service providers starting out.",
       features: [
         "Targeted traffic from nearby customers",
-        "Visible on BeautyHub directory",
+        "Visible on BeautyHeavenven directory",
         "Appointment reminders",
         "Basic analytics",
         "Simple client loyalty tracker",
@@ -127,7 +127,7 @@ const Subscriptions = () => {
     <div className="bg-white">
       {/* Hero Section */}
       <section
-        className="relative text-center py-20 px-4"
+        className="relative text-center py-10 md:py-16 px-4"
         style={{
           backgroundImage: `url(${heroBg})`,
           backgroundSize: "cover",
@@ -137,13 +137,13 @@ const Subscriptions = () => {
         <div className="absolute inset-0 bg-white opacity-60"></div>
         <div className="relative z-10">
           <div className="flex justify-center items-center mb-4">
-            <span className="text-5xl font-extrabold bg-gradient-to-r from-primary-pink to-primary-purple text-transparent bg-clip-text">
-              BeautyHub
+            <span className="text-2xl md:text-5xl font-extrabold bg-gradient-to-r from-primary-pink to-primary-purple text-transparent bg-clip-text">
+              BeautyHeaven
             </span>
             <FaHeart className="text-pink-400 text-4xl ml-2" />
           </div>
-          <h1 className="text-4xl md:text-5xl font-bold text-text-main mb-4">
-            Grow Your Beauty Business with BeautyHub
+          <h1 className="text-xl md:text-5xl font-bold text-text-main mb-4">
+            Grow Your Beauty Business with BeautyHeaven
           </h1>
           <p className="text-lg text-text-muted max-w-3xl mx-auto">
             Choose the perfect plan for your salon and start attracting more
@@ -153,8 +153,8 @@ const Subscriptions = () => {
       </section>
 
       {/* Pricing Plans Section */}
-      <section className="container mx-auto px-6 py-16">
-        <div className="text-center mb-16">
+      <section className="container mx-auto px-6 py-8 md:py-12">
+        <div className="text-center mb-8 md:mb-12">
           <h2 className="text-4xl font-bold mb-4">
             Simple, Transparent Pricing
           </h2>
@@ -270,7 +270,7 @@ const Subscriptions = () => {
       <section className="bg-slate-50 py-16 px-4">
         <div className="container mx-auto">
           <h2 className="text-3xl font-bold text-center mb-12">
-            Why Salon Owners Choose BeautyHub
+            Why Salon Owners Choose BeautyHeaven
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             <div className="flex flex-col items-center text-center">

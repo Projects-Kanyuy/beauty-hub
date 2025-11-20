@@ -1,7 +1,7 @@
 // server/controllers/messageController.js
-const asyncHandler = require('express-async-handler');
-const Conversation = require('../models/messageModel');
-const Salon = require('../models/salonModel');
+const asyncHandler = require("express-async-handler");
+const Conversation = require("../models/messageModel");
+const Salon = require("../models/salonModel");
 
 /**
  * @swagger
@@ -28,7 +28,7 @@ const Salon = require('../models/salonModel');
  *                   - _id: "507f1f77bcf86cd799439013"
  *                     name: "Alice Johnson"
  *                   - _id: "507f1f77bcf86cd799439014"
- *                     name: "BeautyHub Salon"
+ *                     name: "BeautyHeaven Salon"
  *                 lastMessage:
  *                   text: "Yes, 2pm works perfectly!"
  *                   sender: "507f1f77bcf86cd799439013"
@@ -52,7 +52,7 @@ const getMyConversations = asyncHandler(async (req, res) => {
   // 2. Find all conversations related to this salon
   // We populate participant details so we can show their names on the frontend
   const conversations = await Conversation.find({ salon: salon._id })
-    .populate('participants', 'name')
+    .populate("participants", "name")
     .sort({ updatedAt: -1 }); // Show most recent conversations first
 
   res.json(conversations);

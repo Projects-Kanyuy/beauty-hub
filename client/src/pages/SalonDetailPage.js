@@ -105,7 +105,7 @@ const SalonDetailPage = () => {
   const displayImage =
     salon.photos && salon.photos.length > 0
       ? salon.photos[currentPhotoIndex]
-      : "https://via.placeholder.com/1200x600.png?text=BeautyHub";
+      : "https://via.placeholder.com/1200x600.png?text=BeautyHeaven";
 
   return (
     <div className="bg-gray-50 min-h-screen">

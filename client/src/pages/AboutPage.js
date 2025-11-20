@@ -13,7 +13,7 @@ const AboutPage = () => {
       >
         <div className="absolute inset-0 bg-black opacity-40"></div>
         <div className="relative z-10 container mx-auto text-center text-white">
-          <h1 className="text-5xl font-extrabold mb-4">About BeautyHub</h1>
+          <h1 className="text-5xl font-extrabold mb-4">About BeautyHeaven</h1>
           <p className="text-xl max-w-3xl mx-auto">
             Connecting beauty professionals and clients across Africa with trust
             and technology.
@@ -82,7 +82,7 @@ const AboutPage = () => {
           </h2>
           <p className="text-text-muted mb-8 max-w-2xl mx-auto">
             Whether you're looking for your next beauty treatment or want to
-            grow your salon business, BeautyHub is here for you.
+            grow your salon business, BeautyHeaven is here for you.
           </p>
           <div className="flex justify-center gap-4">
             <a

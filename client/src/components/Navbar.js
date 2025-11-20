@@ -48,7 +48,7 @@ const Navbar = ({ isLoggedIn, user, handleLogout }) => {
         {/* Logo */}
         <Link to="/" className="text-3xl font-extrabold">
           <span className="bg-gradient-to-r from-primary-pink to-primary-purple text-transparent bg-clip-text">
-            BeautyHub
+            BeautyHeaven
           </span>
         </Link>
 
@@ -66,10 +66,10 @@ const Navbar = ({ isLoggedIn, user, handleLogout }) => {
             // Guest View
             <>
               <NavItem to="/">Home</NavItem>
-              <NavItem to="/subscriptions">Add Your Business</NavItem>
               <NavItem to="/tips">Beauty Tips</NavItem>
+              <NavItem to="/subscriptions">Add Your Business</NavItem>
               <NavItem to="/about">About Us</NavItem>
-              <NavItem to="/contact">Contact</NavItem>
+              {/* <NavItem to="/contact">Contact</NavItem> */}
             </>
           )}
         </ul>
@@ -136,18 +136,18 @@ const Navbar = ({ isLoggedIn, user, handleLogout }) => {
                   <NavItem to="/" onClick={closeDrawer}>
                     Home
                   </NavItem>
-                  <NavItem to="/subscriptions" onClick={closeDrawer}>
-                    Add Your Business
-                  </NavItem>
                   <NavItem to="/tips" onClick={closeDrawer}>
                     Beauty Tips
+                  </NavItem>
+                  <NavItem to="/subscriptions" onClick={closeDrawer}>
+                    Add Your Business
                   </NavItem>
                   <NavItem to="/about" onClick={closeDrawer}>
                     About Us
                   </NavItem>
-                  <NavItem to="/contact" onClick={closeDrawer}>
+                  {/* <NavItem to="/contact" onClick={closeDrawer}>
                     Contact
-                  </NavItem>
+                  </NavItem> */}
                 </>
               )}
             </ul>

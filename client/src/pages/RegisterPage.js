@@ -63,7 +63,7 @@ const RegisterPage = () => {
         Create Your Account
       </h3>
       <p className="text-text-muted mb-6">
-        Join BeautyHub and start growing your beauty business with the {selectedPlan.toUpperCase()} plan.
+        Join BeautyHeaven and start growing your beauty business with the {selectedPlan.toUpperCase()} plan.
       </p>
 
       <form onSubmit={handleSubmit} className="space-y-4">

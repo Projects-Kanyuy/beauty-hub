@@ -71,7 +71,7 @@ const HomePage = () => {
       {/* <section className="bg-slate-50 py-16 px-4">
         <div className="container mx-auto">
           <h2 className="text-3xl font-bold text-center mb-12">
-            Why Choose BeautyHub
+            Why Choose BeautyHeaven
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="bg-white p-8 rounded-lg shadow-sm hover:shadow-md transition-shadow">
@@ -176,7 +176,8 @@ const HomePage = () => {
           <h2 className="text-4xl font-bold mb-6">Are You a Salon Owner?</h2>
           <p className="text-xl mb-8 max-w-2xl mx-auto">
             Join thousands of beauty businesses growing their customer base with
-            BeautyHub. Get more bookings, manage your business, and grow faster.
+            BeautyHeaven. Get more bookings, manage your business, and grow
+            faster.
           </p>
           <Link to="/subscriptions">
             <Button variant="light" className="px-8 py-3">
