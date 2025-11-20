@@ -20,7 +20,7 @@ const options = {
         description: "Development server",
       },
       {
-        url: "https://api.beautyhope.site/",
+        url: "https://api.beautyheaven.site/",
         description: "Production server",
       },
     ],
