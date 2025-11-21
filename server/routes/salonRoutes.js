@@ -4,7 +4,7 @@ const router = express.Router();
 const {
   getSalons,
   getSalonById,
-  createSalon,
+  // createSalon,
   updateSalon,
   addSalonService,
   updateSalonService,
@@ -20,7 +20,7 @@ const reviewRouter = require('./reviewRoutes');
 router.route('/').get(getSalons);
 
 // Protected route for an owner to create their profile
-router.route('/').post(protect, createSalon);
+router.route('/').post(protect);
 
 // Specific route for the logged-in owner to get their salon.
 // This MUST come BEFORE the dynamic '/:id' route.

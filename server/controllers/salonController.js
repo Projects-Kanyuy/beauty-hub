@@ -58,207 +58,207 @@ const getSalonById = asyncHandler(async (req, res) => {
   }
 });
 
-/**
- * @swagger
- * /api/salons:
- *   post:
- *     summary: Create salon profile after successful Swychr payment
- *     description: |
- *       Salon creation is paywalled behind Swychr payment gateway.
- *       
- *       The user must complete payment via Swychr and provide the resulting 
- *       **Swychr transaction reference** (e.g., `SWY-XXXXXXX`) in the `paymentReference` field.
- *       
- *       The backend will:
- *       • Verify the transaction directly with Swychr (using merchant credentials)
- *       • Confirm the exact amount matches the selected plan
- *       • Ensure the transaction status is `successful`
- *       • Prevent reuse of the same reference
- *       
- *       On successful verification → creates the salon profile and activates the subscription instantly.
- *     tags: [Salons]
- *     security:
- *       - bearerAuth: []
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - subscriptionTypeId
- *               - paymentReference
- *               - name
- *               - description
- *               - address
- *               - city
- *               - phone
- *             properties:
- *               subscriptionTypeId:
- *                 type: string
- *                 description: MongoDB ObjectId of the chosen subscription plan (from SubscriptionType collection)
- *                 example: 671f3a2b9e4d8c1f5a6b7c8d
- *               paymentReference:
- *                 type: string
- *                 description: Swychr transaction reference returned after successful payment (e.g., SWY-20251120XXXXXX)
- *                 example: SWY-20251120123456789
- *               name:
- *                 type: string
- *                 description: Name of the salon
- *                 example: Glamour Beauty Hub
- *               description:
- *                 type: string
- *                 description: Short description about the salon
- *                 example: Premium hair & beauty services in Lagos
- *               address:
- *                 type: string
- *                 description: Full physical address of the salon
- *                 example: 123 Adeola Odeku Street, Victoria Island
- *               city:
- *                 type: string
- *                 description: City where the salon is located
- *                 example: Lagos
- *               phone:
- *                 type: string
- *                 description: Contact phone number (preferably WhatsApp-enabled)
- *                 example: +2348012345678
- *               openingHours:
- *                 type: object
- *                 description: Optional opening hours (any format, stored as-is)
- *                 example:
- *                   monday: "09:00 - 18:00"
- *                   tuesday: "09:00 - 18:00"
- *                   sunday: "Closed"
- *     responses:
- *       201:
- *         description: Salon created successfully and subscription activated
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                   example: Salon created successfully! Your subscription is active.
- *                 salon:
- *                   $ref: '#/components/schemas/Salon'
- *       400:
- *         description: Bad request – invalid plan, payment verification failed, duplicate salon, etc.
- *       401:
- *         description: Unauthorized – missing or invalid JWT token
- */
-const createSalon = asyncHandler(async (req, res) => {
-  const {
-    subscriptionTypeId,
-    paymentReference, // This will be the Swychr transaction reference (e.g. "SWY-XXXXXX")
-    name,
-    description,
-    address,
-    city,
-    phone,
-    openingHours,
-  } = req.body;
+// /**
+//  * @swagger
+//  * /api/salons:
+//  *   post:
+//  *     summary: Create salon profile after successful Swychr payment
+//  *     description: |
+//  *       Salon creation is paywalled behind Swychr payment gateway.
+//  *       
+//  *       The user must complete payment via Swychr and provide the resulting 
+//  *       **Swychr transaction reference** (e.g., `SWY-XXXXXXX`) in the `paymentReference` field.
+//  *       
+//  *       The backend will:
+//  *       • Verify the transaction directly with Swychr (using merchant credentials)
+//  *       • Confirm the exact amount matches the selected plan
+//  *       • Ensure the transaction status is `successful`
+//  *       • Prevent reuse of the same reference
+//  *       
+//  *       On successful verification → creates the salon profile and activates the subscription instantly.
+//  *     tags: [Salons]
+//  *     security:
+//  *       - bearerAuth: []
+//  *     requestBody:
+//  *       required: true
+//  *       content:
+//  *         application/json:
+//  *           schema:
+//  *             type: object
+//  *             required:
+//  *               - subscriptionTypeId
+//  *               - paymentReference
+//  *               - name
+//  *               - description
+//  *               - address
+//  *               - city
+//  *               - phone
+//  *             properties:
+//  *               subscriptionTypeId:
+//  *                 type: string
+//  *                 description: MongoDB ObjectId of the chosen subscription plan (from SubscriptionType collection)
+//  *                 example: 671f3a2b9e4d8c1f5a6b7c8d
+//  *               paymentReference:
+//  *                 type: string
+//  *                 description: Swychr transaction reference returned after successful payment (e.g., SWY-20251120XXXXXX)
+//  *                 example: SWY-20251120123456789
+//  *               name:
+//  *                 type: string
+//  *                 description: Name of the salon
+//  *                 example: Glamour Beauty Hub
+//  *               description:
+//  *                 type: string
+//  *                 description: Short description about the salon
+//  *                 example: Premium hair & beauty services in Lagos
+//  *               address:
+//  *                 type: string
+//  *                 description: Full physical address of the salon
+//  *                 example: 123 Adeola Odeku Street, Victoria Island
+//  *               city:
+//  *                 type: string
+//  *                 description: City where the salon is located
+//  *                 example: Lagos
+//  *               phone:
+//  *                 type: string
+//  *                 description: Contact phone number (preferably WhatsApp-enabled)
+//  *                 example: +2348012345678
+//  *               openingHours:
+//  *                 type: object
+//  *                 description: Optional opening hours (any format, stored as-is)
+//  *                 example:
+//  *                   monday: "09:00 - 18:00"
+//  *                   tuesday: "09:00 - 18:00"
+//  *                   sunday: "Closed"
+//  *     responses:
+//  *       201:
+//  *         description: Salon created successfully and subscription activated
+//  *         content:
+//  *           application/json:
+//  *             schema:
+//  *               type: object
+//  *               properties:
+//  *                 message:
+//  *                   type: string
+//  *                   example: Salon created successfully! Your subscription is active.
+//  *                 salon:
+//  *                   $ref: '#/components/schemas/Salon'
+//  *       400:
+//  *         description: Bad request – invalid plan, payment verification failed, duplicate salon, etc.
+//  *       401:
+//  *         description: Unauthorized – missing or invalid JWT token
+//  */
+// const createSalon = asyncHandler(async (req, res) => {
+//   const {
+//     subscriptionTypeId,
+//     paymentReference, // This will be the Swychr transaction reference (e.g. "SWY-XXXXXX")
+//     name,
+//     description,
+//     address,
+//     city,
+//     phone,
+//     openingHours,
+//   } = req.body;
 
-  const ownerId = req.user._id;
+//   const ownerId = req.user._id;
 
-  // 1. Prevent duplicate salon
-  const existingSalon = await Salon.findOne({ owner: ownerId });
-  if (existingSalon) {
-    res.status(400);
-    throw new Error('You already have a salon profile');
-  }
+//   // 1. Prevent duplicate salon
+//   const existingSalon = await Salon.findOne({ owner: ownerId });
+//   if (existingSalon) {
+//     res.status(400);
+//     throw new Error('You already have a salon profile');
+//   }
 
-  // 2. Validate subscription plan exists
-  const plan = await SubscriptionType.findById(subscriptionTypeId);
-  if (!plan) {
-    res.status(400);
-    throw new Error('Invalid subscription plan selected');
-  }
+//   // 2. Validate subscription plan exists
+//   const plan = await SubscriptionType.findById(subscriptionTypeId);
+//   if (!plan) {
+//     res.status(400);
+//     throw new Error('Invalid subscription plan selected');
+//   }
 
-  // 3. Verify payment with Swychr
-  if (!paymentReference) {
-    res.status(400);
-    throw new Error('Payment reference is required');
-  }
+//   // 3. Verify payment with Swychr
+//   if (!paymentReference) {
+//     res.status(400);
+//     throw new Error('Payment reference is required');
+//   }
 
-  try {
-    const swychrAuth = Buffer.from(
-      `${process.env.SWYCHR_EMAIL}:${process.env.SWYCHR_PASSWORD}`
-    ).toString('base64');
+//   try {
+//     const swychrAuth = Buffer.from(
+//       `${process.env.SWYCHR_EMAIL}:${process.env.SWYCHR_PASSWORD}`
+//     ).toString('base64');
 
-    const response = await axios.get(
-      `${process.env.SWYCHR_BASE_URL}/transactions/${paymentReference}`,
-      {
-        headers: {
-          Authorization: `Basic ${swychrAuth}`,
-          'Content-Type': 'application/json',
-        },
-        timeout: 10000,
-      }
-    );
+//     const response = await axios.get(
+//       `${process.env.SWYCHR_BASE_URL}/transactions/${paymentReference}`,
+//       {
+//         headers: {
+//           Authorization: `Basic ${swychrAuth}`,
+//           'Content-Type': 'application/json',
+//         },
+//         timeout: 10000,
+//       }
+//     );
 
-    const transaction = response.data;
+//     const transaction = response.data;
 
-    // Swychr successful & completed transaction checks
-    if (
-      !transaction ||
-      transaction.status !== 'successful' || // or "completed" depending on their wording
-      transaction.amount !== plan.amount * 100 || // Swychr usually works in kobo/pesewas (minor units)
-      transaction.currency !== 'NGN' // adjust if you support others
-    ) {
-      res.status(400);
-      throw new Error('Payment verification failed or amount mismatch');
-    }
+//     // Swychr successful & completed transaction checks
+//     if (
+//       !transaction ||
+//       transaction.status !== 'successful' || // or "completed" depending on their wording
+//       transaction.amount !== plan.amount * 100 || // Swychr usually works in kobo/pesewas (minor units)
+//       transaction.currency !== 'NGN' // adjust if you support others
+//     ) {
+//       res.status(400);
+//       throw new Error('Payment verification failed or amount mismatch');
+//     }
 
-    // Optional: Prevent replay attacks (same ref used twice)
-    const alreadyUsed = await SubscriptionHistory.findOne({
-      paymentRef: paymentReference,
-    });
-    if (alreadyUsed) {
-      res.status(400);
-      throw new Error('This payment reference has already been used');
-    }
-  } catch (err) {
-    console.error('Swychr verification error:', err.response?.data || err.message);
-    res.status(400);
-    throw new Error('Failed to verify payment with Swychr');
-  }
+//     // Optional: Prevent replay attacks (same ref used twice)
+//     const alreadyUsed = await SubscriptionHistory.findOne({
+//       paymentRef: paymentReference,
+//     });
+//     if (alreadyUsed) {
+//       res.status(400);
+//       throw new Error('This payment reference has already been used');
+//     }
+//   } catch (err) {
+//     console.error('Swychr verification error:', err.response?.data || err.message);
+//     res.status(400);
+//     throw new Error('Failed to verify payment with Swychr');
+//   }
 
-  // 4. Create the salon
-  const salon = await Salon.create({
-    owner: ownerId,
-    name,
-    description,
-    address,
-    city,
-    phone,
-    openingHours,
-    isVerified: true, // Paid users get instant verification
-  });
+//   // 4. Create the salon
+//   const salon = await Salon.create({
+//     owner: ownerId,
+//     name,
+//     description,
+//     address,
+//     city,
+//     phone,
+//     openingHours,
+//     isVerified: true, // Paid users get instant verification
+//   });
 
-  // 5. Calculate subscription end date
-  const startDate = new Date();
-  const endDate = new Date();
-  endDate.setMonth(endDate.getMonth() + plan.durationMonths);
+//   // 5. Calculate subscription end date
+//   const startDate = new Date();
+//   const endDate = new Date();
+//   endDate.setMonth(endDate.getMonth() + plan.durationMonths);
 
-  // 6. Record subscription history
-  await SubscriptionHistory.create({
-    salon: salon._id,
-    planName: plan.planName,
-    amount: plan.amount,
-    durationMonths: plan.durationMonths,
-    startDate,
-    endDate,
-    paymentRef: paymentReference,
-    status: 'Active',
-    gateway: 'Swychr',
-  });
+//   // 6. Record subscription history
+//   await SubscriptionHistory.create({
+//     salon: salon._id,
+//     planName: plan.planName,
+//     amount: plan.amount,
+//     durationMonths: plan.durationMonths,
+//     startDate,
+//     endDate,
+//     paymentRef: paymentReference,
+//     status: 'Active',
+//     gateway: 'Swychr',
+//   });
 
-  res.status(201).json({
-    message: 'Salon created successfully! Your subscription is active.',
-    salon,
-  });
-});
+//   res.status(201).json({
+//     message: 'Salon created successfully! Your subscription is active.',
+//     salon,
+//   });
+// });
 
 /**
  * @swagger
@@ -524,7 +524,7 @@ const getMySalon = asyncHandler(async (req, res) => {
 module.exports = {
   getSalons,
   getSalonById,
-  createSalon,
+  // createSalon,
   updateSalon,
   addSalonService,
   updateSalonService,

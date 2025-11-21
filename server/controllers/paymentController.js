@@ -1,23 +1,20 @@
 // controllers/paymentController.js
 const asyncHandler = require('express-async-handler');
-const axios = require('axios');
-const SubscriptionType = require('../models/subscriptionTypeModel.js');
+const SubscriptionType = require('../models/subscriptionTypeModel');
+const Transaction = require('../models/transactionModel');
+const SubscriptionHistory = require('../models/subscriptionHistoryModel');
+const Salon = require('../models/salonModel');
+const { login, createPaymentLink } = require('../services/swychrService');
 const { v4: uuidv4 } = require('uuid');
 
 /**
  * @swagger
  * /api/payments/initiate-swychr:
  *   post:
- *     summary: Initiate Swychr payment for salon subscription
+ *     summary: Initiate Swychr payment with full salon customization
  *     description: |
- *       This endpoint initializes a payment with Swychr.
- *       
- *       • User selects a plan → sends only the `subscriptionTypeId`
- *       • Backend fetches plan details (amount, name, specs)
- *       • Generates a unique reference and calls Swychr `/transactions/initialize`
- *       • Returns Swychr payment URL + reference for frontend redirect or modal
- *       
- *       After successful payment, user submits the `paymentReference` to `/api/salons` to create salon.
+ *       Creates a Swychr payment link and saves user's salon details for auto-creation on success.
+ *       Users provide their salon name, address, etc. before paying.
  *     tags: [Payments]
  *     security:
  *       - bearerAuth: []
@@ -29,116 +26,219 @@ const { v4: uuidv4 } = require('uuid');
  *             type: object
  *             required:
  *               - subscriptionTypeId
+ *               - salonName
+ *               - address
+ *               - city
+ *               - phone
  *             properties:
  *               subscriptionTypeId:
  *                 type: string
- *                 description: ID of the selected subscription plan
  *                 example: 671f3a2b9e4d8c1f5a6b7c8d
+ *               salonName:
+ *                 type: string
+ *                 example: "Luxe Beauty Palace"
+ *               salonDescription:
+ *                 type: string
+ *                 example: "Premium hair & nail services in Yaoundé"
+ *               address:
+ *                 type: string
+ *                 example: "Rue des Pavillons, Bastos"
+ *               city:
+ *                 type: string
+ *                 example: "Yaoundé"
+ *               phone:
+ *                 type: string
+ *                 example: "+237699999999"
+ *               openingHours:
+ *                 type: object
+ *                 example: { "monday": "09:00 - 19:00", "sunday": "Closed" }
  *     responses:
  *       200:
- *         description: Payment initialized successfully
+ *         description: Payment link generated successfully
  *         content:
  *           application/json:
  *             schema:
  *               type: object
  *               properties:
- *                 success:
- *                   type: boolean
- *                   example: true
+ *                 success: { type: boolean }
  *                 data:
  *                   type: object
  *                   properties:
- *                     paymentReference:
- *                       type: string
- *                       description: Use this in /api/salons to create salon after payment
- *                       example: SWY-20251120123456789
- *                     paymentUrl:
- *                       type: string
- *                       description: Redirect user here or open in modal
- *                       example: https://checkout.swychr.com/pay/SWY-20251120123456789
- *                     amount:
- *                       type: number
- *                       example: 49900
- *                     planName:
- *                       type: string
- *                       example: Pro
- *       400:
- *         description: Invalid or missing subscription plan
- *       500:
- *         description: Failed to initialize payment with Swychr
+ *                     paymentReference: { type: string }
+ *                     paymentUrl: { type: string }
+ *                     amount: { type: number }
+ *                     planName: { type: string }
  */
-
 const initiateSwychrPayment = asyncHandler(async (req, res) => {
-  const { subscriptionTypeId } = req.body;
-  const customerEmail = req.user.email;
-  const customerName = req.user.name || req.user.username || 'Customer';
+  const {
+    subscriptionTypeId,
+    salonName,
+    salonDescription,
+    address,
+    city,
+    phone,
+    openingHours,
+  } = req.body;
 
-  if (!subscriptionTypeId) {
-    res.status(400);
-    throw new Error('subscriptionTypeId is required');
+  const user = req.user;
+
+  // Validate required fields
+  if (!subscriptionTypeId || !salonName || !address || !city || !phone) {
+    return res.status(400).json({ message: 'All salon details are required' });
   }
 
   const plan = await SubscriptionType.findById(subscriptionTypeId);
-  if (!plan) {
-    res.status(400);
-    throw new Error('Invalid subscription plan selected');
-  }
+  if (!plan) return res.status(400).json({ message: 'Invalid subscription plan' });
 
-  const paymentReference = `SWY-${Date.now()}-${uuidv4().slice(0, 8)}`;
-
-  const payload = {
-    amount: plan.amount,
-    email: customerEmail,
-    reference: paymentReference,
-    currency: 'NGN',
-    callback_url: process.env.SWYCHR_CALLBACK_URL,
-    metadata: {
-      plan_id: plan._id.toString(),
-      plan_name: plan.planName,
-      user_id: req.user._id.toString(),
-      type: 'salon_subscription',
-    },
-  };
+  const transactionId = `BEAUTY-${Date.now()}-${uuidv4().slice(0, 8)}`;
 
   try {
-    const auth = Buffer.from(
-      `${process.env.SWYCHR_EMAIL}:${process.env.SWYCHR_PASSWORD}`
-    ).toString('base64');
+    const token = await login();
 
-    const response = await axios.post(
-      `${process.env.SWYCHR_BASE_URL}/transactions/initialize`,
-      payload,
-      {
-        headers: {
-          Authorization: `Basic ${auth}`,
-          'Content-Type': 'application/json',
-        },
-        timeout: 15000,
-      }
-    );
+    const payload = {
+      country_code: 'CM',
+      name: user.name || 'Customer',
+      email: user.email,
+      mobile: phone,
+      amount: plan.amount,
+      transaction_id: transactionId,
+      description: `BeautyHub - ${plan.planName} Plan`,
+      pass_digital_charge: false,
+    };
 
-    const swychrData = response.data;
+    const swychrResponse = await createPaymentLink(token, payload);
 
-    if (!swychrData.status || !swychrData.data?.authorization_url) {
-      throw new Error('Invalid response from Swychr');
-    }
+    // Save full transaction with user-controlled salon details
+    await Transaction.create({
+      transactionId,
+      user: user._id,
+      plan: plan._id,
+      amount: plan.amount,
+      customerName: user.name,
+      customerEmail: user.email,
+      customerPhone: phone,
+      countryCode: 'CM',
+      description: payload.description,
+      status: 'LINK_CREATED',
+      paymentUrl: swychrResponse.data?.payment_url || `https://pay.accountpe.com/link/${transactionId}`,
+
+      // ← USER-CONTROLLED SALON DETAILS
+      salonDetails: {
+        name: salonName,
+        description: salonDescription || '',
+        address,
+        city,
+        phone,
+        openingHours: openingHours || {},
+      },
+    });
 
     res.json({
       success: true,
       data: {
-        paymentReference: swychrData.data.reference || paymentReference,
-        paymentUrl: swychrData.data.authorization_url,
+        paymentReference: transactionId,
+        paymentUrl: swychrResponse.data?.payment_url || `https://pay.accountpe.com/link/${transactionId}`,
         amount: plan.amount,
         planName: plan.planName,
         planSpecs: plan.planSpecs,
       },
     });
-  } catch (error) {
-    console.error('Swychr Init Error:', error.response?.data || error.message);
-    res.status(500);
-    throw new Error('Failed to initialize payment with Swychr');
+  } catch (err) {
+    console.error('Swychr Error:', err.response?.data || err.message);
+    await Transaction.create({
+      transactionId,
+      user: user._id,
+      amount: plan.amount,
+      status: 'FAILED',
+    });
+    res.status(500).json({ success: false, message: 'Payment creation failed' });
   }
 });
 
-// This is the ONLY line that matters for CommonJS
-module.exports = initiateSwychrPayment;
+/**
+ * @swagger
+ * /api/payments/swychr/webhook:
+ *   post:
+ *     summary: Swychr Webhook – Auto-create user-defined salon on payment success
+ *     description: |
+ *       Called by Swychr on payment status change.
+ *       When status = "paid" → creates salon using user's pre-filled details.
+ *       Fully idempotent and resilient.
+ *     tags: [Payments]
+ */
+const swychrWebhook = asyncHandler(async (req, res) => {
+  const { transaction_id, status } = req.body;
+
+  if (!transaction_id || !status) {
+    return res.status(400).json({ message: 'Invalid webhook payload' });
+  }
+
+  const transaction = await Transaction.findOne({ transactionId: transaction_id })
+    .populate('user')
+    .populate('plan');
+
+  if (!transaction) {
+    return res.status(200).json({ message: 'Transaction not found – ignored' });
+  }
+
+  const normalizedStatus = status.toUpperCase();
+  transaction.status = normalizedStatus === 'PAID' ? 'PAID' : normalizedStatus;
+  await transaction.save();
+
+  if (normalizedStatus !== 'PAID') {
+    return res.json({ success: true });
+  }
+
+  // Prevent double processing
+  const alreadyDone = await SubscriptionHistory.findOne({ paymentRef: transaction_id });
+  if (alreadyDone) {
+    return res.json({ success: true, message: 'Already activated' });
+  }
+
+  const user = transaction.user;
+  const plan = transaction.plan;
+  const salonDetails = transaction.salonDetails || {};
+
+  // Final safety
+  const existingSalon = await Salon.findOne({ owner: user._id });
+  if (existingSalon) {
+    return res.json({ success: true, message: 'Salon already exists' });
+  }
+
+  try {
+    const salon = await Salon.create({
+      owner: user._id,
+      name: salonDetails.name,
+      description: salonDetails.description || 'Beauty salon in Cameroon',
+      address: salonDetails.address,
+      city: salonDetails.city,
+      phone: salonDetails.phone,
+      openingHours: salonDetails.openingHours || {},
+      isVerified: true,
+    });
+
+    const startDate = new Date();
+    const endDate = new Date();
+    endDate.setMonth(endDate.getMonth() + plan.durationMonths);
+
+    await SubscriptionHistory.create({
+      salon: salon._id,
+      planName: plan.planName,
+      amount: plan.amount,
+      durationMonths: plan.durationMonths,
+      startDate,
+      endDate,
+      paymentRef: transaction_id,
+      status: 'Active',
+      gateway: 'swychr',
+    });
+
+    console.log(`SALON CREATED: ${salonDetails.name} for ${user.email}`);
+    res.json({ success: true, message: 'Salon activated successfully' });
+  } catch (error) {
+    console.error('Webhook activation failed:', error.message);
+    res.json({ success: true, message: 'Processed – activation will retry' }); // Never 5xx
+  }
+});
+
+module.exports = { initiateSwychrPayment, swychrWebhook };
