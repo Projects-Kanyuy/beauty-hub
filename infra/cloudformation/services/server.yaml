@@ -164,9 +164,9 @@ Resources:
               ValueFrom: !Sub "${MongoDBSecretArn}:mongo_uri::"
             - Name: JWT_SECRET
               ValueFrom: !Sub "${JWTSecretArn}:jwt_secret::"
-            - SWYCHR_EMAIL
+            - Name: SWYCHR_EMAIL
               ValueFrom: !Sub "${SwychrSecretArn}:email::"
-            - SWYCHR_PASSWORD
+            - Name: SWYCHR_PASSWORD
               ValueFrom: !Sub "${SwychrSecretArn}:password::"
           LogConfiguration:
             LogDriver: awslogs
