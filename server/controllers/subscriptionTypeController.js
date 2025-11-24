@@ -1,6 +1,6 @@
 // server/controllers/subscriptionTypeController.js
-const asyncHandler = require('express-async-handler');
-const SubscriptionType = require('../models/subscriptionTypeModel');
+const asyncHandler = require("express-async-handler");
+const SubscriptionType = require("../models/subscriptionTypeModel");
 
 /**
  * @swagger
@@ -23,6 +23,13 @@ const getSubscriptionTypes = asyncHandler(async (req, res) => {
   res.json(plans);
 });
 
+const getSubscriptionTypeById = asyncHandler(async (req, res) => {
+  const plan = await SubscriptionType.findById(req.params.id);
+  res.json({
+    data: plan,
+  });
+});
+
 /**
  * @swagger
  * /api/subscriptions/types:
@@ -42,17 +49,20 @@ const getSubscriptionTypes = asyncHandler(async (req, res) => {
  *         description: Plan created successfully
  */
 const createSubscriptionType = asyncHandler(async (req, res) => {
-  if (req.user.role !== 'admin') {
+  if (req.user.role !== "admin") {
     res.status(403);
-    throw new Error('Only admins can create subscription plans');
+    throw new Error("Only admins can create subscription plans");
   }
 
-  const { planName, planSpecs, amount, durationMonths } = req.body;
+  const { planName, planSpecs, description, currency, amount, durationMonths } =
+    req.body;
 
   const plan = await SubscriptionType.create({
     planName,
     planSpecs,
+    description,
     amount,
+    currency,
     durationMonths,
     createdBy: req.user._id,
     updatedBy: req.user._id,
@@ -85,15 +95,15 @@ const createSubscriptionType = asyncHandler(async (req, res) => {
  *         description: Plan updated successfully
  */
 const updateSubscriptionType = asyncHandler(async (req, res) => {
-  if (req.user.role !== 'admin') {
+  if (req.user.role !== "admin") {
     res.status(403);
-    throw new Error('Only admins can update plans');
+    throw new Error("Only admins can update plans");
   }
 
   const plan = await SubscriptionType.findById(req.params.id);
   if (!plan) {
     res.status(404);
-    throw new Error('Plan not found');
+    throw new Error("Plan not found");
   }
 
   const updatedPlan = await SubscriptionType.findByIdAndUpdate(
@@ -138,27 +148,28 @@ const updateSubscriptionType = asyncHandler(async (req, res) => {
  *         description: Not authorized as admin
  */
 const deleteSubscriptionType = asyncHandler(async (req, res) => {
-  if (req.user.role !== 'admin') {
+  if (req.user.role !== "admin") {
     res.status(403);
-    throw new Error('Only admins can delete subscription plans');
+    throw new Error("Only admins can delete subscription plans");
   }
 
   const plan = await SubscriptionType.findById(req.params.id);
 
   if (!plan) {
     res.status(404);
-    throw new Error('Subscription plan not found');
+    throw new Error("Subscription plan not found");
   }
 
   await SubscriptionType.deleteOne({ _id: req.params.id });
   // Or: await plan.remove(); (older Mongoose versions)
 
-  res.json({ message: 'Subscription plan deleted successfully' });
+  res.json({ message: "Subscription plan deleted successfully" });
 });
 
 module.exports = {
   getSubscriptionTypes,
   createSubscriptionType,
   updateSubscriptionType,
-  deleteSubscriptionType,   // ← Added
+  deleteSubscriptionType, // ← Added
+  getSubscriptionTypeById,
 };

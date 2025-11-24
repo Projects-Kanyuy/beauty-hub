@@ -30,6 +30,8 @@ Parameters:
     Type: String
   JWTSecretArn:
     Type: String
+  SwychrSecretArn:
+    Type: String
 
 # ----------------------------
 # Security Groups
@@ -113,6 +115,7 @@ Resources:
                 Resource:
                   - !Ref MongoDBSecretArn
                   - !Ref JWTSecretArn
+                  - !Ref SwychrSecretArn
 
   ServerTaskRole:
     Type: AWS::IAM::Role
@@ -161,6 +164,10 @@ Resources:
               ValueFrom: !Sub "${MongoDBSecretArn}:mongo_uri::"
             - Name: JWT_SECRET
               ValueFrom: !Sub "${JWTSecretArn}:jwt_secret::"
+            - SWYCHR_EMAIL
+              ValueFrom: !Sub "${SwychrSecretArn}:email::"
+            - SWYCHR_PASSWORD
+              ValueFrom: !Sub "${SwychrSecretArn}:password::"
           LogConfiguration:
             LogDriver: awslogs
             Options:

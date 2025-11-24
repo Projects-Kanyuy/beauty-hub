@@ -54,7 +54,7 @@ const mongoose = require('mongoose');
  *           createdAt: "2025-11-18T14:22:10.000Z"
  */
 // Schema for a single message within a conversation
-const singleMessageSchema = mongoose.Schema(
+const singleMessageSchema = new mongoose.Schema(
   {
     sender: {
       type: mongoose.Schema.Types.ObjectId,

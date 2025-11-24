@@ -1,7 +1,7 @@
 // server/controllers/appointmentController.js
-const asyncHandler = require('express-async-handler');
-const Appointment = require('../models/appointmentModel');
-const Salon = require('../models/salonModel');
+const asyncHandler = require("express-async-handler");
+const Appointment = require("../models/appointmentModel");
+const Salon = require("../models/salonModel");
 
 /**
  * @swagger
@@ -55,24 +55,67 @@ const Salon = require('../models/salonModel');
  *         description: Not authenticated
  */
 const createAppointment = asyncHandler(async (req, res) => {
-  const { salonId, serviceName, servicePrice, startTime, endTime } = req.body;
+  const {
+    salonId,
+    serviceId,
+    appointmentDateTime,
+    clientName,
+    clientNumber,
+    homeService,
+  } = req.body;
 
-  if (!salonId || !serviceName || !servicePrice || !startTime || !endTime) {
-    res.status(400);
-    throw new Error('Please provide all required appointment details');
+  if (
+    !salonId ||
+    !serviceId ||
+    !appointmentDateTime ||
+    !clientName ||
+    !clientNumber
+  ) {
+    res
+      .status(400)
+      .json({ message: "Please provide all required appointment details" });
+  }
+
+  const salon = await Salon.findById(salonId);
+
+  if (!salon) {
+    return res
+      .status(404)
+      .json({ message: `Salon with id ${salonId} not found` });
+  }
+
+  const service = salon.services.id(serviceId);
+
+  
+  if (homeService && !service.homeService) {
+    return res
+      .status(400)
+      .json({ message: `This service was not specified as a home service` });
+  }
+
+  if (!service) {
+    res.status(404).json({
+      message: `Service with id ${serviceId} not found for given salon with id ${salonId}`,
+    });
   }
 
   const appointment = await Appointment.create({
-    customer: req.user._id,
+    clientName,
+    clientNumber,
     salon: salonId,
-    serviceName,
-    servicePrice,
-    startTime,
-    endTime,
-    status: 'Pending',
+    serviceId: serviceId,
+    appointmentDateTime,
+    amount: homeService
+      ? service.price + service.homeServiceFee
+      : service.price,
+    currency: service.currency,
+    homeService,
+    status: "Pending",
   });
 
-  res.status(201).json(appointment);
+  res.status(201).json({
+    data: appointment,
+  });
 });
 
 /**
@@ -110,10 +153,12 @@ const getSalonAppointments = asyncHandler(async (req, res) => {
 
   if (!salon || salon.owner.toString() !== req.user._id.toString()) {
     res.status(401);
-    throw new Error('Not authorized to view these appointments');
+    throw new Error("Not authorized to view these appointments");
   }
 
-  const appointments = await Appointment.find({ salon: req.params.salonId }).populate('customer', 'name email');
+  const appointments = await Appointment.find({
+    salon: req.params.salonId,
+  });
 
   res.json(appointments);
 });
@@ -140,7 +185,9 @@ const getSalonAppointments = asyncHandler(async (req, res) => {
  *         description: Not authenticated
  */
 const getMyApointments = asyncHandler(async (req, res) => {
-  const appointments = await Appointment.find({ customer: req.user._id }).populate('salon', 'name address');
+  const appointments = await Appointment.find({
+    customer: req.user._id,
+  }).populate("salon", "name address");
   res.json(appointments);
 });
 
@@ -189,21 +236,23 @@ const getMyApointments = asyncHandler(async (req, res) => {
  */
 const updateAppointmentStatus = asyncHandler(async (req, res) => {
   const { status } = req.body;
-  const appointment = await Appointment.findById(req.params.id).populate('salon');
+  const appointment = await Appointment.findById(req.params.id).populate(
+    "salon"
+  );
 
   if (!appointment) {
     res.status(404);
-    throw new Error('Appointment not found');
+    throw new Error("Appointment not found");
   }
 
   if (appointment.salon.owner.toString() !== req.user._id.toString()) {
     res.status(401);
-    throw new Error('Not authorized to update this appointment');
+    throw new Error("Not authorized to update this appointment");
   }
 
-  if (!['Confirmed', 'Cancelled', 'Completed'].includes(status)) {
+  if (!["Confirmed", "Cancelled", "Completed"].includes(status)) {
     res.status(400);
-    throw new Error('Invalid status');
+    throw new Error("Invalid status");
   }
 
   appointment.status = status;

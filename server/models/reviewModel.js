@@ -42,7 +42,7 @@ const mongoose = require('mongoose');
  *         reply: "Thank you Jennifer! It was a pleasure having you ✨"
  *         createdAt: "2025-11-10T14:30:00.000Z"
  */
-const reviewSchema = mongoose.Schema(
+const reviewSchema = new mongoose.Schema(
   {
     user: {
       type: mongoose.Schema.Types.ObjectId,

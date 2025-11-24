@@ -1,5 +1,5 @@
 // src/App.js
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "./context/AuthContext";
 import { ToastContainer } from "react-toastify";
@@ -36,6 +36,7 @@ import SalonSettingsPage from "./pages/SalonSettingsPage";
 import SalonDetailPage from "./pages/SalonDetailPage";
 import PaymentPage from "./pages/PaymentPage";
 import SalonsPage from "./pages/SalonsPage";
+import { getActiveSubscription } from "./api";
 
 // Layout for the main public/customer site
 const MainLayout = ({ children }) => {
@@ -51,7 +52,19 @@ const MainLayout = ({ children }) => {
 
 function App() {
   const { user, loading } = useAuth();
-  const location = useLocation();
+  const [activePlan, setActivePlan] = useState(null);
+  // const location = useLocation();
+
+  useEffect(() => {
+    if (!user || user?.role !== "salon_owner") return;
+
+    const getPlan = async () => {
+      const plan = await getActiveSubscription(user?._id);
+      console.log({ plan });
+      setActivePlan(plan);
+    };
+    getPlan();
+  }, [user]);
 
   // Show a loading screen while context is checking for a stored user
   if (loading) {
@@ -74,10 +87,24 @@ function App() {
         {/* === PUBLIC ROUTES === */}
         <Route
           path="/"
+          // element={
+
+          // }
           element={
-            <MainLayout>
-              <HomePage />
-            </MainLayout>
+            !user ? (
+              <MainLayout>
+                <HomePage />
+              </MainLayout>
+            ) : (
+              <Navigate
+                to={
+                  user.role === "salon_owner" && activePlan
+                    ? "/salon-owner/dashboard"
+                    : "/subscriptions"
+                }
+                replace
+              />
+            )
           }
         />
         <Route
@@ -119,36 +146,37 @@ function App() {
         {/* === AUTH ROUTES (For logged-out users only) === */}
         <Route
           path="/login"
-          element={
-            !user ? (
-              <LoginPage />
-            ) : (
-              <Navigate
-                to={
-                  user.role === "salon_owner"
-                    ? "/salon-owner/dashboard"
-                    : "/dashboard"
-                }
-                replace
-              />
-            )
-          }
+          // element={
+          //   !user ? (
+          //     <LoginPage />
+          //   ) : (
+          //     <Navigate
+          //       to={
+          //         user.role === "salon_owner" && !!activePlan
+          //           ? "/salon-owner/dashboard"
+          //           : "/dashboard"
+          //       }
+          //       replace
+          //     />
+          //   )
+          // }
+          element={<LoginPage />}
         />
         <Route
           path="/register"
           element={
-            !user ? (
-              <RegisterPage />
-            ) : (
-              <Navigate
-                to={
-                  user.role === "salon_owner"
-                    ? "/salon-owner/dashboard"
-                    : "/dashboard"
-                }
-                replace
-              />
-            )
+            // !user ? (
+            <RegisterPage />
+            // ) : (
+            //   <Navigate
+            //     to={
+            //       user.role === "salon_owner"
+            //         ? "/salon-owner/dashboard"
+            //         : "/dashboard"
+            //     }
+            //     replace
+            //   />
+            // )
           }
         />
 

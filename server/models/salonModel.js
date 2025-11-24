@@ -1,5 +1,5 @@
 // server/models/salonModel.js
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
 /**
  * @swagger
@@ -53,19 +53,32 @@ const mongoose = require('mongoose');
  *             type: string
  */
 // We define the schema for a service as a sub-document
-const serviceSchema = mongoose.Schema({
+const serviceSchema = new mongoose.Schema({
   name: { type: String, required: true },
   description: { type: String },
   price: { type: Number, required: true },
-  duration: { type: Number, required: true }, // in minutes
+  currency: {
+    type: String,
+    enum: ["USD", "XAF"],
+    default: "XAF",
+  },
+  duration: { type: Number }, // in minutes
+  homeService: {
+    type: Boolean,
+    default: false,
+  },
+  homeServiceFee: {
+    type: Number,
+    default: 0,
+  },
 });
 
-const salonSchema = mongoose.Schema(
+const salonSchema = new mongoose.Schema(
   {
     owner: {
       type: mongoose.Schema.Types.ObjectId, // A special type for referencing another document
       required: true,
-      ref: 'User', // This tells Mongoose the ObjectId refers to a document in the 'User' collection
+      ref: "User", // This tells Mongoose the ObjectId refers to a document in the 'User' collection
     },
     name: {
       type: String,
@@ -92,7 +105,7 @@ const salonSchema = mongoose.Schema(
     reviews: [
       {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Review',
+        ref: "Review",
       },
     ],
     averageRating: {
@@ -109,6 +122,6 @@ const salonSchema = mongoose.Schema(
   }
 );
 
-const Salon = mongoose.model('Salon', salonSchema);
+const Salon = mongoose.model("Salon", salonSchema);
 
 module.exports = Salon;

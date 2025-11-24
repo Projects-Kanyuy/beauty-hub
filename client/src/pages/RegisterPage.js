@@ -10,7 +10,7 @@ const RegisterPage = () => {
   const { register } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  
+
   const searchParams = new URLSearchParams(location.search);
   const selectedPlan = searchParams.get("plan") || "starter";
 
@@ -40,11 +40,12 @@ const RegisterPage = () => {
       name: `${formData.firstName} ${formData.lastName}`,
       email: formData.email,
       password: formData.password,
+      phone: formData.phone,
       role: "salon_owner",
     };
 
     try {
-      const userData = await register(payload);
+      await register(payload);
       toast.success("Account Created Successfully!");
 
       navigate(`/payment?plan=${selectedPlan}`);
@@ -63,7 +64,8 @@ const RegisterPage = () => {
         Create Your Account
       </h3>
       <p className="text-text-muted mb-6">
-        Join BeautyHeaven and start growing your beauty business with the {selectedPlan.toUpperCase()} plan.
+        Join BeautyHeaven and start growing your beauty business with the{" "}
+        {selectedPlan.toUpperCase()} plan.
       </p>
 
       <form onSubmit={handleSubmit} className="space-y-4">
@@ -101,20 +103,6 @@ const RegisterPage = () => {
             type="email"
             name="email"
             onChange={handleChange}
-            className="w-full p-2 border rounded-lg"
-            required
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-text-muted mb-1">
-            Salon Name *
-          </label>
-          <input
-            type="text"
-            name="salonName"
-            onChange={handleChange}
-            placeholder="e.g. African Beauty Salon"
             className="w-full p-2 border rounded-lg"
             required
           />

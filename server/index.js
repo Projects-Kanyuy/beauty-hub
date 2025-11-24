@@ -4,14 +4,15 @@ const dotenv = require("dotenv");
 const cors = require("cors");
 const connectDB = require("./config/db");
 
-const subscriptionTypeRoutes = require('./routes/subscriptionTypeRoutes');
-const userRoutes = require('./routes/userRoutes');
-const salonRoutes = require('./routes/salonRoutes');
-const appointmentRoutes = require('./routes/appointmentRoutes');
-const analyticsRoutes = require('./routes/analyticsRoutes');
-const messageRoutes = require('./routes/messageRoutes');
-const paymentRoutes = require('./routes/paymentRoutes.js');
-const { notFound, errorHandler } = require('./middleware/errorMiddleware');
+const subscriptionTypeRoutes = require("./routes/subscriptionTypeRoutes");
+const subscriptionRoutes = require("./routes/subscriptionRoutes.js");
+const userRoutes = require("./routes/userRoutes");
+const salonRoutes = require("./routes/salonRoutes");
+const appointmentRoutes = require("./routes/appointmentRoutes");
+const analyticsRoutes = require("./routes/analyticsRoutes");
+const messageRoutes = require("./routes/messageRoutes");
+const paymentRoutes = require("./routes/paymentRoutes.js");
+const { notFound, errorHandler } = require("./middleware/errorMiddleware");
 
 // Swagger dependencies
 const swaggerSpec = require("./config/swagger"); // ← our spec
@@ -42,13 +43,14 @@ app.get("/", (req, res) => {
 });
 
 // === Your API routes ===
-app.use('/api/subscriptions', subscriptionTypeRoutes);
-app.use('/api/users', userRoutes);
-app.use('/api/salons', salonRoutes);
-app.use('/api/appointments', appointmentRoutes);
-app.use('/api/analytics', analyticsRoutes);
-app.use('/api/messages', messageRoutes);
-app.use('/api/payments', paymentRoutes);
+app.use("/api/subscription-types", subscriptionTypeRoutes);
+app.use("/api/subscriptions", subscriptionRoutes);
+app.use("/api/users", userRoutes);
+app.use("/api/salons", salonRoutes);
+app.use("/api/appointments", appointmentRoutes);
+app.use("/api/analytics", analyticsRoutes);
+app.use("/api/messages", messageRoutes);
+app.use("/api/payments", paymentRoutes);
 
 app.use(notFound);
 app.use(errorHandler);

@@ -1,6 +1,6 @@
 // server/models/userModel.js
-const mongoose = require('mongoose');
-const bcrypt = require('bcryptjs');
+const mongoose = require("mongoose");
+const bcrypt = require("bcryptjs");
 
 /**
  * @swagger
@@ -45,12 +45,13 @@ const bcrypt = require('bcryptjs');
  *           type: string
  *           format: date-time
  */
-const userSchema = mongoose.Schema(
+const userSchema = new mongoose.Schema(
   {
     name: {
       type: String,
       required: true,
     },
+    phone: String,
     email: {
       type: String,
       required: true,
@@ -63,8 +64,8 @@ const userSchema = mongoose.Schema(
     role: {
       type: String,
       required: true,
-      enum: ['customer', 'salon_owner', 'admin'], // The role must be one of these values
-      default: 'customer',
+      enum: ["customer", "salon_owner", "admin"], // The role must be one of these values
+      default: "customer",
     },
   },
   {
@@ -73,9 +74,9 @@ const userSchema = mongoose.Schema(
 );
 
 // This Mongoose middleware runs BEFORE a user is saved to the database
-userSchema.pre('save', async function (next) {
+userSchema.pre("save", async function (next) {
   // Only hash the password if it has been modified (or is new)
-  if (!this.isModified('password')) {
+  if (!this.isModified("password")) {
     next();
   }
 
@@ -89,6 +90,6 @@ userSchema.methods.matchPassword = async function (enteredPassword) {
   return await bcrypt.compare(enteredPassword, this.password);
 };
 
-const User = mongoose.model('User', userSchema);
+const User = mongoose.model("User", userSchema);
 
 module.exports = User;

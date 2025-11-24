@@ -219,6 +219,7 @@ Resources:
         # --- Third-party secret ARNs ---
         MongoDBSecretArn: !GetAtt ThirdPartySecretsStack.Outputs.MongoDBSecretArn
         JWTSecretArn: !GetAtt ThirdPartySecretsStack.Outputs.JWTSecretArn
+        SwychrSecretArn: !GetAtt ThirdPartySecretsStack.Outputs.SwychrSecretArn
 
 # Outputs:
 #   ClientDistributionDomain:

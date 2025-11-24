@@ -1,5 +1,5 @@
 // server/models/appointmentModel.js
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
 /**
  * @swagger
@@ -45,32 +45,37 @@ const mongoose = require('mongoose');
  *           type: string
  *           format: date-time
  */
-const appointmentSchema = mongoose.Schema(
+const appointmentSchema = new mongoose.Schema(
   {
-    customer: {
-      type: mongoose.Schema.Types.ObjectId,
-      required: true,
-      ref: 'User',
-    },
+    clientName: String,
+    clientNumber: String,
     salon: {
       type: mongoose.Schema.Types.ObjectId,
       required: true,
-      ref: 'Salon',
+      ref: "Salon",
     },
-    serviceName: { type: String, required: true },
-    servicePrice: { type: Number, required: true },
-    startTime: {
+    serviceId: { type: String, required: true },
+    appointmentDateTime: {
       type: Date,
       required: true,
     },
-    endTime: {
-      type: Date,
-      required: true,
+    homeService: {
+      type: Boolean,
+      default: false,
+    },
+    amount: {
+      type: String,
+      require: true,
+    },
+    currency: {
+      type: String,
+      enum: ["USD", "XAF"],
+      default: "XAF",
     },
     status: {
       type: String,
-      enum: ['Pending', 'Confirmed', 'Cancelled', 'Completed'],
-      default: 'Pending',
+      enum: ["Pending", "Confirmed", "Cancelled", "Completed"],
+      default: "Pending",
     },
   },
   {
@@ -78,6 +83,6 @@ const appointmentSchema = mongoose.Schema(
   }
 );
 
-const Appointment = mongoose.model('Appointment', appointmentSchema);
+const Appointment = mongoose.model("Appointment", appointmentSchema);
 
 module.exports = Appointment;

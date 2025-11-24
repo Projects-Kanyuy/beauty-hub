@@ -1,8 +1,6 @@
 // server/controllers/salonController.js
-const asyncHandler = require('express-async-handler');
-const Salon = require('../models/salonModel');
-const SubscriptionType = require('../models/subscriptionTypeModel');
-const SubscriptionHistory = require('../models/subscriptionHistoryModel');
+const asyncHandler = require("express-async-handler");
+const Salon = require("../models/salonModel");
 
 /**
  * @swagger
@@ -54,7 +52,7 @@ const getSalonById = asyncHandler(async (req, res) => {
   if (salon) res.json192(res.json(salon));
   else {
     res.status(404);
-    throw new Error('Salon not found');
+    throw new Error("Salon not found");
   }
 });
 
@@ -65,16 +63,16 @@ const getSalonById = asyncHandler(async (req, res) => {
 //  *     summary: Create salon profile after successful Swychr payment
 //  *     description: |
 //  *       Salon creation is paywalled behind Swychr payment gateway.
-//  *       
-//  *       The user must complete payment via Swychr and provide the resulting 
+//  *
+//  *       The user must complete payment via Swychr and provide the resulting
 //  *       **Swychr transaction reference** (e.g., `SWY-XXXXXXX`) in the `paymentReference` field.
-//  *       
+//  *
 //  *       The backend will:
 //  *       • Verify the transaction directly with Swychr (using merchant credentials)
 //  *       • Confirm the exact amount matches the selected plan
 //  *       • Ensure the transaction status is `successful`
 //  *       • Prevent reuse of the same reference
-//  *       
+//  *
 //  *       On successful verification → creates the salon profile and activates the subscription instantly.
 //  *     tags: [Salons]
 //  *     security:
@@ -147,118 +145,37 @@ const getSalonById = asyncHandler(async (req, res) => {
 //  *       401:
 //  *         description: Unauthorized – missing or invalid JWT token
 //  */
-// const createSalon = asyncHandler(async (req, res) => {
-//   const {
-//     subscriptionTypeId,
-//     paymentReference, // This will be the Swychr transaction reference (e.g. "SWY-XXXXXX")
-//     name,
-//     description,
-//     address,
-//     city,
-//     phone,
-//     openingHours,
-//   } = req.body;
+const createSalon = asyncHandler(async (req, res) => {
+  const { name, description, address, city, phone, openingHours, photos } =
+    req.body;
 
-//   const ownerId = req.user._id;
+  const ownerId = req.user._id;
 
-//   // 1. Prevent duplicate salon
-//   const existingSalon = await Salon.findOne({ owner: ownerId });
-//   if (existingSalon) {
-//     res.status(400);
-//     throw new Error('You already have a salon profile');
-//   }
+  // 1. Prevent duplicate salon
+  const existingSalon = await Salon.findOne({ owner: ownerId });
+  if (existingSalon) {
+    res.status(400);
+    throw new Error("You already have a salon profile");
+  }
 
-//   // 2. Validate subscription plan exists
-//   const plan = await SubscriptionType.findById(subscriptionTypeId);
-//   if (!plan) {
-//     res.status(400);
-//     throw new Error('Invalid subscription plan selected');
-//   }
+  // 4. Create the salon
+  const salon = await Salon.create({
+    owner: ownerId,
+    name,
+    description,
+    address,
+    city,
+    phone,
+    openingHours,
+    photos,
+    isVerified: true, // Paid users get instant verification
+  });
 
-//   // 3. Verify payment with Swychr
-//   if (!paymentReference) {
-//     res.status(400);
-//     throw new Error('Payment reference is required');
-//   }
-
-//   try {
-//     const swychrAuth = Buffer.from(
-//       `${process.env.SWYCHR_EMAIL}:${process.env.SWYCHR_PASSWORD}`
-//     ).toString('base64');
-
-//     const response = await axios.get(
-//       `${process.env.SWYCHR_BASE_URL}/transactions/${paymentReference}`,
-//       {
-//         headers: {
-//           Authorization: `Basic ${swychrAuth}`,
-//           'Content-Type': 'application/json',
-//         },
-//         timeout: 10000,
-//       }
-//     );
-
-//     const transaction = response.data;
-
-//     // Swychr successful & completed transaction checks
-//     if (
-//       !transaction ||
-//       transaction.status !== 'successful' || // or "completed" depending on their wording
-//       transaction.amount !== plan.amount * 100 || // Swychr usually works in kobo/pesewas (minor units)
-//       transaction.currency !== 'NGN' // adjust if you support others
-//     ) {
-//       res.status(400);
-//       throw new Error('Payment verification failed or amount mismatch');
-//     }
-
-//     // Optional: Prevent replay attacks (same ref used twice)
-//     const alreadyUsed = await SubscriptionHistory.findOne({
-//       paymentRef: paymentReference,
-//     });
-//     if (alreadyUsed) {
-//       res.status(400);
-//       throw new Error('This payment reference has already been used');
-//     }
-//   } catch (err) {
-//     console.error('Swychr verification error:', err.response?.data || err.message);
-//     res.status(400);
-//     throw new Error('Failed to verify payment with Swychr');
-//   }
-
-//   // 4. Create the salon
-//   const salon = await Salon.create({
-//     owner: ownerId,
-//     name,
-//     description,
-//     address,
-//     city,
-//     phone,
-//     openingHours,
-//     isVerified: true, // Paid users get instant verification
-//   });
-
-//   // 5. Calculate subscription end date
-//   const startDate = new Date();
-//   const endDate = new Date();
-//   endDate.setMonth(endDate.getMonth() + plan.durationMonths);
-
-//   // 6. Record subscription history
-//   await SubscriptionHistory.create({
-//     salon: salon._id,
-//     planName: plan.planName,
-//     amount: plan.amount,
-//     durationMonths: plan.durationMonths,
-//     startDate,
-//     endDate,
-//     paymentRef: paymentReference,
-//     status: 'Active',
-//     gateway: 'Swychr',
-//   });
-
-//   res.status(201).json({
-//     message: 'Salon created successfully! Your subscription is active.',
-//     salon,
-//   });
-// });
+  res.status(201).json({
+    message: "Salon created successfully! Your subscription is active.",
+    salon,
+  });
+});
 
 /**
  * @swagger
@@ -304,12 +221,12 @@ const updateSalon = asyncHandler(async (req, res) => {
 
   if (!salon) {
     res.status(404);
-    throw new Error('Salon not found');
+    throw new Error("Salon not found");
   }
 
   if (salon.owner.toString() !== req.user._id.toString()) {
     res.status(401);
-    throw new Error('Not authorized to update this salon');
+    throw new Error("Not authorized to update this salon");
   }
 
   salon.name = req.body.name || salon.name;
@@ -365,22 +282,40 @@ const updateSalon = asyncHandler(async (req, res) => {
  *         description: Service added successfully
  */
 const addSalonService = asyncHandler(async (req, res) => {
-  const { name, description, price, duration } = req.body;
+  const { name, description, price, currency, homeService, duration, homeServiceFee } =
+    req.body;
+
+  if (!name || !description || !price || !currency) {
+    return res.status(400).json({
+      message:
+        "missing required field, check that name, description, price and currency have been provided",
+    });
+  }
   const salon = await Salon.findById(req.params.id);
 
   if (!salon) {
-    res.status(404);
-    throw new Error('Salon not found');
+    return res.status(404).json({
+      message: `salon with id ${req.params.id} not found`,
+    });
   }
 
-  if (salon.owner.toString() !== req.user._id.toString()) {
-    res.status(401);
-    throw new Error('Not authorized to add services to this salon');
-  }
+  const service = {
+    name,
+    description,
+    price,
+    currency,
+    duration,
+    homeService,
+    homeServiceFee
+  };
 
-  salon.services.push({ name, description, price, duration });
-  await salon.save();
-  res.status(201).json({ message: 'Service added' });
+  await Salon.findByIdAndUpdate(req.params.id, {
+    $addToSet: { services: service },
+  });
+
+  return res.status(200).json({
+    message: "service added successfully",
+  });
 });
 
 /**
@@ -421,18 +356,18 @@ const updateSalonService = asyncHandler(async (req, res) => {
 
   if (!salon) {
     res.status(404);
-    throw new Error('Salon not found');
+    throw new Error("Salon not found");
   }
 
   if (salon.owner.toString() !== req.user._id.toString()) {
     res.status(401);
-    throw new Error('Not authorized');
+    throw new Error("Not authorized");
   }
 
   const service = salon.services.id(req.params.service_id);
   if (!service) {
     res.status(404);
-    throw new Error('Service not found');
+    throw new Error("Service not found");
   }
 
   service.name = req.body.name || service.name;
@@ -441,7 +376,7 @@ const updateSalonService = asyncHandler(async (req, res) => {
   service.duration = req.body.duration || service.duration;
 
   await salon.save();
-  res.json({ message: 'Service updated' });
+  res.json({ message: "Service updated" });
 });
 
 /**
@@ -472,23 +407,23 @@ const deleteSalonService = asyncHandler(async (req, res) => {
 
   if (!salon) {
     res.status(404);
-    throw new Error('Salon not found');
+    throw new Error("Salon not found");
   }
 
   if (salon.owner.toString() !== req.user._id.toString()) {
     res.status(401);
-    throw new Error('Not authorized');
+    throw new Error("Not authorized");
   }
 
   const service = salon.services.id(req.params.service_id);
   if (!service) {
     res.status(404);
-    throw new Error('Service not found');
+    throw new Error("Service not found");
   }
 
   await service.deleteOne();
   await salon.save();
-  res.json({ message: 'Service removed' });
+  res.json({ message: "Service removed" });
 });
 
 /**
@@ -517,14 +452,16 @@ const getMySalon = asyncHandler(async (req, res) => {
     res.json(salon);
   } else {
     res.status(404);
-    throw new Error('Salon profile not found for this user. Please create one.');
+    throw new Error(
+      "Salon profile not found for this user. Please create one."
+    );
   }
 });
 
 module.exports = {
   getSalons,
   getSalonById,
-  // createSalon,
+  createSalon,
   updateSalon,
   addSalonService,
   updateSalonService,

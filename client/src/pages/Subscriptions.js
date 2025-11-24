@@ -1,125 +1,55 @@
-import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import {
   FaCheckCircle,
   FaHeart,
   FaStore,
-  FaRocket,
   FaMapMarkerAlt,
+  FaSpinner,
 } from "react-icons/fa";
-import { BsChatDots, BsCalendarCheck } from "react-icons/bs";
-import { MdAnalytics, MdRateReview } from "react-icons/md";
-import Button from "../components/Button";
+import { BsChatDots } from "react-icons/bs";
+import { MdAnalytics } from "react-icons/md";
 import heroBg from "../assets/hero-main-bg.jpg";
+import { listSubscriptionPlans } from "../api";
 
 const Subscriptions = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [selectedPlan, setSelectedPlan] = useState("pro");
+  const [subscriptions, setSubscriptions] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  const plans = [
-    {
-      id: "starter",
-      name: "Starter",
-      price: 5,
-      period: "month",
-      description: "Ideal for small beauty service providers starting out.",
-      features: [
-        "Targeted traffic from nearby customers",
-        "Visible on BeautyHeavenven directory",
-        "Appointment reminders",
-        "Basic analytics",
-        "Simple client loyalty tracker",
-        "Appointment calendar integration",
-        "Auto-generated receipts",
-        "Mini social wall",
-      ],
-      highlighted: false,
-    },
-    {
-      id: "standard",
-      name: "Standard",
-      price: 10,
-      period: "month",
-      description:
-        "Perfect for growing beauty businesses seeking more visibility.",
-      features: [
-        "Everything in Starter, plus:",
-        "3× more customer traffic",
-        "Local promotion campaigns",
-        "Priority listing",
-        "Automated follow-up reminders",
-        "Enhanced loyalty tracker",
-        "Google Calendar sync",
-        "Extended analytics dashboard",
-      ],
-      highlighted: false,
-    },
-    {
-      id: "pro",
-      name: "Pro",
-      price: 16,
-      period: "month",
-      description:
-        "For active salons and spas that want to dominate local search.",
-      features: [
-        "Everything in Standard, plus:",
-        "5× more targeted traffic",
-        "Top Rated section listing",
-        "WhatsApp broadcast marketing",
-        "Advanced performance dashboard",
-        "Enhanced social wall",
-        "Customer review highlights",
-      ],
-      highlighted: true,
-    },
-    {
-      id: "premium",
-      name: "Premium",
-      price: 25,
-      period: "month",
-      description: "Ideal for multi-branch beauty brands or professionals.",
-      features: [
-        "Everything in Pro, plus:",
-        "10× more customer traffic",
-        "Featured visibility across cities",
-        "Priority mobile app integration",
-        "Monthly performance reports",
-        "Automated rebooking system",
-        "Featured promotions showcase",
-      ],
-      highlighted: false,
-    },
-    {
-      id: "elite",
-      name: "Elite",
-      price: 50,
-      period: "month",
-      description:
-        "For nationwide or international beauty brands aiming to dominate.",
-      features: [
-        "Everything in Premium, plus:",
-        "20x more targeted traffic",
-        "Sponsored homepage visibility",
-        "Unlimited client reminders",
-        "Unlimited bulk promotions",
-        "Dedicated support channel",
-        "Priority placement in all searches",
-      ],
-      highlighted: false,
-    },
-  ];
+  useEffect(() => {
+    const getSubscriptions = async () => {
+      try {
+        setLoading(true);
+        const { data } = await listSubscriptionPlans();
+        setSubscriptions(data);
+      } catch (err) {
+        console.error("Failed to fetch salons:", err);
+        setError("Failed to load salons. The server might be unavailable.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    getSubscriptions();
+  }, []);
+
+  console.log({ subscriptions });
+
+  const [selectedPlan, setSelectedPlan] = useState();
 
   const handleSelectPlan = (plan) => {
-    setSelectedPlan(plan.id);
+    setSelectedPlan(plan._id);
 
     if (user) {
       // Returning user - go directly to payment
-      navigate(`/payment?plan=${plan.id}`, { state: { plan } });
+      navigate(`/payment?plan=${plan._id}`, { state: { plan } });
     } else {
       // New user - go to register first
-      navigate(`/register?plan=${plan.id}`, { state: { plan } });
+      navigate(`/register?plan=${plan._id}`, { state: { plan } });
     }
   };
 
@@ -163,107 +93,133 @@ const Subscriptions = () => {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
-          {plans.map((plan) => (
-            <div
-              key={plan.id}
-              className={`rounded-lg shadow-md overflow-hidden transition-all duration-300 flex flex-col cursor-pointer ${
-                selectedPlan === plan.id
-                  ? "ring-2 ring-primary-pink scale-105 md:scale-110 lg:scale-100"
-                  : "hover:shadow-lg"
-              }`}
-              onClick={() => setSelectedPlan(plan.id)}
-            >
-              {/* Card Header */}
+        {/* Loading/Error/Content States */}
+        {loading ? (
+          <div className="text-center py-20">
+            <FaSpinner className="text-5xl text-primary-purple mx-auto animate-spin" />
+            <p className="mt-4 font-semibold text-text-muted">
+              Loading plans...
+            </p>
+          </div>
+        ) : error ? (
+          <div className="text-center py-20 text-red-600 bg-red-50 p-6 rounded-lg shadow-sm">
+            <h3 className="font-bold text-lg">An Error Occurred</h3>
+            <p>{error}</p>
+          </div>
+        ) : subscriptions.length === 0 ? (
+          <div className="text-center py-20 bg-gray-50 p-8 rounded-lg shadow-sm">
+            <h3 className="font-bold text-lg">No subscription plan Found</h3>
+            <p className="text-text-muted">
+              There are currently no subscription plans. Contact an admin to add
+              one
+            </p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+            {subscriptions.map((plan) => (
               <div
-                className={`p-6 ${
-                  selectedPlan === plan.id
-                    ? "bg-gradient-to-r from-primary-pink to-primary-purple text-white"
-                    : "bg-gray-50"
+                key={plan._id}
+                className={`rounded-lg shadow-md overflow-hidden transition-all duration-300 flex flex-col cursor-pointer ${
+                  selectedPlan === plan._id
+                    ? "ring-2 ring-primary-pink scale-105 md:scale-110 lg:scale-100"
+                    : "hover:shadow-lg"
                 }`}
+                onClick={() => setSelectedPlan(plan._id)}
               >
-                {selectedPlan === "pro" && (
-                  <span className="inline-block bg-white text-primary-pink px-3 py-1 rounded-full text-sm font-bold mb-3">
-                    Most Popular
-                  </span>
-                )}
-                <h3
-                  className={`text-2xl font-bold mb-2 ${
-                    selectedPlan === plan.id ? "text-white" : "text-text-main"
-                  }`}
-                >
-                  {plan.name}
-                </h3>
-                <p
-                  className={`text-sm mb-4 ${
-                    selectedPlan === plan.id
-                      ? "text-pink-100"
-                      : "text-text-muted"
-                  }`}
-                >
-                  {plan.description}
-                </p>
+                {/* Card Header */}
                 <div
-                  className={`flex items-baseline ${
-                    selectedPlan === plan.id ? "text-white" : "text-text-main"
+                  className={`p-6 ${
+                    selectedPlan === plan._id
+                      ? "bg-gradient-to-r from-primary-pink to-primary-purple text-white"
+                      : "bg-gray-50"
                   }`}
                 >
-                  <span className="text-4xl font-bold">${plan.price}</span>
-                  <span
-                    className={`ml-2 ${
-                      selectedPlan === plan.id
+                  {selectedPlan === "pro" && (
+                    <span className="inline-block bg-white text-primary-pink px-3 py-1 rounded-full text-sm font-bold mb-3">
+                      Most Popular
+                    </span>
+                  )}
+                  <h3
+                    className={`text-2xl font-bold mb-2 ${
+                      selectedPlan === plan._id ? "text-white" : "text-text-main"
+                    }`}
+                  >
+                    {plan.planName}
+                  </h3>
+                  <p
+                    className={`text-sm mb-4 ${
+                      selectedPlan === plan._id
                         ? "text-pink-100"
                         : "text-text-muted"
                     }`}
                   >
-                    /{plan.period}
-                  </span>
-                </div>
-              </div>
-
-              {/* Card Body */}
-              <div className="p-6 flex-grow bg-white">
-                <ul className="space-y-3 mb-6">
-                  {plan.features.map((feature, idx) => (
-                    <li
-                      key={idx}
-                      className={`flex items-start text-sm ${
-                        idx === 0 && feature.includes("Everything")
-                          ? "font-bold text-gray-700 mb-3"
-                          : "text-gray-600"
+                    {plan.description}
+                  </p>
+                  <div
+                    className={`flex items-baseline ${
+                      selectedPlan === plan._id ? "text-white" : "text-text-main"
+                    }`}
+                  >
+                    <span className="text-4xl font-bold">
+                      <span className="text-xl">{plan.currency}</span>{" "}
+                      {plan.amount}
+                    </span>
+                    <span
+                      className={`ml-2 ${
+                        selectedPlan === plan._id
+                          ? "text-pink-100"
+                          : "text-text-muted"
                       }`}
                     >
-                      {!feature.includes("Everything") && (
-                        <FaCheckCircle
-                          className={`mr-2 mt-0.5 flex-shrink-0 ${
-                            selectedPlan === plan.id
-                              ? "text-primary-pink"
-                              : "text-green-500"
-                          }`}
-                        />
-                      )}
-                      {!feature.includes("Everything") ? feature : feature}
-                    </li>
-                  ))}
-                </ul>
-              </div>
+                      /Month
+                    </span>
+                  </div>
+                </div>
 
-              {/* Card Footer */}
-              <div className="p-6 bg-white border-t">
-                <button
-                  onClick={() => handleSelectPlan(plan)}
-                  className={`w-full py-3 px-4 rounded-lg font-semibold transition-all ${
-                    selectedPlan === plan.id
-                      ? "bg-gradient-to-r from-primary-pink to-primary-purple text-white hover:shadow-lg"
-                      : "bg-gray-100 text-text-main hover:bg-gray-200"
-                  }`}
-                >
-                  Choose Plan
-                </button>
+                {/* Card Body */}
+                <div className="p-6 flex-grow bg-white">
+                  <ul className="space-y-3 mb-6">
+                    {plan.planSpecs.map((feature, idx) => (
+                      <li
+                        key={idx}
+                        className={`flex items-start text-sm ${
+                          idx === 0 && feature.includes("Everything")
+                            ? "font-bold text-gray-700 mb-3"
+                            : "text-gray-600"
+                        }`}
+                      >
+                        {!feature.includes("Everything") && (
+                          <FaCheckCircle
+                            className={`mr-2 mt-0.5 flex-shrink-0 ${
+                              selectedPlan === plan._id
+                                ? "text-primary-pink"
+                                : "text-green-500"
+                            }`}
+                          />
+                        )}
+                        {!feature.includes("Everything") ? feature : feature}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                {/* Card Footer */}
+                <div className="p-6 bg-white border-t">
+                  <button
+                    onClick={() => handleSelectPlan(plan)}
+                    className={`w-full py-3 px-4 rounded-lg font-semibold transition-all ${
+                      selectedPlan === plan._id
+                        ? "bg-gradient-to-r from-primary-pink to-primary-purple text-white hover:shadow-lg"
+                        : "bg-gray-100 text-text-main hover:bg-gray-200"
+                    }`}
+                  >
+                    Choose Plan
+                  </button>
+                </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </section>
 
       {/* Features Comparison Section */}

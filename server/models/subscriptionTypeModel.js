@@ -1,5 +1,6 @@
 // server/models/subscriptionTypeModel.js
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
+const slugify = require("slugify");
 
 /**
  * @swagger
@@ -45,14 +46,19 @@ const mongoose = require('mongoose');
  *           format: date-time
  */
 
-const subscriptionTypeSchema = mongoose.Schema(
+const subscriptionTypeSchema = new mongoose.Schema(
   {
     planName: {
       type: String,
       required: true,
-      enum: ['Basic', 'Pro', 'Premium'],
       unique: true,
     },
+    slug: {
+      type: String,
+      unique: true,
+      index: true,
+    },
+    description: String,
     planSpecs: {
       type: [String],
       required: true,
@@ -61,6 +67,11 @@ const subscriptionTypeSchema = mongoose.Schema(
       type: Number,
       required: true,
     },
+    currency: {
+      type: String,
+      enum: ["USD", "XAF"],
+      default: "XAF",
+    },
     durationMonths: {
       type: Number,
       required: true,
@@ -68,12 +79,12 @@ const subscriptionTypeSchema = mongoose.Schema(
     },
     createdBy: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
+      ref: "User",
       required: true,
     },
     updatedBy: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
+      ref: "User",
     },
   },
   {
@@ -81,6 +92,21 @@ const subscriptionTypeSchema = mongoose.Schema(
   }
 );
 
-const SubscriptionType = mongoose.model('SubscriptionType', subscriptionTypeSchema);
+// 🔥 Pre-save hook to generate slug
+subscriptionTypeSchema.pre("save", function (next) {
+  if (this.isModified("planName")) {
+    this.slug = slugify(this.planName, {
+      lower: true,
+      strict: true, // remove special chars
+      trim: true,
+    });
+  }
+  next();
+});
+
+const SubscriptionType = mongoose.model(
+  "SubscriptionType",
+  subscriptionTypeSchema
+);
 
 module.exports = SubscriptionType;

@@ -35,7 +35,7 @@ const SalonCard = ({ salon }) => {
 
   const offersHomeServices =
     salon.services &&
-    salon.services.some((service) => service.homeServiceAvailable === true);
+    salon.services.some((service) => service.homeService === true);
 
   return (
     <div className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-xl transition-shadow duration-300 flex flex-col">

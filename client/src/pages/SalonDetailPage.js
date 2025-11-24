@@ -9,13 +9,11 @@ import {
   FaImages,
   FaCheck,
   FaArrowLeft,
-  FaChevronRight,
 } from "react-icons/fa";
 import Button from "../components/Button";
 import BookingModal from "../components/BookingModal";
-// import { createAppointment } from '../api/appointment';
 import { useNavigate } from "react-router-dom";
-import { fetchSalonById } from "../api";
+import { createAppointment, fetchSalonById } from "../api";
 
 const SalonDetailPage = () => {
   const { id } = useParams();
@@ -54,19 +52,15 @@ const SalonDetailPage = () => {
 
   const handleConfirmBooking = async (bookingData) => {
     try {
-      // await createAppointment({
-      //   salonId: bookingData.salonId,
-      //   serviceId: bookingData.serviceId,
-      //   serviceName: bookingData.serviceName,
-      //   customerName: bookingData.customerName,
-      //   customerPhone: bookingData.customerPhone,
-      //   preferredDate: bookingData.preferredDate,
-      //   preferredTime: bookingData.preferredTime,
-      //   location: bookingData.location,
-      //   notes: bookingData.notes,
-      // });
 
-      // TODO: create appoitment
+      await createAppointment({
+        salonId: bookingData.salonId,
+        serviceId: bookingData.serviceId,
+        appointmentDateTime: bookingData.preferredDateTime,
+        clientName: bookingData.customerName,
+        clientNumber: bookingData.customerPhone,
+        homeService: bookingData.location === "home",
+      });
 
       toast.success(
         "Appointment requested successfully! Opening chat with the salon..."
@@ -211,7 +205,8 @@ const SalonDetailPage = () => {
                       </div>
                       <div className="flex items-center space-x-4 w-full sm:w-auto">
                         <span className="font-bold text-lg text-primary-purple">
-                          ₦{service.price.toLocaleString()}
+                          {service.currency}
+                          {service.price}
                         </span>
                         <Button
                           variant="gradient"

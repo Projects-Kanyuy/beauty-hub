@@ -1,12 +1,13 @@
 // controllers/paymentController.js
-const asyncHandler = require('express-async-handler');
-const SubscriptionType = require('../models/subscriptionTypeModel');
-const Transaction = require('../models/transactionModel');
-const SubscriptionHistory = require('../models/subscriptionHistoryModel');
-const Salon = require('../models/salonModel');
-const { login, createPaymentLink } = require('../services/swychrService');
-const { v4: uuidv4 } = require('uuid');
+const asyncHandler = require("express-async-handler");
+const Payment = require("../models/paymentModel");
+const mongoose = require("mongoose");
+const { login, getPaymentStatus } = require("../services/swychrService");
+const Subscription = require("../models/subscriptionModel");
 
+const STATUS_PENDING = 0;
+const STATUS_SUCCESS = 1;
+const STATUS_FAILED = 2;
 /**
  * @swagger
  * /api/payments/initiate-swychr:
@@ -69,91 +70,95 @@ const { v4: uuidv4 } = require('uuid');
  *                     amount: { type: number }
  *                     planName: { type: string }
  */
-const initiateSwychrPayment = asyncHandler(async (req, res) => {
-  const {
-    subscriptionTypeId,
-    salonName,
-    salonDescription,
-    address,
-    city,
-    phone,
-    openingHours,
-  } = req.body;
+// const initiateSwychrPayment = asyncHandler(async (req, res) => {
+//   const {
+//   entity,
+//   entityId,
+//   amount,
+//   currency,
+//   } = req.body;
 
-  const user = req.user;
+//   const user = req.user;
 
-  // Validate required fields
-  if (!subscriptionTypeId || !salonName || !address || !city || !phone) {
-    return res.status(400).json({ message: 'All salon details are required' });
-  }
+//   // Validate required fields
+//   if (!entity || !entityId || !amount || !currency) {
+//     return res.status(400).json({ message: "All salon details are required" });
+//   }
 
-  const plan = await SubscriptionType.findById(subscriptionTypeId);
-  if (!plan) return res.status(400).json({ message: 'Invalid subscription plan' });
+//   const plan = await SubscriptionType.findById(subscriptionTypeId);
+//   if (!plan)
+//     return res.status(400).json({ message: "Invalid subscription plan" });
 
-  const transactionId = `BEAUTY-${Date.now()}-${uuidv4().slice(0, 8)}`;
+//   const transactionId = `BEAUTY-${Date.now()}-${uuidv4().slice(0, 8)}`;
 
-  try {
-    const token = await login();
+//   try {
+//     const token = await login();
 
-    const payload = {
-      country_code: 'CM',
-      name: user.name || 'Customer',
-      email: user.email,
-      mobile: phone,
-      amount: plan.amount,
-      transaction_id: transactionId,
-      description: `BeautyHub - ${plan.planName} Plan`,
-      pass_digital_charge: false,
-    };
+//     const payload = {
+//       country_code: "CM",
+//       name: user.name || "Customer",
+//       email: user.email,
+//       mobile: phone,
+//       amount: plan.amount,
+//       transaction_id: transactionId,
+//       description: `BeautyHub - ${plan.planName} Plan`,
+//       pass_digital_charge: false,
+//     };
 
-    const swychrResponse = await createPaymentLink(token, payload);
+//     const swychrResponse = await createPaymentLink(token, payload);
 
-    // Save full transaction with user-controlled salon details
-    await Transaction.create({
-      transactionId,
-      user: user._id,
-      plan: plan._id,
-      amount: plan.amount,
-      customerName: user.name,
-      customerEmail: user.email,
-      customerPhone: phone,
-      countryCode: 'CM',
-      description: payload.description,
-      status: 'LINK_CREATED',
-      paymentUrl: swychrResponse.data?.payment_url || `https://pay.accountpe.com/link/${transactionId}`,
+//     // Save full transaction with user-controlled salon details
+//     await Transaction.create({
+//       transactionId,
+//       user: user._id,
+//       plan: plan._id,
+//       amount: plan.amount,
+//       customerName: user.name,
+//       customerEmail: user.email,
+//       customerPhone: phone,
+//       countryCode: "CM",
+//       description: payload.description,
+//       status: "LINK_CREATED",
+//       paymentUrl:
+//         swychrResponse.data?.payment_url ||
+//         `https://pay.accountpe.com/link/${transactionId}`,
 
-      // ← USER-CONTROLLED SALON DETAILS
-      salonDetails: {
-        name: salonName,
-        description: salonDescription || '',
-        address,
-        city,
-        phone,
-        openingHours: openingHours || {},
-      },
-    });
+//       // ← USER-CONTROLLED SALON DETAILS
+//       salonDetails: {
+//         name: salonName,
+//         description: salonDescription || "",
+//         address,
+//         city,
+//         phone,
+//         openingHours: openingHours || {},
+//       },
+//     });
 
-    res.json({
-      success: true,
-      data: {
-        paymentReference: transactionId,
-        paymentUrl: swychrResponse.data?.payment_url || `https://pay.accountpe.com/link/${transactionId}`,
-        amount: plan.amount,
-        planName: plan.planName,
-        planSpecs: plan.planSpecs,
-      },
-    });
-  } catch (err) {
-    console.error('Swychr Error:', err.response?.data || err.message);
-    await Transaction.create({
-      transactionId,
-      user: user._id,
-      amount: plan.amount,
-      status: 'FAILED',
-    });
-    res.status(500).json({ success: false, message: 'Payment creation failed' });
-  }
-});
+//     res.json({
+//       success: true,
+//       data: {
+//         paymentReference: transactionId,
+//         paymentUrl:
+//           swychrResponse.data?.payment_url ||
+//           `https://pay.accountpe.com/link/${transactionId}`,
+//         amount: plan.amount,
+//         planName: plan.planName,
+//         planSpecs: plan.planSpecs,
+//       },
+//     });
+//   } catch (err) {
+//     console.error("Swychr Error:", err.response?.data || err.message);
+//     await Transaction.create({
+//       transactionId,
+//       user: user._id,
+//       amount: plan.amount,
+//       status: "FAILED",
+//     });
+//     res
+//       .status(500)
+//       .json({ success: false, message: "Payment creation failed" });
+//   }
+// });
 
 /**
  * @swagger
@@ -166,79 +171,89 @@ const initiateSwychrPayment = asyncHandler(async (req, res) => {
  *       Fully idempotent and resilient.
  *     tags: [Payments]
  */
-const swychrWebhook = asyncHandler(async (req, res) => {
-  const { transaction_id, status } = req.body;
+const checkPaymentStatus = asyncHandler(async (req, res) => {
+  const { id: transactionId } = req.params;
 
-  if (!transaction_id || !status) {
-    return res.status(400).json({ message: 'Invalid webhook payload' });
+  const payment = await Payment.findById(transactionId);
+
+  if (!payment) {
+    return res.status(200).json({ message: "Transaction not found – ignored" });
   }
 
-  const transaction = await Transaction.findOne({ transactionId: transaction_id })
-    .populate('user')
-    .populate('plan');
-
-  if (!transaction) {
-    return res.status(200).json({ message: 'Transaction not found – ignored' });
-  }
-
-  const normalizedStatus = status.toUpperCase();
-  transaction.status = normalizedStatus === 'PAID' ? 'PAID' : normalizedStatus;
-  await transaction.save();
-
-  if (normalizedStatus !== 'PAID') {
-    return res.json({ success: true });
-  }
-
-  // Prevent double processing
-  const alreadyDone = await SubscriptionHistory.findOne({ paymentRef: transaction_id });
-  if (alreadyDone) {
-    return res.json({ success: true, message: 'Already activated' });
-  }
-
-  const user = transaction.user;
-  const plan = transaction.plan;
-  const salonDetails = transaction.salonDetails || {};
-
-  // Final safety
-  const existingSalon = await Salon.findOne({ owner: user._id });
-  if (existingSalon) {
-    return res.json({ success: true, message: 'Salon already exists' });
-  }
+  const session = await mongoose.startSession();
+  session.startTransaction();
 
   try {
-    const salon = await Salon.create({
-      owner: user._id,
-      name: salonDetails.name,
-      description: salonDetails.description || 'Beauty salon in Cameroon',
-      address: salonDetails.address,
-      city: salonDetails.city,
-      phone: salonDetails.phone,
-      openingHours: salonDetails.openingHours || {},
-      isVerified: true,
+    // creating a transaction, so that we can roll back if there is an error at any step
+
+    const token = await login();
+    const paymentData = await getPaymentStatus(token, transactionId);
+
+    const paymentStatus = paymentData.data.data.attributes.status;
+
+    let statusResponse = "Created";
+
+    switch (paymentStatus) {
+      case STATUS_PENDING:
+        break;
+      case STATUS_SUCCESS:
+        // 1. fetch the entity
+        switch (payment.entity) {
+          case "Subscription":
+            const subscription = await Subscription.findById(payment.entityId);
+
+            if (!subscription) {
+              await session.abortTransaction();
+              session.endSession();
+              return res.status(404).json({
+                message: `Subscription with id ${payment.entityId} not found`,
+              });
+            }
+
+            if (subscription.status !== "Created") {
+              await session.abortTransaction();
+              session.endSession();
+              return res.status(400).json({
+                message: `Subscription is in an invalid status ${subscription.status}`,
+              });
+            }
+
+            await Payment.findByIdAndUpdate(payment.id, {
+              $set: {
+                status: "Completed",
+              },
+            });
+
+            await Subscription.activate(subscription.id);
+            statusResponse = "Completed";
+            break;
+          default:
+            return res.status(400).json({
+              message: `Unsupported payment entity ${payment.entity}`,
+            });
+        }
+        break;
+      default:
+        await Payment.findByIdAndUpdate(payment.id, {
+          $set: {
+            status: "Failed",
+          },
+        });
+        statusResponse = "Failed";
+    }
+
+    return res.status(200).json({
+      data: {
+        status: statusResponse,
+      },
     });
-
-    const startDate = new Date();
-    const endDate = new Date();
-    endDate.setMonth(endDate.getMonth() + plan.durationMonths);
-
-    await SubscriptionHistory.create({
-      salon: salon._id,
-      planName: plan.planName,
-      amount: plan.amount,
-      durationMonths: plan.durationMonths,
-      startDate,
-      endDate,
-      paymentRef: transaction_id,
-      status: 'Active',
-      gateway: 'swychr',
-    });
-
-    console.log(`SALON CREATED: ${salonDetails.name} for ${user.email}`);
-    res.json({ success: true, message: 'Salon activated successfully' });
   } catch (error) {
-    console.error('Webhook activation failed:', error.message);
-    res.json({ success: true, message: 'Processed – activation will retry' }); // Never 5xx
+    await session.abortTransaction();
+    session.endSession();
+    return res
+      .status(400)
+      .json({ message: `Error validating webhook: ${error}` });
   }
 });
 
-module.exports = { initiateSwychrPayment, swychrWebhook };
+module.exports = { checkPaymentStatus };

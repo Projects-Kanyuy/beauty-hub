@@ -1,7 +1,7 @@
 // server/controllers/userController.js
-const asyncHandler = require('express-async-handler');
-const User = require('../models/userModel');
-const generateToken = require('../utils/generateToken');
+const asyncHandler = require("express-async-handler");
+const User = require("../models/userModel");
+const generateToken = require("../utils/generateToken");
 
 /**
  * @swagger
@@ -49,19 +49,20 @@ const generateToken = require('../utils/generateToken');
  *         description: User already exists or invalid data
  */
 const registerUser = asyncHandler(async (req, res) => {
-  const { name, email, password, role } = req.body;
+  const { name, email, password, role, phone } = req.body;
 
   const userExists = await User.findOne({ email });
   if (userExists) {
     res.status(400);
-    throw new Error('User already exists');
+    throw new Error("User already exists");
   }
 
   const user = await User.create({
     name,
     email,
     password,
-    role: role || 'customer',
+    phone,
+    role: role || "customer",
   });
 
   if (user) {
@@ -70,11 +71,12 @@ const registerUser = asyncHandler(async (req, res) => {
       name: user.name,
       email: user.email,
       role: user.role,
+      phone: user.phone,
       token: generateToken(user._id),
     });
   } else {
     res.status(400);
-    throw new Error('Invalid user data');
+    throw new Error("Invalid user data");
   }
 });
 
@@ -122,11 +124,12 @@ const authUser = asyncHandler(async (req, res) => {
       name: user.name,
       email: user.email,
       role: user.role,
+      phone: user.phone,
       token: generateToken(user._id),
     });
   } else {
     res.status(401);
-    throw new Error('Invalid email or password');
+    throw new Error("Invalid email or password");
   }
 });
 
@@ -170,6 +173,7 @@ const updateUserProfile = asyncHandler(async (req, res) => {
 
   if (user) {
     user.name = req.body.name || user.name;
+    user.phone = req.body.phone || user.phone;
 
     if (req.body.password) {
       user.password = req.body.password; // pre-save hook hashes it
@@ -181,12 +185,13 @@ const updateUserProfile = asyncHandler(async (req, res) => {
       _id: updatedUser._id,
       name: updatedUser.name,
       email: updatedUser.email,
+      phone: updatedUser.phone,
       role: updatedUser.role,
       token: generateToken(updatedUser._id),
     });
   } else {
     res.status(404);
-    throw new Error('User not found');
+    throw new Error("User not found");
   }
 });
 

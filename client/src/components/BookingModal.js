@@ -13,8 +13,7 @@ const BookingModal = ({
   const [formData, setFormData] = useState({
     customerName: "",
     customerPhone: "",
-    preferredDate: "",
-    preferredTime: "",
+    preferredDateTime: "",
     location: "salon", // "salon" or "home"
   });
 
@@ -44,8 +43,7 @@ const BookingModal = ({
         servicePrice: service.price,
         customerName: formData.customerName,
         customerPhone: formData.customerPhone,
-        preferredDate: formData.preferredDate,
-        preferredTime: formData.preferredTime,
+        preferredDateTime: new Date(formData.preferredDateTime).toISOString(),
         location: formData.location,
       };
 
@@ -102,7 +100,8 @@ const BookingModal = ({
             <h3 className="text-lg font-bold">{service.name}</h3>
             <p className="text-sm mt-1">{service.description}</p>
             <p className="text-2xl font-bold mt-3">
-              ₦{service.price.toLocaleString()}
+              {service.currency}
+              {service.price}
             </p>
           </div>
 
@@ -139,19 +138,11 @@ const BookingModal = ({
               <label className="block text-sm font-semibold text-gray-700 mb-3">
                 Preferred Date & Time
               </label>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 gap-3">
                 <input
-                  type="date"
-                  name="preferredDate"
-                  value={formData.preferredDate}
-                  onChange={handleChange}
-                  className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-purple"
-                  required
-                />
-                <input
-                  type="time"
-                  name="preferredTime"
-                  value={formData.preferredTime}
+                  type="datetime-local"
+                  name="preferredDateTime"
+                  value={formData.preferredDateTime}
                   onChange={handleChange}
                   className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-purple"
                   required
