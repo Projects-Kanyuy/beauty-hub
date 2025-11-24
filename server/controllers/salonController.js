@@ -281,6 +281,8 @@ const updateSalon = asyncHandler(async (req, res) => {
  *       201:
  *         description: Service added successfully
  */
+
+// just adding this log to force deployment
 const addSalonService = asyncHandler(async (req, res) => {
   const { name, description, price, currency, homeService, duration, homeServiceFee } =
     req.body;
