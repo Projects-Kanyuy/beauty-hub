@@ -4,6 +4,7 @@ const SubscriptionType = require("../models/subscriptionTypeModel");
 const Payment = require("../models/paymentModel");
 const mongoose = require("mongoose");
 const { createPaymentLink, login } = require("../services/swychrService");
+const Coupon = require("../models/couponModel");
 
 const subscribe = asyncHandler(async (req, res) => {
   const { planId } = req.body;
@@ -136,8 +137,153 @@ const getActiveSubscription = asyncHandler(async (req, res) => {
   });
 });
 
+const createCouponCode = asyncHandler(async (req, res) => {
+  const { type, planId, maxRedemptions, expiresAt } = req.body;
+
+  if (type === "FREE_PLAN_MONTH" && !planId) {
+    return res.status(400).json({
+      message: "planId is required",
+    });
+  }
+  const user = req.user;
+
+  try {
+    const coupon = await Coupon.create({
+      type,
+      plan: planId,
+      maxRedemptions,
+      createdBy: user?._id,
+      expiresAt: new Date(expiresAt),
+    });
+
+    return res.status(201).json({
+      data: {
+        code: coupon.code,
+      },
+    });
+  } catch (error) {
+    return res
+      .status(500)
+      .json({ message: "Error creating coupon", error: error.message });
+  }
+});
+
+const redeemCouponCode = asyncHandler(async (req, res) => {
+  const { code } = req.body;
+  const user = req.user;
+
+  if (!code) {
+    return res.status(400).json({ message: "Please enter a coupon code" });
+  }
+
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
+  try {
+    // Step 1: Fetch coupon (ignore case)
+    const coupon = await Coupon.findOne({ code: code.toUpperCase() }).session(
+      session
+    );
+
+    if (!coupon) {
+      throw new Error("Invalid coupon code");
+    }
+
+    // Step 2: Validate coupon
+    if (!coupon.isActive) throw new Error("Coupon is inactive");
+
+    if (coupon.expiresAt < new Date()) throw new Error("Coupon has expired");
+
+    if (coupon.timesRedeemed >= coupon.maxRedemptions) {
+      throw new Error("Coupon redemption limit reached");
+    }
+
+    // Step 3: Coupon logic depending on type
+    let subscription;
+
+    // FREE_PLAN_MONTH → new-user only
+    if (coupon.type === "FREE_PLAN_MONTH") {
+      const previousSub = await Subscription.findOne({ user: user._id });
+
+      if (previousSub) {
+        throw new Error("This coupon is only valid for new users");
+      }
+
+      console.log({ coupon });
+
+      // Create a new subscription for 1 month
+      const plan = await SubscriptionType.findById(coupon.plan);
+      if (!plan) throw new Error("Plan not found for this coupon");
+
+      const payload = {
+        user: user._id,
+        plan: plan._id,
+        durationMonths: 1,
+        paymentRef: null, // Free → no payment
+      };
+
+      console.log({ payload });
+      subscription = await Subscription.create(payload);
+
+      if (!subscription) throw new Error("error creating subscription");
+
+      console.log({ subscription });
+
+      await Subscription.activate(subscription._id);
+    }
+
+    // ADD_MONTH → extend existing subscription or create minimal 1-month fallback
+    if (coupon.type === "ADD_MONTH") {
+      let existing = await Subscription.findOne({ user: user._id })
+        .sort({ createdAt: -1 })
+        .session(session);
+
+      const ONE_MONTH = 30 * 24 * 60 * 60 * 1000;
+
+      if (!existing) {
+        throw new Error(
+          "this coupon code is only for an existing subscription"
+        );
+      } else {
+        // Extend existing subscription
+
+        console.log({ existing }, existing.endDate);
+
+        const newExpiry = existing.endDate
+          ? new Date(existing.endDate.getTime() + ONE_MONTH)
+          : new Date(Date.now() + ONE_MONTH);
+
+        existing.endDate = newExpiry;
+        subscription = await existing.save({ session });
+      }
+    }
+
+    // Step 4: Increment redemption counter
+    await Coupon.incrementRedemption(coupon._id, session);
+
+    await session.commitTransaction();
+    session.endSession();
+
+    return res.json({
+      success: true,
+      message: "Coupon redeemed successfully",
+      data: subscription,
+    });
+  } catch (error) {
+    await session.abortTransaction();
+    session.endSession();
+
+    return res.status(400).json({
+      success: false,
+      message: error.message,
+    });
+  }
+});
+
 module.exports = {
   subscribe,
   getMySubscriptionHistory,
   getActiveSubscription,
+  createCouponCode,
+  redeemCouponCode,
 };
