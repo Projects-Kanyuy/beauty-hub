@@ -11,7 +11,12 @@ import {
   FaTimesCircle,
   FaExclamationCircle,
 } from "react-icons/fa";
-import { getSubscriptionPlanById, subscribe, getPaymentStatus } from "../api";
+import {
+  getSubscriptionPlanById,
+  subscribe,
+  getPaymentStatus,
+  redeemCouponCode,
+} from "../api";
 
 const PaymentPage = () => {
   const location = useLocation();
@@ -28,7 +33,13 @@ const PaymentPage = () => {
   const [isPaymentInitiated, setIsPaymentInitiated] = useState(false);
   const [paymentStatus, setPaymentStatus] = useState(null);
   const [paymentId, setPaymentId] = useState(null);
+  const [subscriptionId, setSubscriptionId] = useState(null);
 
+  // Coupon states
+  const [couponCode, setCouponCode] = useState("");
+  const [redeemingCoupon, setRedeemingCoupon] = useState(false);
+
+  // Fetch plan details
   useEffect(() => {
     const getPlanDetails = async () => {
       try {
@@ -44,14 +55,15 @@ const PaymentPage = () => {
         setFetching(false);
       }
     };
-
     getPlanDetails();
   }, [planId]);
 
+  // Poll payment status
   useEffect(() => {
     if (!isPaymentInitiated || !paymentId) return;
 
     let pollTimeout;
+
     const pollPaymentStatus = async () => {
       try {
         const response = await getPaymentStatus(paymentId);
@@ -59,6 +71,29 @@ const PaymentPage = () => {
 
         if (["Completed", "Failed", "Cancelled"].includes(status)) {
           setPaymentStatus(status);
+
+          // Redeem coupon only if payment succeeded and coupon is not free
+          if (
+            status === "Completed" &&
+            couponCode &&
+            !couponCode.toUpperCase().startsWith("FREE")
+          ) {
+            try {
+              setRedeemingCoupon(true);
+              await redeemCouponCode({
+                code: couponCode.trim(),
+                subscriptionId,
+              });
+              toast.success("Coupon applied successfully!");
+            } catch (err) {
+              toast.error(
+                err.response?.data?.message ||
+                  "Failed to redeem coupon. Please contact support."
+              );
+            } finally {
+              setRedeemingCoupon(false);
+            }
+          }
         } else {
           pollTimeout = setTimeout(pollPaymentStatus, 5000);
         }
@@ -73,37 +108,60 @@ const PaymentPage = () => {
     return () => {
       if (pollTimeout) clearTimeout(pollTimeout);
     };
-  }, [isPaymentInitiated, paymentId]);
+  }, [isPaymentInitiated, paymentId, couponCode, subscriptionId]);
 
+  // Handle payment / free coupon
   const handlePayment = async (e) => {
     e.preventDefault();
     setLoading(true);
 
     try {
+      // Free coupon bypass
+      if (couponCode.trim().toUpperCase().startsWith("FREE")) {
+        try {
+          await redeemCouponCode({ code: couponCode.trim() });
+          toast.success("Subscription activated for free!");
+          navigate("/salon-owner/dashboard");
+        } catch (err) {
+          toast.error(
+            err.response?.data?.message ||
+              "Failed to redeem free coupon. Please contact support."
+          );
+        } finally {
+          setLoading(false);
+        }
+        return;
+      }
+
+      // Otherwise, initiate payment
       setIsPaymentInitiated(true);
-      const subscribeData = {
-        planId: planId,
-      };
+
+      const subscribeData = { planId };
       const response = await subscribe(subscribeData);
 
       const newPaymentId = response.data?.data?.paymentReference;
+      const newSubscriptionId = response.data?.data?.subscriptionId;
       setPaymentId(newPaymentId);
+      setSubscriptionId(newSubscriptionId);
+
       toast.info("Payment processing...");
       window.open(response?.data?.data?.paymentUrl, "_blank");
     } catch (err) {
       toast.error("Payment initiation failed. Please try again.");
-      setLoading(false);
       setIsPaymentInitiated(false);
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleStatusModalAction = () => {
-    if (paymentStatus === "Success") {
+    if (paymentStatus === "Completed" || paymentStatus === "Success") {
       navigate("/salon-owner/dashboard");
     } else {
       setPaymentStatus(null);
       setIsPaymentInitiated(false);
       setPaymentId(null);
+      setSubscriptionId(null);
     }
   };
 
@@ -191,13 +249,36 @@ const PaymentPage = () => {
               </p>
             </div>
 
+            {/* Coupon Section */}
+            <div className="mb-6">
+              <label className="block mb-2 font-semibold text-gray-700">
+                Have a coupon code?
+              </label>
+              <input
+                type="text"
+                value={couponCode}
+                onChange={(e) => setCouponCode(e.target.value)}
+                placeholder="Enter coupon code"
+                className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-purple"
+              />
+              <p className="mt-2 text-sm text-gray-600">
+                🎁 Free coupon code for new users:{" "}
+                <strong>ADD-0NCJ-ENH2</strong>
+              </p>
+            </div>
+
             <Button
               variant="gradient"
               onClick={handlePayment}
-              disabled={loading || isPaymentInitiated}
-              className="w-full !py-3 text-lg"
+              disabled={loading || isPaymentInitiated || redeemingCoupon}
+              className="w-full !py-3 text-lg flex items-center justify-center gap-2"
             >
-              {isPaymentInitiated
+              {(loading || redeemingCoupon) && (
+                <FaSpinner className="animate-spin text-white" />
+              )}
+              {redeemingCoupon
+                ? "Redeeming Coupon..."
+                : isPaymentInitiated
                 ? "Processing..."
                 : `Pay Now - ${plan?.currency} ${plan?.amount}/month`}
             </Button>
@@ -210,6 +291,7 @@ const PaymentPage = () => {
         )}
       </div>
 
+      {/* Payment / Processing Modal */}
       {isPaymentInitiated && !paymentStatus && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white p-8 rounded-lg shadow-lg text-center">
@@ -222,7 +304,8 @@ const PaymentPage = () => {
         </div>
       )}
 
-      {paymentStatus === "Success" && (
+      {/* Payment Status Modals */}
+      {paymentStatus === "Completed" && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white p-8 rounded-lg shadow-lg text-center max-w-sm">
             <FaCheckCircle className="text-6xl text-green-500 mx-auto mb-4" />

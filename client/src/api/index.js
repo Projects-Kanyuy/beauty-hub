@@ -75,4 +75,7 @@ export const getActiveSubscription = (userId) =>
 export const getPaymentStatus = (paymentId) =>
   API.get(`/api/payments/${paymentId}/check-payment-status`);
 
+export const redeemCouponCode = (body) =>
+  API.post("/api/subscriptions/redeem-coupon-code", body);
+
 // Add more appointment-related API calls here

@@ -169,7 +169,7 @@ const createCouponCode = asyncHandler(async (req, res) => {
 });
 
 const redeemCouponCode = asyncHandler(async (req, res) => {
-  const { code } = req.body;
+  const { code, subscriptionId } = req.body;
   const user = req.user;
 
   if (!code) {
@@ -234,9 +234,10 @@ const redeemCouponCode = asyncHandler(async (req, res) => {
 
     // ADD_MONTH → extend existing subscription or create minimal 1-month fallback
     if (coupon.type === "ADD_MONTH") {
-      let existing = await Subscription.findOne({ user: user._id })
-        .sort({ createdAt: -1 })
-        .session(session);
+      let existing = await Subscription.findOne({
+        user: user._id,
+        _id: subscriptionId, // use the specific subscription
+      }).session(session);
 
       const ONE_MONTH = 30 * 24 * 60 * 60 * 1000;
 

@@ -1,10 +1,13 @@
-import React, { useState } from "react";
+"use client";
+
+import { useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { toast } from "react-toastify";
 import AuthLayout from "../components/AuthLayout";
 import Button from "../components/Button";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
+import { redeemCouponCode } from "../api";
 
 const RegisterPage = () => {
   const { register } = useAuth();
@@ -13,6 +16,7 @@ const RegisterPage = () => {
 
   const searchParams = new URLSearchParams(location.search);
   const selectedPlan = searchParams.get("plan") || "starter";
+  const couponCode = searchParams.get("coupon"); // Get coupon code from query params if user came from free month code flow
 
   const [formData, setFormData] = useState({
     firstName: "",
@@ -40,7 +44,6 @@ const RegisterPage = () => {
       name: `${formData.firstName} ${formData.lastName}`,
       email: formData.email,
       password: formData.password,
-      phone: formData.phone,
       role: "salon_owner",
     };
 
@@ -48,7 +51,24 @@ const RegisterPage = () => {
       await register(payload);
       toast.success("Account Created Successfully!");
 
-      navigate(`/payment?plan=${selectedPlan}`);
+      if (couponCode) {
+        try {
+          await redeemCouponCode({
+            code: couponCode,
+          });
+          toast.success("Coupon redeemed! Your subscription is active.");
+          navigate("/salon-owner/dashboard");
+        } catch (err) {
+          console.log({ err });
+          toast.error(
+            `Coupon redemption failed:  ${err?.response?.data?.message ?? ""}`
+          );
+          return;
+        }
+      } else {
+        // Normal flow - go to payment page
+        navigate(`/payment?plan=${selectedPlan}`);
+      }
     } catch (err) {
       toast.error(
         err.response?.data?.message || "Registration failed. Please try again."
@@ -64,7 +84,7 @@ const RegisterPage = () => {
         Create Your Account
       </h3>
       <p className="text-text-muted mb-6">
-        Join BeautyHeaven and start growing your beauty business with the{" "}
+        Join BeautyHub and start growing your beauty business with the{" "}
         {selectedPlan.toUpperCase()} plan.
       </p>
 
@@ -107,6 +127,20 @@ const RegisterPage = () => {
             required
           />
         </div>
+
+        <div>
+          <label className="block text-sm font-medium text-text-muted mb-1">
+            Salon Name *
+          </label>
+          <input
+            type="text"
+            name="salonName"
+            onChange={handleChange}
+            placeholder="e.g. African Beauty Salon"
+            className="w-full p-2 border rounded-lg"
+            required
+          />
+        </div>
         <div>
           <label className="block text-sm font-medium text-text-muted mb-1">
             Phone Number
@@ -144,12 +178,19 @@ const RegisterPage = () => {
             Confirm Password
           </label>
           <input
-            type="password"
+            type={showPassword ? "text" : "password"}
             name="confirmPassword"
             onChange={handleChange}
             className="w-full p-2 border rounded-lg"
             required
           />
+          <button
+            type="button"
+            onClick={() => setShowPassword(!showPassword)}
+            className="absolute right-3 top-8 text-gray-500"
+          >
+            {showPassword ? <FaEyeSlash /> : <FaEye />}
+          </button>
         </div>
         <div className="flex items-start space-x-2 pt-2">
           <input

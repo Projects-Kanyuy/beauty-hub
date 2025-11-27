@@ -11,21 +11,42 @@ import {
 import { BsChatDots } from "react-icons/bs";
 import { MdAnalytics } from "react-icons/md";
 import heroBg from "../assets/hero-main-bg.jpg";
-import { listSubscriptionPlans } from "../api";
+import { listSubscriptionPlans, redeemCouponCode } from "../api";
+import { toast } from "react-toastify";
+
+const FREEMIUM = {
+  _id: "freemium",
+  planName: "Freemium",
+  currency: "XAF",
+  amount: 0,
+  description: "Try BeautyHeaven free with a coupon code.",
+  planSpecs: [
+    "Basic profile creation",
+    "Up to 5 services listed",
+    "Simple appointment calendar",
+    "Basic client management",
+    "Limited to local area visibility",
+  ],
+};
 
 const Subscriptions = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [subscriptions, setSubscriptions] = useState([]);
+  const [subscriptions, setSubscriptions] = useState([FREEMIUM]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  const [couponCode, setCouponCode] = useState("");
+  const [isRedeeming, setIsRedeeming] = useState(false);
+  const [redeemingError, setRedeemingError] = useState("");
 
   useEffect(() => {
     const getSubscriptions = async () => {
       try {
         setLoading(true);
         const { data } = await listSubscriptionPlans();
-        setSubscriptions(data);
+        const updated = [FREEMIUM, ...data];
+        setSubscriptions(updated);
       } catch (err) {
         console.error("Failed to fetch salons:", err);
         setError("Failed to load salons. The server might be unavailable.");
@@ -36,8 +57,6 @@ const Subscriptions = () => {
 
     getSubscriptions();
   }, []);
-
-  console.log({ subscriptions });
 
   const [selectedPlan, setSelectedPlan] = useState();
 
@@ -53,6 +72,35 @@ const Subscriptions = () => {
     }
   };
 
+  const handleFreemiumCouponcode = async (e) => {
+    e.preventDefault();
+    try {
+      if (!couponCode) {
+        toast.error("Please enter a couponCode");
+        return;
+      }
+      setIsRedeeming(true);
+      setSelectedPlan(FREEMIUM._id);
+
+      if (user) {
+        // Returning user - redeem the code and navigate to the dashboard
+        await redeemCouponCode(couponCode);
+        navigate("/salon-owner/dashboard");
+      } else {
+        // New user - go to register first
+        navigate(`/register?plan=${FREEMIUM._id}&coupon=${couponCode}`, {
+          state: { FREEMIUM },
+        });
+      }
+    } catch (error) {
+      setRedeemingError(
+        error?.response?.data?.message || "Invalid coupon code"
+      );
+      toast.error("Coupon redemption failed");
+    } finally {
+      setIsRedeeming(false);
+    }
+  };
   return (
     <div className="bg-white">
       {/* Hero Section */}
@@ -141,7 +189,9 @@ const Subscriptions = () => {
                   )}
                   <h3
                     className={`text-2xl font-bold mb-2 ${
-                      selectedPlan === plan._id ? "text-white" : "text-text-main"
+                      selectedPlan === plan._id
+                        ? "text-white"
+                        : "text-text-main"
                     }`}
                   >
                     {plan.planName}
@@ -157,7 +207,9 @@ const Subscriptions = () => {
                   </p>
                   <div
                     className={`flex items-baseline ${
-                      selectedPlan === plan._id ? "text-white" : "text-text-main"
+                      selectedPlan === plan._id
+                        ? "text-white"
+                        : "text-text-main"
                     }`}
                   >
                     <span className="text-4xl font-bold">
@@ -205,16 +257,44 @@ const Subscriptions = () => {
 
                 {/* Card Footer */}
                 <div className="p-6 bg-white border-t">
-                  <button
-                    onClick={() => handleSelectPlan(plan)}
-                    className={`w-full py-3 px-4 rounded-lg font-semibold transition-all ${
-                      selectedPlan === plan._id
-                        ? "bg-gradient-to-r from-primary-pink to-primary-purple text-white hover:shadow-lg"
-                        : "bg-gray-100 text-text-main hover:bg-gray-200"
-                    }`}
-                  >
-                    Choose Plan
-                  </button>
+                  {plan._id === FREEMIUM._id ? (
+                    <form
+                      onSubmit={handleFreemiumCouponcode}
+                      className="space-y-2"
+                    >
+                      <input
+                        type="text"
+                        value={couponCode}
+                        onChange={(e) => {
+                          setCouponCode(e.target.value);
+                        }}
+                        placeholder="Enter coupon code"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-pink"
+                      />
+                      {redeemingError && (
+                        <p className="text-red-600 text-xs">{redeemingError}</p>
+                      )}
+                      <button
+                        type="submit"
+                        disabled={isRedeeming}
+                        loading={isRedeeming}
+                        className="w-full py-2 px-3 rounded-lg font-semibold text-sm bg-gradient-to-r from-primary-pink to-primary-purple text-white hover:shadow-md transition-all"
+                      >
+                        {isRedeeming ? "Processing..." : " Get Free Access"}
+                      </button>
+                    </form>
+                  ) : (
+                    <button
+                      onClick={() => handleSelectPlan(plan)}
+                      className={`w-full py-3 px-4 rounded-lg font-semibold transition-all ${
+                        selectedPlan === plan.id
+                          ? "bg-gradient-to-r from-primary-pink to-primary-purple text-white hover:shadow-lg"
+                          : "bg-gray-100 text-text-main hover:bg-gray-200"
+                      }`}
+                    >
+                      Choose Plan
+                    </button>
+                  )}
                 </div>
               </div>
             ))}
