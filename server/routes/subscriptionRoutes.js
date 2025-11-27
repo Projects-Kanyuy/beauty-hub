@@ -16,7 +16,9 @@ router
 
 router.route("/subscribe").post(protect, subscribe);
 
-router.route("/:userId/get-active-subscription").get(getActiveSubscription);
+router
+  .route("/:userId/get-active-subscription")
+  .get(protect, getActiveSubscription);
 router.route("/redeem-coupon-code").post(protect, redeemCouponCode);
 
 // only admin can create a coupon code
