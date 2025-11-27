@@ -11,45 +11,26 @@ import {
 import { BsChatDots } from "react-icons/bs";
 import { MdAnalytics } from "react-icons/md";
 import heroBg from "../assets/hero-main-bg.jpg";
-import { listSubscriptionPlans, redeemCouponCode } from "../api";
-import { toast } from "react-toastify";
-
-const FREEMIUM = {
-  _id: "freemium",
-  planName: "Freemium",
-  currency: "XAF",
-  amount: 0,
-  description: "Try BeautyHeaven free with a coupon code.",
-  planSpecs: [
-    "Basic profile creation",
-    "Up to 5 services listed",
-    "Simple appointment calendar",
-    "Basic client management",
-    "Limited to local area visibility",
-  ],
-};
+import { listSubscriptionPlans } from "../api";
 
 const Subscriptions = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [subscriptions, setSubscriptions] = useState([FREEMIUM]);
+  const [subscriptions, setSubscriptions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-
-  const [couponCode, setCouponCode] = useState("");
-  const [isRedeeming, setIsRedeeming] = useState(false);
-  const [redeemingError, setRedeemingError] = useState("");
 
   useEffect(() => {
     const getSubscriptions = async () => {
       try {
         setLoading(true);
         const { data } = await listSubscriptionPlans();
-        const updated = [FREEMIUM, ...data];
-        setSubscriptions(updated);
+        setSubscriptions(data);
       } catch (err) {
-        console.error("Failed to fetch salons:", err);
-        setError("Failed to load salons. The server might be unavailable.");
+        console.error("Failed to fetch subscriptions:", err);
+        setError(
+          "Failed to load subscriptions. The server might be unavailable."
+        );
       } finally {
         setLoading(false);
       }
@@ -72,35 +53,6 @@ const Subscriptions = () => {
     }
   };
 
-  const handleFreemiumCouponcode = async (e) => {
-    e.preventDefault();
-    try {
-      if (!couponCode) {
-        toast.error("Please enter a couponCode");
-        return;
-      }
-      setIsRedeeming(true);
-      setSelectedPlan(FREEMIUM._id);
-
-      if (user) {
-        // Returning user - redeem the code and navigate to the dashboard
-        await redeemCouponCode(couponCode);
-        navigate("/salon-owner/dashboard");
-      } else {
-        // New user - go to register first
-        navigate(`/register?plan=${FREEMIUM._id}&coupon=${couponCode}`, {
-          state: { FREEMIUM },
-        });
-      }
-    } catch (error) {
-      setRedeemingError(
-        error?.response?.data?.message || "Invalid coupon code"
-      );
-      toast.error("Coupon redemption failed");
-    } finally {
-      setIsRedeeming(false);
-    }
-  };
   return (
     <div className="bg-white">
       {/* Hero Section */}
@@ -140,6 +92,12 @@ const Subscriptions = () => {
             Start with any plan and upgrade anytime as your business grows.
           </p>
         </div>
+        <div className="text-center mb-8 md:mb-12">
+          <p className="mt-2 text-2xl text-gray-600">
+            🎁 Free coupon code for new users:{" "}
+            <strong className="text-primary-purple">ADD-0NCJ-ENH2</strong>
+          </p>
+        </div>
 
         {/* Loading/Error/Content States */}
         {loading ? (
@@ -163,7 +121,7 @@ const Subscriptions = () => {
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {subscriptions.map((plan) => (
               <div
                 key={plan._id}
@@ -257,44 +215,16 @@ const Subscriptions = () => {
 
                 {/* Card Footer */}
                 <div className="p-6 bg-white border-t">
-                  {plan._id === FREEMIUM._id ? (
-                    <form
-                      onSubmit={handleFreemiumCouponcode}
-                      className="space-y-2"
-                    >
-                      <input
-                        type="text"
-                        value={couponCode}
-                        onChange={(e) => {
-                          setCouponCode(e.target.value);
-                        }}
-                        placeholder="Enter coupon code"
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-pink"
-                      />
-                      {redeemingError && (
-                        <p className="text-red-600 text-xs">{redeemingError}</p>
-                      )}
-                      <button
-                        type="submit"
-                        disabled={isRedeeming}
-                        loading={isRedeeming}
-                        className="w-full py-2 px-3 rounded-lg font-semibold text-sm bg-gradient-to-r from-primary-pink to-primary-purple text-white hover:shadow-md transition-all"
-                      >
-                        {isRedeeming ? "Processing..." : " Get Free Access"}
-                      </button>
-                    </form>
-                  ) : (
-                    <button
-                      onClick={() => handleSelectPlan(plan)}
-                      className={`w-full py-3 px-4 rounded-lg font-semibold transition-all ${
-                        selectedPlan === plan.id
-                          ? "bg-gradient-to-r from-primary-pink to-primary-purple text-white hover:shadow-lg"
-                          : "bg-gray-100 text-text-main hover:bg-gray-200"
-                      }`}
-                    >
-                      Choose Plan
-                    </button>
-                  )}
+                  <button
+                    onClick={() => handleSelectPlan(plan)}
+                    className={`w-full py-3 px-4 rounded-lg font-semibold transition-all ${
+                      selectedPlan === plan.id
+                        ? "bg-gradient-to-r from-primary-pink to-primary-purple text-white hover:shadow-lg"
+                        : "bg-gray-100 text-text-main hover:bg-gray-200"
+                    }`}
+                  >
+                    Choose Plan
+                  </button>
                 </div>
               </div>
             ))}
