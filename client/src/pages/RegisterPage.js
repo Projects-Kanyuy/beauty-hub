@@ -15,13 +15,12 @@ const RegisterPage = () => {
   const location = useLocation();
 
   const searchParams = new URLSearchParams(location.search);
-  const selectedPlan = searchParams.get("plan") || "starter";
+  const selectedPlan = searchParams.get("plan");
   const couponCode = searchParams.get("coupon"); // Get coupon code from query params if user came from free month code flow
 
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
-    salonName: "",
     email: "",
     phone: "",
     password: "",
@@ -51,23 +50,23 @@ const RegisterPage = () => {
       await register(payload);
       toast.success("Account Created Successfully!");
 
-      if (couponCode) {
-        try {
-          await redeemCouponCode({
-            code: couponCode,
-          });
-          toast.success("Coupon redeemed! Your subscription is active.");
-          navigate("/salon-owner/dashboard");
-        } catch (err) {
-          console.log({ err });
-          toast.error(
-            `Coupon redemption failed:  ${err?.response?.data?.message ?? ""}`
-          );
-          return;
+      if (selectedPlan && selectedPlan !== "null") {
+        if (couponCode) {
+          try {
+            await redeemCouponCode(couponCode);
+            toast.success("Coupon redeemed! Your subscription is active.");
+            navigate("/salon-owner/dashboard");
+          } catch (err) {
+            toast.error("Coupon redemption failed. Proceeding to payment.");
+            navigate(`/payment?plan=${selectedPlan}`);
+          }
+        } else {
+          // Normal flow - go to payment page
+          navigate(`/payment?plan=${selectedPlan}`);
         }
       } else {
-        // Normal flow - go to payment page
-        navigate(`/payment?plan=${selectedPlan}`);
+        // No plan selected - go directly to dashboard
+        navigate("/salon-owner/dashboard");
       }
     } catch (err) {
       toast.error(
@@ -84,8 +83,11 @@ const RegisterPage = () => {
         Create Your Account
       </h3>
       <p className="text-text-muted mb-6">
-        Join BeautyHub and start growing your beauty business with the{" "}
-        {selectedPlan.toUpperCase()} plan.
+        Join BeautyHub and start growing your beauty business
+        {!selectedPlan && "."}{" "}
+        {selectedPlan &&
+          selectedPlan !== "null" &&
+          `with the ${selectedPlan.toUpperCase()} plan.`}
       </p>
 
       <form onSubmit={handleSubmit} className="space-y-4">
@@ -130,19 +132,6 @@ const RegisterPage = () => {
 
         <div>
           <label className="block text-sm font-medium text-text-muted mb-1">
-            Salon Name *
-          </label>
-          <input
-            type="text"
-            name="salonName"
-            onChange={handleChange}
-            placeholder="e.g. African Beauty Salon"
-            className="w-full p-2 border rounded-lg"
-            required
-          />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-text-muted mb-1">
             Phone Number
           </label>
           <input
@@ -178,19 +167,12 @@ const RegisterPage = () => {
             Confirm Password
           </label>
           <input
-            type={showPassword ? "text" : "password"}
+            type="password"
             name="confirmPassword"
             onChange={handleChange}
             className="w-full p-2 border rounded-lg"
             required
           />
-          <button
-            type="button"
-            onClick={() => setShowPassword(!showPassword)}
-            className="absolute right-3 top-8 text-gray-500"
-          >
-            {showPassword ? <FaEyeSlash /> : <FaEye />}
-          </button>
         </div>
         <div className="flex items-start space-x-2 pt-2">
           <input

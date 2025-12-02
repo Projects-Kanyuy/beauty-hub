@@ -1,6 +1,6 @@
 // src/App.js
 import React, { useEffect, useState } from "react";
-import { Routes, Route, Navigate, useLocation } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import { useAuth } from "./context/AuthContext";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -37,6 +37,7 @@ import SalonDetailPage from "./pages/SalonDetailPage";
 import PaymentPage from "./pages/PaymentPage";
 import SalonsPage from "./pages/SalonsPage";
 import { getActiveSubscription } from "./api";
+import BecomeSalonOwnerPage from "./pages/BecomeSalonOwnerPage";
 
 // Layout for the main public/customer site
 const MainLayout = ({ children }) => {
@@ -107,6 +108,7 @@ function App() {
             )
           }
         />
+        <Route path="/become-salon-owner" element={<BecomeSalonOwnerPage />} />
         <Route
           path="/subscriptions"
           element={
