@@ -1,0 +1,28 @@
+{
+  "home": "Home",
+  "tips": "Beauty Tips",
+  "subscriptions": "Add Your Business",
+  "about": "About Us",
+  "contact": "Contact Us",
+  "dashboard": "Dashboard",
+  "favorites": "Favorites",
+  "compare": "Compare",
+  "messages": "Messages",
+  "logout": "Logout",
+
+  "footer": {
+    "title": "BeautyHeaven",
+    "description": "Your trusted platform to discover and connect with the best beauty professionals across Africa. Find top-rated salons, nail artists, and beauty specialists near you.",
+    "quickLinks": "Quick Links",
+    "about": "About Us",
+    "addBusiness": "Add Your Business",
+    "contact": "Contact Us",
+    "beautyTips": "Beauty Tips",
+    "legal": "Legal",
+    "privacy": "Privacy Policy",
+    "terms": "Terms of Use",
+    "cookies": "Cookie Policy",
+    "copyright": "All rights reserved.",
+    "contactSupport": "Contact Support"
+  }
+}

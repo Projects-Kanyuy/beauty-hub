@@ -1,6 +1,8 @@
-import React, { useState } from "react";
-import { Link, NavLink } from "react-router-dom";
+import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { FaBars, FaTimes } from "react-icons/fa";
+import { Link, NavLink } from "react-router-dom";
+import LanguageSwitcher from "./LanguageSwitcher";
 
 const NavItem = ({ to, children, onClick }) => (
   <li>
@@ -22,6 +24,7 @@ const NavItem = ({ to, children, onClick }) => (
 
 // The Navbar now accepts the `user` object as a prop
 const Navbar = ({ isLoggedIn, user, handleLogout }) => {
+  const { t } = useTranslation();
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
   // Helper function to get initials from a name (e.g., "Ndip Samuel" -> "NS")
@@ -57,18 +60,18 @@ const Navbar = ({ isLoggedIn, user, handleLogout }) => {
           {isLoggedIn ? (
             // Logged In View
             <>
-              <NavItem to="/dashboard">Dashboard</NavItem>
-              <NavItem to="/favorites">Favorites</NavItem>
-              <NavItem to="/compare">Compare</NavItem>
-              <NavItem to="/messages">Messages</NavItem>
+              <NavItem to="/dashboard">{t("dashboard")}</NavItem>
+              <NavItem to="/favorites">{t("favorites")}</NavItem>
+              <NavItem to="/compare">{t("compare")}</NavItem>
+              <NavItem to="/messages">{t("messages")}</NavItem>
             </>
           ) : (
             // Guest View
             <>
-              <NavItem to="/">Home</NavItem>
-              <NavItem to="/tips">Beauty Tips</NavItem>
-              <NavItem to="/subscriptions">Add Your Business</NavItem>
-              <NavItem to="/about">About Us</NavItem>
+              <NavItem to="/">{t("home")}</NavItem>
+              <NavItem to="/tips">{t("tips")}</NavItem>
+              <NavItem to="/subscriptions">{t("subscriptions")}</NavItem>
+              <NavItem to="/about">{t("about")}</NavItem>
               {/* <NavItem to="/contact">Contact</NavItem> */}
             </>
           )}
@@ -76,6 +79,7 @@ const Navbar = ({ isLoggedIn, user, handleLogout }) => {
 
         {/* Dynamic User Actions */}
         <div className="flex items-center space-x-4">
+          <LanguageSwitcher />
           {isLoggedIn && (
             // Logged In View with dynamic initial
             <>
@@ -86,7 +90,7 @@ const Navbar = ({ isLoggedIn, user, handleLogout }) => {
                 onClick={handleLogout}
                 className="hidden md:block px-5 py-2.5 rounded-lg font-bold text-white bg-gray-800 hover:bg-gray-900 transition-colors"
               >
-                Logout
+                {t("logout")}
               </button>
             </>
           )}
@@ -104,21 +108,25 @@ const Navbar = ({ isLoggedIn, user, handleLogout }) => {
       {isDrawerOpen && (
         <div className="lg:hidden border-t border-gray-200">
           <div className="container mx-auto px-4 sm:px-6 py-4">
+            {/* Language switcher at the top of drawer */}
+            <div className="flex justify-center">
+              <LanguageSwitcher />
+            </div>
             <ul className="flex flex-col space-y-4">
               {isLoggedIn ? (
                 // Logged In View
                 <>
                   <NavItem to="/dashboard" onClick={closeDrawer}>
-                    Dashboard
+                    {t("dashboard")}
                   </NavItem>
                   <NavItem to="/favorites" onClick={closeDrawer}>
-                    Favorites
+                    {t("favorites")}
                   </NavItem>
                   <NavItem to="/compare" onClick={closeDrawer}>
-                    Compare
+                    {t("compare")}
                   </NavItem>
                   <NavItem to="/messages" onClick={closeDrawer}>
-                    Messages
+                    {t("messages")}
                   </NavItem>
                   <button
                     onClick={() => {
@@ -127,23 +135,23 @@ const Navbar = ({ isLoggedIn, user, handleLogout }) => {
                     }}
                     className="w-full mt-4 px-5 py-2.5 rounded-lg font-bold text-white bg-gray-800 hover:bg-gray-900 transition-colors text-left"
                   >
-                    Logout
+                    {t("logout")}
                   </button>
                 </>
               ) : (
                 // Guest View
                 <>
                   <NavItem to="/" onClick={closeDrawer}>
-                    Home
+                    {t("home")}
                   </NavItem>
                   <NavItem to="/tips" onClick={closeDrawer}>
-                    Beauty Tips
+                    {t("tips")}
                   </NavItem>
                   <NavItem to="/subscriptions" onClick={closeDrawer}>
-                    Add Your Business
+                    {t("subscriptions")}
                   </NavItem>
                   <NavItem to="/about" onClick={closeDrawer}>
-                    About Us
+                    {t("about")}
                   </NavItem>
                   {/* <NavItem to="/contact" onClick={closeDrawer}>
                     Contact

@@ -1,0 +1,28 @@
+{
+  "home": "Accueil",
+  "tips": "Conseils Beauté",
+  "subscriptions": "Ajouter Votre Entreprise",
+  "about": "À Propos",
+  "contact": "Contactez-nous",
+  "dashboard": "Tableau de bord",
+  "favorites": "Favoris",
+  "compare": "Comparer",
+  "messages": "Messages",
+  "logout": "Déconnexion",
+
+  "footer": {
+    "title": "BeautyHeaven",
+    "description": "Votre plateforme de confiance pour découvrir et se connecter avec les meilleurs professionnels de la beauté à travers l'Afrique. Trouvez des salons, des artistes des ongles et des spécialistes de la beauté bien notés près de chez vous.",
+    "quickLinks": "Liens rapides",
+    "about": "À Propos",
+    "addBusiness": "Ajouter Votre Entreprise",
+    "contact": "Contactez-nous",
+    "beautyTips": "Conseils Beauté",
+    "legal": "Mentions légales",
+    "privacy": "Politique de confidentialité",
+    "terms": "Conditions d'utilisation",
+    "cookies": "Politique de cookies",
+    "copyright": "Tous droits réservés.",
+    "contactSupport": "Contacter le support"
+  }
+}
