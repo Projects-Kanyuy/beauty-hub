@@ -1,43 +1,44 @@
 // src/App.js
-import React, { useEffect, useState } from "react";
-import { Routes, Route, Navigate } from "react-router-dom";
-import { useAuth } from "./context/AuthContext";
+import { useEffect, useState } from "react";
+import { Navigate, Route, Routes } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { getActiveSubscription } from "./api";
+import { useAuth } from "./context/AuthContext";
 
-// --- Import Layouts & Protected Routes ---
-import Navbar from "./components/Navbar";
+// --- Layouts & Protected Routes ---
 import Footer from "./components/Footer";
+import Navbar from "./components/Navbar";
 import SalonOwnerLayout from "./components/SalonOwnerLayout";
 import CustomerProtectedRoute from "./components/routing/CustomerProtectedRoute";
 import SalonOwnerProtectedRoute from "./components/routing/SalonOwnerProtectedRoute";
 
-// --- Import All Pages ---
-import HomePage from "./pages/Home";
-import Subscriptions from "./pages/Subscriptions";
-import BeautyTipsPage from "./pages/BeautyTipsPage";
+// --- Pages ---
+import Chatbot from "./components/Chatbot";
 import AboutPage from "./pages/AboutPage";
-import ContactPage from "./pages/ContactPage";
-import LoginPage from "./pages/LoginPage";
-import RegisterPage from "./pages/RegisterPage";
-import DashboardPage from "./pages/DashboardPage";
-import CustomerSettingsPage from "./pages/CustomerSettingsPage";
-import FavoritesPage from "./pages/FavoritesPage";
-import ComparePage from "./pages/ComparePage";
-import NearMePage from "./pages/NearMePage";
-import SalonDashboardPage from "./pages/SalonDashboardPage";
-import SalonAppointmentsPage from "./pages/SalonAppointmentsPage";
-import SalonProfilePage from "./pages/SalonProfilePage";
-import SalonServicesPage from "./pages/SalonServicesPage";
-import SalonMessagesPage from "./pages/SalonMessagesPage";
-import SalonReviewsPage from "./pages/SalonReviewsPage";
-import SalonAnalyticsPage from "./pages/SalonAnalyticsPage";
-import SalonSettingsPage from "./pages/SalonSettingsPage";
-import SalonDetailPage from "./pages/SalonDetailPage";
-import PaymentPage from "./pages/PaymentPage";
-import SalonsPage from "./pages/SalonsPage";
-import { getActiveSubscription } from "./api";
+import BeautyTipsPage from "./pages/BeautyTipsPage";
 import BecomeSalonOwnerPage from "./pages/BecomeSalonOwnerPage";
+import ComparePage from "./pages/ComparePage";
+import ContactPage from "./pages/ContactPage";
+import CustomerSettingsPage from "./pages/CustomerSettingsPage";
+import DashboardPage from "./pages/DashboardPage";
+import FavoritesPage from "./pages/FavoritesPage";
+import HomePage from "./pages/Home";
+import LoginPage from "./pages/LoginPage";
+import NearMePage from "./pages/NearMePage";
+import PaymentPage from "./pages/PaymentPage";
+import RegisterPage from "./pages/RegisterPage";
+import SalonAnalyticsPage from "./pages/SalonAnalyticsPage";
+import SalonAppointmentsPage from "./pages/SalonAppointmentsPage";
+import SalonDashboardPage from "./pages/SalonDashboardPage";
+import SalonDetailPage from "./pages/SalonDetailPage";
+import SalonMessagesPage from "./pages/SalonMessagesPage";
+import SalonProfilePage from "./pages/SalonProfilePage";
+import SalonReviewsPage from "./pages/SalonReviewsPage";
+import SalonServicesPage from "./pages/SalonServicesPage";
+import SalonSettingsPage from "./pages/SalonSettingsPage";
+import SalonsPage from "./pages/SalonsPage";
+import Subscriptions from "./pages/Subscriptions";
 
 // Layout for the main public/customer site
 const MainLayout = ({ children }) => {
@@ -253,6 +254,7 @@ function App() {
         {/* Fallback Route */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
+      <Chatbot />
     </div>
   );
 }

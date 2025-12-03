@@ -1,19 +1,21 @@
-import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
+import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
+import { BsChatDots } from "react-icons/bs";
 import {
   FaCheckCircle,
   FaHeart,
-  FaStore,
   FaMapMarkerAlt,
   FaSpinner,
+  FaStore,
 } from "react-icons/fa";
-import { BsChatDots } from "react-icons/bs";
 import { MdAnalytics } from "react-icons/md";
-import heroBg from "../assets/hero-main-bg.jpg";
+import { useNavigate } from "react-router-dom";
 import { listSubscriptionPlans } from "../api";
+import heroBg from "../assets/hero-main-bg.jpg";
+import { useAuth } from "../context/AuthContext";
 
 const Subscriptions = () => {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const navigate = useNavigate();
   const [subscriptions, setSubscriptions] = useState([]);
@@ -28,9 +30,7 @@ const Subscriptions = () => {
         setSubscriptions(data);
       } catch (err) {
         console.error("Failed to fetch subscriptions:", err);
-        setError(
-          "Failed to load subscriptions. The server might be unavailable."
-        );
+        setError(t("subscriptions.fetchError"));
       } finally {
         setLoading(false);
       }
@@ -45,10 +45,8 @@ const Subscriptions = () => {
     setSelectedPlan(plan._id);
 
     if (user) {
-      // Returning user - go directly to payment
       navigate(`/payment?plan=${plan._id}`, { state: { plan } });
     } else {
-      // New user - go to register first
       navigate(`/register?plan=${plan._id}`, { state: { plan } });
     }
   };
@@ -73,11 +71,10 @@ const Subscriptions = () => {
             <FaHeart className="text-pink-400 text-4xl ml-2" />
           </div>
           <h1 className="text-xl md:text-5xl font-bold text-text-main mb-4">
-            Grow Your Beauty Business with BeautyHeaven
+            {t("subscriptions.heroTitle")}
           </h1>
           <p className="text-lg text-text-muted max-w-3xl mx-auto">
-            Choose the perfect plan for your salon and start attracting more
-            customers today.
+            {t("subscriptions.heroDesc")}
           </p>
         </div>
       </section>
@@ -86,15 +83,15 @@ const Subscriptions = () => {
       <section className="container mx-auto px-6 py-8 md:py-12">
         <div className="text-center mb-8 md:mb-12">
           <h2 className="text-4xl font-bold mb-4">
-            Simple, Transparent Pricing
+            {t("subscriptions.pricingTitle")}
           </h2>
           <p className="text-xl text-text-muted max-w-2xl mx-auto">
-            Start with any plan and upgrade anytime as your business grows.
+            {t("subscriptions.pricingDesc")}
           </p>
         </div>
         <div className="text-center mb-8 md:mb-12">
           <p className="mt-2 text-2xl text-gray-600">
-            🎁 Free coupon code for new users:{" "}
+            🎁 {t("subscriptions.freeCoupon")}{" "}
             <strong className="text-primary-purple">ADD-0NCJ-ENH2</strong>
           </p>
         </div>
@@ -104,21 +101,22 @@ const Subscriptions = () => {
           <div className="text-center py-20">
             <FaSpinner className="text-5xl text-primary-purple mx-auto animate-spin" />
             <p className="mt-4 font-semibold text-text-muted">
-              Loading plans...
+              {t("subscriptions.loading")}
             </p>
           </div>
         ) : error ? (
           <div className="text-center py-20 text-red-600 bg-red-50 p-6 rounded-lg shadow-sm">
-            <h3 className="font-bold text-lg">An Error Occurred</h3>
+            <h3 className="font-bold text-lg">
+              {t("subscriptions.errorTitle")}
+            </h3>
             <p>{error}</p>
           </div>
         ) : subscriptions.length === 0 ? (
           <div className="text-center py-20 bg-gray-50 p-8 rounded-lg shadow-sm">
-            <h3 className="font-bold text-lg">No subscription plan Found</h3>
-            <p className="text-text-muted">
-              There are currently no subscription plans. Contact an admin to add
-              one
-            </p>
+            <h3 className="font-bold text-lg">
+              {t("subscriptions.noPlansTitle")}
+            </h3>
+            <p className="text-text-muted">{t("subscriptions.noPlansDesc")}</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -142,7 +140,7 @@ const Subscriptions = () => {
                 >
                   {selectedPlan === "pro" && (
                     <span className="inline-block bg-white text-primary-pink px-3 py-1 rounded-full text-sm font-bold mb-3">
-                      Most Popular
+                      {t("subscriptions.mostPopular")}
                     </span>
                   )}
                   <h3
@@ -181,7 +179,7 @@ const Subscriptions = () => {
                           : "text-text-muted"
                       }`}
                     >
-                      /Month
+                      /{t("subscriptions.perMonth")}
                     </span>
                   </div>
                 </div>
@@ -223,7 +221,7 @@ const Subscriptions = () => {
                         : "bg-gray-100 text-text-main hover:bg-gray-200"
                     }`}
                   >
-                    Choose Plan
+                    {t("subscriptions.choosePlan")}
                   </button>
                 </div>
               </div>
@@ -236,76 +234,64 @@ const Subscriptions = () => {
       <section className="bg-slate-50 py-16 px-4">
         <div className="container mx-auto">
           <h2 className="text-3xl font-bold text-center mb-12">
-            Why Salon Owners Choose BeautyHeaven
+            {t("subscriptions.featuresTitle")}
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             <div className="flex flex-col items-center text-center">
               <FaStore className="text-5xl text-primary-pink mb-4" />
-              <h3 className="text-xl font-bold mb-2">Manage Your Salon</h3>
-              <p className="text-gray-600">
-                Complete profile, services, and appointment management in one
-                place.
-              </p>
+              <h3 className="text-xl font-bold mb-2">
+                {t("subscriptions.feature1Title")}
+              </h3>
+              <p className="text-gray-600">{t("subscriptions.feature1Desc")}</p>
             </div>
             <div className="flex flex-col items-center text-center">
               <MdAnalytics className="text-5xl text-primary-purple mb-4" />
-              <h3 className="text-xl font-bold mb-2">Analytics</h3>
-              <p className="text-gray-600">
-                Track bookings, customer behavior, and grow your business with
-                data.
-              </p>
+              <h3 className="text-xl font-bold mb-2">
+                {t("subscriptions.feature2Title")}
+              </h3>
+              <p className="text-gray-600">{t("subscriptions.feature2Desc")}</p>
             </div>
             <div className="flex flex-col items-center text-center">
               <FaMapMarkerAlt className="text-5xl text-primary-pink mb-4" />
-              <h3 className="text-xl font-bold mb-2">Get Discovered</h3>
-              <p className="text-gray-600">
-                Higher visibility means more local customers finding your
-                business.
-              </p>
+              <h3 className="text-xl font-bold mb-2">
+                {t("subscriptions.feature3Title")}
+              </h3>
+              <p className="text-gray-600">{t("subscriptions.feature3Desc")}</p>
             </div>
             <div className="flex flex-col items-center text-center">
               <BsChatDots className="text-5xl text-primary-purple mb-4" />
-              <h3 className="text-xl font-bold mb-2">Direct Chat</h3>
-              <p className="text-gray-600">
-                Communicate directly with customers and build relationships.
-              </p>
+              <h3 className="text-xl font-bold mb-2">
+                {t("subscriptions.feature4Title")}
+              </h3>
+              <p className="text-gray-600">{t("subscriptions.feature4Desc")}</p>
             </div>
           </div>
         </div>
       </section>
 
-      {/* FAQ or Support Section */}
+      {/* FAQ Section */}
       <section className="container mx-auto px-6 py-16">
         <h2 className="text-3xl font-bold text-center mb-12">
-          Frequently Asked Questions
+          {t("subscriptions.faqTitle")}
         </h2>
         <div className="max-w-2xl mx-auto space-y-6">
           <div className="bg-gray-50 p-6 rounded-lg">
             <h3 className="font-bold text-lg mb-2">
-              Can I change my plan later?
+              {t("subscriptions.faq1Question")}
             </h3>
-            <p className="text-gray-600">
-              Yes, you can upgrade or downgrade your plan anytime. Changes take
-              effect at the next billing cycle.
-            </p>
+            <p className="text-gray-600">{t("subscriptions.faq1Answer")}</p>
           </div>
           <div className="bg-gray-50 p-6 rounded-lg">
             <h3 className="font-bold text-lg mb-2">
-              Do you offer a free trial?
+              {t("subscriptions.faq2Question")}
             </h3>
-            <p className="text-gray-600">
-              Yes, new salon owners get a 7-day free trial to explore all
-              features before committing.
-            </p>
+            <p className="text-gray-600">{t("subscriptions.faq2Answer")}</p>
           </div>
           <div className="bg-gray-50 p-6 rounded-lg">
             <h3 className="font-bold text-lg mb-2">
-              What payment methods do you accept?
+              {t("subscriptions.faq3Question")}
             </h3>
-            <p className="text-gray-600">
-              We accept credit cards, debit cards, and local payment methods
-              like MTN MoMo and Orange Money.
-            </p>
+            <p className="text-gray-600">{t("subscriptions.faq3Answer")}</p>
           </div>
         </div>
       </section>

@@ -1,22 +1,24 @@
 "use client";
 
 import { useState } from "react";
-import { Link, useNavigate, useLocation } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
+import { useTranslation } from "react-i18next";
+import { FaEye, FaEyeSlash } from "react-icons/fa";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
+import { redeemCouponCode } from "../api";
 import AuthLayout from "../components/AuthLayout";
 import Button from "../components/Button";
-import { FaEye, FaEyeSlash } from "react-icons/fa";
-import { redeemCouponCode } from "../api";
+import { useAuth } from "../context/AuthContext";
 
 const RegisterPage = () => {
+  const { t } = useTranslation();
   const { register } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
   const searchParams = new URLSearchParams(location.search);
   const selectedPlan = searchParams.get("plan");
-  const couponCode = searchParams.get("coupon"); // Get coupon code from query params if user came from free month code flow
+  const couponCode = searchParams.get("coupon");
 
   const [formData, setFormData] = useState({
     firstName: "",
@@ -35,7 +37,7 @@ const RegisterPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (formData.password !== formData.confirmPassword) {
-      return toast.error("Passwords do not match.");
+      return toast.error(t("register.passwordsMismatch"));
     }
     setLoading(true);
 
@@ -48,29 +50,32 @@ const RegisterPage = () => {
 
     try {
       await register(payload);
-      toast.success("Account Created Successfully!");
+      toast.success(t("register.accountCreated"));
 
+      // Plan & coupon flow
       if (selectedPlan && selectedPlan !== "null") {
         if (couponCode) {
           try {
-            await redeemCouponCode(couponCode);
-            toast.success("Coupon redeemed! Your subscription is active.");
+            await redeemCouponCode({ code: couponCode });
+            toast.success(t("register.couponRedeemed"));
             navigate("/salon-owner/dashboard");
           } catch (err) {
-            toast.error("Coupon redemption failed. Proceeding to payment.");
+            toast.error(
+              `${t("register.couponRedeemFailed")}: ${
+                err?.response?.data?.message ?? ""
+              }`
+            );
             navigate(`/payment?plan=${selectedPlan}`);
           }
         } else {
-          // Normal flow - go to payment page
           navigate(`/payment?plan=${selectedPlan}`);
         }
       } else {
-        // No plan selected - go directly to dashboard
         navigate("/salon-owner/dashboard");
       }
     } catch (err) {
       toast.error(
-        err.response?.data?.message || "Registration failed. Please try again."
+        err.response?.data?.message || t("register.registrationFailed")
       );
     } finally {
       setLoading(false);
@@ -80,21 +85,18 @@ const RegisterPage = () => {
   return (
     <AuthLayout>
       <h3 className="text-3xl font-bold text-text-main mb-2">
-        Create Your Account
+        {t("register.createAccount")}
       </h3>
       <p className="text-text-muted mb-6">
         Join BeautyHub and start growing your beauty business
-        {!selectedPlan && "."}{" "}
-        {selectedPlan &&
-          selectedPlan !== "null" &&
-          `with the ${selectedPlan.toUpperCase()} plan.`}
+        {!selectedPlan ? "." : ` with the ${selectedPlan.toUpperCase()} plan.`}
       </p>
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-text-muted mb-1">
-              First Name
+              {t("register.firstName")}
             </label>
             <input
               type="text"
@@ -106,7 +108,7 @@ const RegisterPage = () => {
           </div>
           <div>
             <label className="block text-sm font-medium text-text-muted mb-1">
-              Last Name
+              {t("register.lastName")}
             </label>
             <input
               type="text"
@@ -117,9 +119,10 @@ const RegisterPage = () => {
             />
           </div>
         </div>
+
         <div>
           <label className="block text-sm font-medium text-text-muted mb-1">
-            Email
+            {t("register.email")}
           </label>
           <input
             type="email"
@@ -145,7 +148,7 @@ const RegisterPage = () => {
 
         <div className="relative">
           <label className="block text-sm font-medium text-text-muted mb-1">
-            Password
+            {t("register.password")}
           </label>
           <input
             type={showPassword ? "text" : "password"}
@@ -162,9 +165,10 @@ const RegisterPage = () => {
             {showPassword ? <FaEyeSlash /> : <FaEye />}
           </button>
         </div>
+
         <div className="relative">
           <label className="block text-sm font-medium text-text-muted mb-1">
-            Confirm Password
+            {t("register.confirmPassword")}
           </label>
           <input
             type="password"
@@ -174,6 +178,7 @@ const RegisterPage = () => {
             required
           />
         </div>
+
         <div className="flex items-start space-x-2 pt-2">
           <input
             type="checkbox"
@@ -182,32 +187,36 @@ const RegisterPage = () => {
             required
           />
           <label htmlFor="terms" className="text-sm text-text-muted">
-            I agree to the{" "}
+            {t("register.agreeTerms")}{" "}
             <Link to="/terms" className="underline text-primary-purple">
-              Terms of Service
+              {t("register.termsOfService")}
             </Link>{" "}
-            and{" "}
+            {t("register.and")}{" "}
             <Link to="/privacy" className="underline text-primary-purple">
-              Privacy Policy
+              {t("register.privacyPolicy")}
             </Link>
           </label>
         </div>
+
         <Button
           variant="gradient"
           type="submit"
           className="w-full !mt-6"
           disabled={loading}
         >
-          {loading ? "Creating Account..." : "Create Account & Continue"}
+          {loading
+            ? t("register.creatingAccount")
+            : t("register.createAccountContinue")}
         </Button>
       </form>
+
       <p className="text-center mt-6 text-sm">
-        Already have an account?{" "}
+        {t("register.alreadyHaveAccount")}{" "}
         <Link
           to="/login"
           className="font-semibold text-primary-purple hover:underline"
         >
-          Sign In
+          {t("register.signIn")}
         </Link>
       </p>
     </AuthLayout>

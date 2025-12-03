@@ -9,6 +9,7 @@ import {
   FaHome,
 } from "react-icons/fa";
 import Button from "./Button";
+import { useTranslation } from "react-i18next";
 
 const StarRating = ({ rating }) => {
   return (
@@ -26,6 +27,8 @@ const StarRating = ({ rating }) => {
 };
 
 const SalonCard = ({ salon }) => {
+  const { t } = useTranslation();
+
   if (!salon) return null;
 
   const displayImage =
@@ -53,14 +56,14 @@ const SalonCard = ({ salon }) => {
         {offersHomeServices && (
           <div className="absolute top-3 left-3 bg-green-500 text-white px-3 py-1 rounded-full flex items-center space-x-1 text-sm font-semibold">
             <FaHome size={14} />
-            <span>Home Services</span>
+            <span>{t("salonCard.homeServices")}</span>
           </div>
         )}
 
         {salon.isVerified && (
           <div className="absolute bottom-3 left-3 bg-green-500 text-white px-3 py-1 rounded-full flex items-center space-x-1">
             <FaCheckCircle />
-            <span>Verified</span>
+            <span>{t("salonCard.verified")}</span>
           </div>
         )}
       </div>
@@ -76,31 +79,35 @@ const SalonCard = ({ salon }) => {
             </span>
           </div>
         </div>
+
         <p className="text-sm text-text-muted mt-1">
           {salon.city}, {salon.address}
         </p>
 
-        {/* The rest of the content remains the same, but now it will use live data */}
         <div className="flex-grow">
           <div className="flex justify-between items-center my-3">
             <div>
-              <p className="text-xs text-text-muted">Starting from</p>
+              <p className="text-xs text-text-muted">
+                {t("salonCard.startingFrom")}
+              </p>
               <p className="font-bold text-lg text-text-main">
                 {salon.startingPrice ? `₦${salon.startingPrice}` : "N/A"}
               </p>
             </div>
+
             <div className="text-right">
               <StarRating rating={salon.averageRating || 0} />
               <p className="text-xs text-text-muted">
-                ({salon.reviews?.length || 0} reviews)
+                ({salon.reviews?.length || 0} {t("salonCard.reviews")})
               </p>
             </div>
           </div>
+
           <div className="border-t border-gray-100 pt-3 flex justify-between items-center text-sm text-text-muted">
-            <span>Responds in ~ an hour</span>
+            <span>{t("salonCard.responseTime")}</span>
             <span className="flex items-center space-x-1.5">
               <span className="h-2 w-2 bg-green-500 rounded-full"></span>
-              <span>Online</span>
+              <span>{t("salonCard.online")}</span>
             </span>
           </div>
         </div>
@@ -108,7 +115,7 @@ const SalonCard = ({ salon }) => {
         <div className="mt-4 flex items-center space-x-2">
           <Link to={`/salon/${salon._id}`} state={{ salon }} className="w-full">
             <Button variant="gradient" className="w-full !py-2.5">
-              View & Book
+              {t("salonCard.viewAndBook")}
             </Button>
           </Link>
           <button className="p-3 border-2 border-gray-200 rounded-lg hover:bg-gray-100">

@@ -1,21 +1,22 @@
-import React, { useState, useEffect } from "react";
-import { useLocation, useParams } from "react-router-dom";
-import { toast } from "react-toastify";
+import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
-  FaHome,
-  FaStar,
-  FaPhone,
-  FaMapMarkerAlt,
-  FaImages,
-  FaCheck,
   FaArrowLeft,
+  FaCheck,
+  FaHome,
+  FaImages,
+  FaMapMarkerAlt,
+  FaPhone,
+  FaStar,
 } from "react-icons/fa";
-import Button from "../components/Button";
-import BookingModal from "../components/BookingModal";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
+import { toast } from "react-toastify";
 import { createAppointment, fetchSalonById } from "../api";
+import BookingModal from "../components/BookingModal";
+import Button from "../components/Button";
 
 const SalonDetailPage = () => {
+  const { t } = useTranslation();
   const { id } = useParams();
   const location = useLocation();
   const navigate = useNavigate();
@@ -34,7 +35,7 @@ const SalonDetailPage = () => {
           const { data } = await fetchSalonById(id);
           setSalon(data);
         } catch (err) {
-          toast.error("Failed to load salon details");
+          toast.error(t("salondetail.loadFailed"));
           console.error(err);
           navigate("/");
         } finally {
@@ -43,7 +44,7 @@ const SalonDetailPage = () => {
       };
       getSalon();
     }
-  }, [id, salon, navigate]);
+  }, [id, salon, navigate, t]);
 
   const handleBookClick = (service) => {
     setSelectedService(service);
@@ -52,7 +53,6 @@ const SalonDetailPage = () => {
 
   const handleConfirmBooking = async (bookingData) => {
     try {
-
       await createAppointment({
         salonId: bookingData.salonId,
         serviceId: bookingData.serviceId,
@@ -62,13 +62,10 @@ const SalonDetailPage = () => {
         homeService: bookingData.location === "home",
       });
 
-      toast.success(
-        "Appointment requested successfully! Opening chat with the salon..."
-      );
+      toast.success(t("salondetail.bookingSuccess"));
 
       setIsModalOpen(false);
 
-      // open the chat on whastapp
       const whatsappUrl = `https://wa.me/${salon?.phone?.replace(
         /[^0-9]/g,
         ""
@@ -76,22 +73,20 @@ const SalonDetailPage = () => {
       window.open(whatsappUrl, "_blank");
     } catch (err) {
       toast.error(
-        err.response?.data?.message || "Booking failed. Please try again."
+        err.response?.data?.message || t("salondetail.bookingFailed")
       );
       console.error(err);
     }
   };
 
-  console.log({ salon });
-
   if (loading) {
-    return <div className="text-center py-20">Loading salon details...</div>;
+    return <div className="text-center py-20">{t("salondetail.loading")}</div>;
   }
 
   if (!salon) {
     return (
       <div className="text-center py-20 text-red-600">
-        Failed to load salon. Please go back and try again.
+        {t("salondetail.loadFailedGoBack")}
       </div>
     );
   }
@@ -105,13 +100,12 @@ const SalonDetailPage = () => {
     <div className="bg-gray-50 min-h-screen">
       <div className="bg-white border-b border-gray-200">
         <div className="container mx-auto px-4 md:px-6 py-4 flex items-center justify-between">
-          {/* Back Button */}
           <button
             onClick={() => navigate(-1)}
             className="flex items-center space-x-2 text-primary-purple hover:text-primary-purple/80 transition-colors font-medium"
           >
             <FaArrowLeft size={16} />
-            <span>Back</span>
+            <span>{t("salondetail.back")}</span>
           </button>
         </div>
       </div>
@@ -122,7 +116,6 @@ const SalonDetailPage = () => {
       >
         <div className="absolute inset-0 bg-black bg-opacity-30"></div>
 
-        {/* Photo navigation arrows */}
         {salon.photos && salon.photos.length > 1 && (
           <div className="absolute inset-0 flex items-center justify-between px-4 opacity-0 group-hover:opacity-100 transition-opacity z-10">
             <button
@@ -153,10 +146,10 @@ const SalonDetailPage = () => {
             <div className="flex items-center space-x-2">
               <FaStar className="text-yellow-300" />
               <span className="font-bold text-lg">
-                {salon.averageRating?.toFixed(1) || "New"}
+                {salon.averageRating?.toFixed(1) || t("salondetail.new")}
               </span>
               <span className="text-gray-200">
-                ({salon.reviews?.length || 0} reviews)
+                ({salon.reviews?.length || 0} {t("salondetail.reviews")})
               </span>
             </div>
             <div className="flex items-center space-x-2">
@@ -175,11 +168,11 @@ const SalonDetailPage = () => {
 
       <div className="container mx-auto px-4 md:px-8 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Left Column (Services) - spans 2 columns on large screens */}
           <div className="lg:col-span-2 space-y-8">
-            {/* Services Section */}
             <div className="bg-white p-6 md:p-8 rounded-lg shadow-md">
-              <h2 className="text-2xl font-bold mb-6">Services</h2>
+              <h2 className="text-2xl font-bold mb-6">
+                {t("salondetail.services")}
+              </h2>
               <ul className="space-y-5">
                 {salon.services && salon.services.length > 0 ? (
                   salon.services.map((service) => (
@@ -195,7 +188,7 @@ const SalonDetailPage = () => {
                           {service.homeServiceAvailable && (
                             <span className="inline-flex items-center space-x-1 bg-green-100 text-green-800 text-xs font-semibold px-3 py-1 rounded-full w-fit">
                               <FaHome size={12} />
-                              <span>Home Service</span>
+                              <span>{t("salondetail.homeService")}</span>
                             </span>
                           )}
                         </div>
@@ -213,45 +206,45 @@ const SalonDetailPage = () => {
                           className="!py-2 !px-6 whitespace-nowrap"
                           onClick={() => handleBookClick(service)}
                         >
-                          Book
+                          {t("salondetail.book")}
                         </Button>
                       </div>
                     </li>
                   ))
                 ) : (
                   <p className="text-text-muted text-center py-8">
-                    No services listed for this salon yet.
+                    {t("salondetail.noServices")}
                   </p>
                 )}
               </ul>
             </div>
 
-            {/* About Section */}
             <div className="bg-white p-6 md:p-8 rounded-lg shadow-md">
-              <h2 className="text-2xl font-bold mb-4">About This Salon</h2>
+              <h2 className="text-2xl font-bold mb-4">
+                {t("salondetail.aboutSalon")}
+              </h2>
               <p className="text-text-muted leading-relaxed">
-                {salon.description ||
-                  "Professional beauty salon dedicated to providing quality services. Visit us to experience our expertise and friendly atmosphere."}
+                {salon.description || t("salondetail.aboutSalonPlaceholder")}
               </p>
             </div>
           </div>
 
-          {/* Right Column (Sidebar) */}
           <div className="lg:col-span-1">
-            {/* Quick Info Card */}
             <div className="bg-white p-6 rounded-lg shadow-md sticky top-4 space-y-6">
               {salon.photos && salon.photos.length > 0 && (
                 <div>
                   <h3 className="text-lg font-bold mb-3 flex items-center space-x-2">
                     <FaImages />
-                    <span>Gallery</span>
+                    <span>{t("salondetail.gallery")}</span>
                   </h3>
                   <div className="grid grid-cols-2 gap-2">
                     {salon.photos.slice(0, 4).map((photo, idx) => (
                       <img
                         key={idx}
                         src={photo || "/placeholder.svg"}
-                        alt={`${salon.name} gallery ${idx + 1}`}
+                        alt={`${salon.name} ${t("salondetail.gallery")} ${
+                          idx + 1
+                        }`}
                         className="w-full h-24 object-cover rounded-lg cursor-pointer hover:opacity-80 transition-opacity"
                         onClick={() => setCurrentPhotoIndex(idx)}
                       />
@@ -262,20 +255,20 @@ const SalonDetailPage = () => {
 
               <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg">
                 <h4 className="font-semibold text-sm mb-2">
-                  Why Book With Us?
+                  {t("salondetail.whyBook")}
                 </h4>
                 <ul className="space-y-2 text-sm text-text-muted">
                   <li className="flex items-start space-x-2">
                     <FaCheck className="text-green-600 mt-0.5 flex-shrink-0" />
-                    <span>Easy booking & chat support</span>
+                    <span>{t("salondetail.easyBooking")}</span>
                   </li>
                   <li className="flex items-start space-x-2">
                     <FaCheck className="text-green-600 mt-0.5 flex-shrink-0" />
-                    <span>Professional stylists</span>
+                    <span>{t("salondetail.professionalStylists")}</span>
                   </li>
                   <li className="flex items-start space-x-2">
                     <FaCheck className="text-green-600 mt-0.5 flex-shrink-0" />
-                    <span>Quality services</span>
+                    <span>{t("salondetail.qualityServices")}</span>
                   </li>
                 </ul>
               </div>
