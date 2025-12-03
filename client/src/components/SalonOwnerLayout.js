@@ -1,4 +1,5 @@
-// src/components/SalonOwnerLayout.js
+"use client";
+
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
@@ -16,6 +17,7 @@ import {
 import { Link, NavLink } from "react-router-dom";
 import LanguageSwitcher from "./LanguageSwitcher";
 
+// SidebarLink Component
 const SidebarLink = ({ to, icon: Icon, children, onClick }) => (
   <NavLink
     to={to}
@@ -33,12 +35,13 @@ const SidebarLink = ({ to, icon: Icon, children, onClick }) => (
   </NavLink>
 );
 
+// SalonOwnerLayout Component
 const SalonOwnerLayout = ({ children }) => {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
 
   return (
-    <div className="flex min-h-screen bg-gray-100 overflow-hidden">
+    <div className="flex h-screen bg-gray-100 overflow-hidden">
       {/* MOBILE FLOATING MENU BUTTON */}
       {!open && (
         <button
@@ -54,13 +57,13 @@ const SalonOwnerLayout = ({ children }) => {
         <div
           className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40 lg:hidden"
           onClick={() => setOpen(false)}
-        />
+        ></div>
       )}
 
       {/* SIDEBAR */}
       <aside
         className={`fixed lg:static top-0 left-0 h-full w-64 bg-gray-900 text-white p-6 flex flex-col z-50 transform duration-300
-        ${open ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}`}
+          ${open ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}`}
       >
         {/* HEADER */}
         <div className="flex items-center justify-between mb-8">
@@ -70,7 +73,7 @@ const SalonOwnerLayout = ({ children }) => {
             </span>
           </Link>
 
-          {/* Close (mobile) */}
+          {/* Close button for mobile */}
           <button
             onClick={() => setOpen(false)}
             className="lg:hidden text-gray-300"
@@ -79,6 +82,7 @@ const SalonOwnerLayout = ({ children }) => {
           </button>
         </div>
 
+        {/* OWNER PORTAL LABEL */}
         <p className="text-xs text-gray-400 mb-4 tracking-wider uppercase">
           {t("ownerSidebar.ownerPortal")}
         </p>
@@ -143,7 +147,7 @@ const SalonOwnerLayout = ({ children }) => {
           </SidebarLink>
         </nav>
 
-        {/* LANGUAGE */}
+        {/* LANGUAGE SWITCHER */}
         <div className="mt-4 pt-4 border-t border-gray-700">
           <LanguageSwitcher />
         </div>

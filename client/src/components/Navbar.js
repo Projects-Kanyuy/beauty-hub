@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { FaBars, FaTimes } from "react-icons/fa";
 import { Link, NavLink } from "react-router-dom";
+import { FaBars, FaTimes } from "react-icons/fa";
 import LanguageSwitcher from "./LanguageSwitcher";
 
 const NavItem = ({ to, children, onClick }) => (
@@ -59,10 +59,12 @@ const Navbar = ({ isLoggedIn, user, handleLogout }) => {
           ) : (
             <>
               <NavItem to="/">{t("header.home")}</NavItem>
-              <NavItem to="/become-salon-owner">Add Your Business</NavItem>
+              <NavItem to="/become-salon-owner">
+                {t("header.addBusiness")}
+              </NavItem>
               <NavItem to="/tips">{t("header.tips")}</NavItem>
               <NavItem to="/about">{t("header.about")}</NavItem>
-              <NavItem to="/contact">Contact</NavItem>
+              <NavItem to="/contact">{t("header.contact")}</NavItem>
             </>
           )}
         </ul>
@@ -91,74 +93,58 @@ const Navbar = ({ isLoggedIn, user, handleLogout }) => {
         </button>
       </nav>
 
-      {/* --- MOBILE DRAWER MENU --- */}
-      <div
-        className={`fixed inset-0 bg-black/30 backdrop-blur-sm transition-opacity duration-300 lg:hidden ${
-          isDrawerOpen ? "opacity-100 visible" : "opacity-0 invisible"
-        }`}
-        onClick={closeDrawer}
-      ></div>
-
-      <div
-        className={`fixed top-0 right-0 w-72 h-full bg-white shadow-xl p-6 transform transition-transform duration-300 lg:hidden z-[100] ${
-          isDrawerOpen ? "translate-x-0" : "translate-x-full"
-        }`}
-      >
-        <div className="flex justify-between items-center mb-5">
-          <h2 className="font-bold text-xl text-primary-purple">Menu</h2>
-          <LanguageSwitcher />
+      {/* Mobile Drawer */}
+      {isDrawerOpen && (
+        <div className="lg:hidden border-t border-gray-200">
+          <div className="container mx-auto px-4 sm:px-6 py-4">
+            <ul className="flex flex-col space-y-4">
+              {isLoggedIn ? (
+                <>
+                  <NavItem to="/dashboard" onClick={closeDrawer}>
+                    {t("header.dashboard")}
+                  </NavItem>
+                  <NavItem to="/favorites" onClick={closeDrawer}>
+                    {t("header.favorites")}
+                  </NavItem>
+                  <NavItem to="/compare" onClick={closeDrawer}>
+                    {t("header.compare")}
+                  </NavItem>
+                  <NavItem to="/messages" onClick={closeDrawer}>
+                    {t("header.messages")}
+                  </NavItem>
+                  <button
+                    onClick={() => {
+                      handleLogout();
+                      closeDrawer();
+                    }}
+                    className="w-full mt-4 px-5 py-2.5 rounded-lg font-bold text-white bg-gray-800 hover:bg-gray-900 transition-colors text-left"
+                  >
+                    {t("header.logout")}
+                  </button>
+                </>
+              ) : (
+                <>
+                  <NavItem to="/" onClick={closeDrawer}>
+                    {t("header.home")}
+                  </NavItem>
+                  <NavItem to="/become-salon-owner" onClick={closeDrawer}>
+                    {t("header.addBusiness")}
+                  </NavItem>
+                  <NavItem to="/tips" onClick={closeDrawer}>
+                    {t("header.tips")}
+                  </NavItem>
+                  <NavItem to="/about" onClick={closeDrawer}>
+                    {t("header.about")}
+                  </NavItem>
+                  <NavItem to="/contact" onClick={closeDrawer}>
+                    {t("header.contact")}
+                  </NavItem>
+                </>
+              )}
+            </ul>
+          </div>
         </div>
-
-        <ul className="flex flex-col space-y-4">
-          {isLoggedIn ? (
-            <>
-              <NavItem to="/dashboard" onClick={closeDrawer}>
-                {t("header.dashboard")}
-              </NavItem>
-              <NavItem to="/favorites" onClick={closeDrawer}>
-                {t("header.favorites")}
-              </NavItem>
-              <NavItem to="/compare" onClick={closeDrawer}>
-                {t("header.compare")}
-              </NavItem>
-              <NavItem to="/messages" onClick={closeDrawer}>
-                {t("header.messages")}
-              </NavItem>
-
-              <button
-                onClick={() => {
-                  handleLogout();
-                  closeDrawer();
-                }}
-                className="mt-4 w-full bg-gray-800 text-white py-2 rounded-lg font-semibold"
-              >
-                {t("header.logout")}
-              </button>
-            </>
-          ) : (
-            <>
-              <NavItem to="/" onClick={closeDrawer}>
-                {t("header.home")}
-              </NavItem>
-              <NavItem to="/become-salon-owner" onClick={closeDrawer}>
-                Add Your Business
-              </NavItem>
-              <NavItem to="/tips" onClick={closeDrawer}>
-                {t("header.tips")}
-              </NavItem>
-              <NavItem to="/subscriptions" onClick={closeDrawer}>
-                {t("header.subscriptions")}
-              </NavItem>
-              <NavItem to="/about" onClick={closeDrawer}>
-                {t("header.about")}
-              </NavItem>
-              <NavItem to="/contact" onClick={closeDrawer}>
-                Contact
-              </NavItem>
-            </>
-          )}
-        </ul>
-      </div>
+      )}
     </header>
   );
 };
