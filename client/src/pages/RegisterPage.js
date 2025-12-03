@@ -27,6 +27,7 @@ const RegisterPage = () => {
     phone: "",
     password: "",
     confirmPassword: "",
+    salonName: "",
   });
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -39,6 +40,7 @@ const RegisterPage = () => {
     if (formData.password !== formData.confirmPassword) {
       return toast.error(t("register.passwordsMismatch"));
     }
+
     setLoading(true);
 
     const payload = {
@@ -52,11 +54,11 @@ const RegisterPage = () => {
       await register(payload);
       toast.success(t("register.accountCreated"));
 
-      // Plan & coupon flow
+      // Coupon redemption flow
       if (selectedPlan && selectedPlan !== "null") {
         if (couponCode) {
           try {
-            await redeemCouponCode({ code: couponCode });
+            await redeemCouponCode(couponCode);
             toast.success(t("register.couponRedeemed"));
             navigate("/salon-owner/dashboard");
           } catch (err) {
@@ -71,6 +73,7 @@ const RegisterPage = () => {
           navigate(`/payment?plan=${selectedPlan}`);
         }
       } else {
+        // No plan selected
         navigate("/salon-owner/dashboard");
       }
     } catch (err) {
@@ -88,8 +91,9 @@ const RegisterPage = () => {
         {t("register.createAccount")}
       </h3>
       <p className="text-text-muted mb-6">
-        Join BeautyHub and start growing your beauty business
-        {!selectedPlan ? "." : ` with the ${selectedPlan.toUpperCase()} plan.`}
+        {selectedPlan && selectedPlan !== "null"
+          ? t("register.joinMessage", { plan: selectedPlan.toUpperCase() })
+          : t("register.joinMessageNoPlan")}
       </p>
 
       <form onSubmit={handleSubmit} className="space-y-4">
@@ -135,7 +139,21 @@ const RegisterPage = () => {
 
         <div>
           <label className="block text-sm font-medium text-text-muted mb-1">
-            Phone Number
+            {t("register.salonName")} *
+          </label>
+          <input
+            type="text"
+            name="salonName"
+            onChange={handleChange}
+            placeholder={t("register.salonNamePlaceholder")}
+            className="w-full p-2 border rounded-lg"
+            required
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-text-muted mb-1">
+            {t("register.phoneNumber")}
           </label>
           <input
             type="tel"

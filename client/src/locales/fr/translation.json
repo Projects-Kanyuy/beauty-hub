@@ -299,6 +299,7 @@
   "register": {
     "createAccount": "Créez votre compte",
     "joinMessage": "Rejoignez BeautyHub et commencez à développer votre entreprise de beauté avec le plan {{plan}}.",
+    "joinMessageNoPlan": "Rejoignez BeautyHub et commencez à développer votre entreprise de beauté.",
     "firstName": "Prénom",
     "lastName": "Nom",
     "email": "Email",
@@ -349,6 +350,10 @@
     "errorLoad": "Échec du chargement des rendez-vous."
   },
   "salondashboard": {
+    "noSubscription": "Aucun abonnement actif",
+    "subscribeToUnlock": "Abonnez-vous pour débloquer toutes les fonctionnalités de BeautyHub.",
+    "choosePlan": "Choisir un forfait",
+
     "welcomeBack": "Bon retour, {{name}} !",
     "summary": "Voici un résumé de l'activité de votre salon aujourd'hui.",
     "todaysBookings": "Réservations d'aujourd'hui",
@@ -530,5 +535,55 @@
     "faq2Answer": "Oui, les nouveaux propriétaires de salon bénéficient d'un essai gratuit de 7 jours pour explorer toutes les fonctionnalités avant de s'engager.",
     "faq3Question": "Quels modes de paiement acceptez-vous ?",
     "faq3Answer": "Nous acceptons les cartes de crédit, les cartes de débit et les méthodes de paiement locales comme MTN MoMo et Orange Money."
+  },
+  "becomeOwnerPage": {
+    "hero": {
+      "title": "Développez Votre Salon de Beauté",
+      "subtitle": "Rejoignez des milliers de propriétaires de salons utilisant BeautyHeaven pour attirer plus de clients, gérer les rendez-vous et grandir rapidement."
+    },
+    "why": {
+      "title": "Pourquoi Choisir BeautyHeaven ?",
+      "card1": {
+        "title": "Gestion Facile",
+        "text": "Gérez votre profil, vos services et rendez-vous au même endroit."
+      },
+      "card2": {
+        "title": "Plus de Réservations",
+        "text": "Soyez découvert par des milliers de clients recherchant des services beauté."
+      },
+      "card3": {
+        "title": "Analyse Commerciale",
+        "text": "Suivez vos réservations, revenus et statistiques pour croître intelligemment."
+      },
+      "card4": {
+        "title": "Communication Directe",
+        "text": "Discutez avec les clients, créez des relations et offrez un meilleur service."
+      }
+    },
+    "stats": {
+      "salons": "Salons Actifs",
+      "bookings": "Réservations Mensuelles",
+      "customers": "Clients Satisfaits"
+    },
+    "cta": {
+      "title": "Prêt à Commencer ?",
+      "pricing": "Voir Nos Tarifs",
+      "startFree": "Commencer Gratuitement"
+    },
+    "faq": {
+      "title": "Questions Fréquemment Posées",
+      "q1": {
+        "question": "Ai-je besoin d’un abonnement pour commencer ?",
+        "answer": "Non ! Créez votre compte et configurez votre salon gratuitement. Payez seulement pour les fonctionnalités premium."
+      },
+      "q2": {
+        "question": "Puis-je changer de plan plus tard ?",
+        "answer": "Oui ! Vous pouvez mettre à niveau, rétrograder ou annuler à tout moment."
+      },
+      "q3": {
+        "question": "Quels moyens de paiement acceptez-vous ?",
+        "answer": "Cartes bancaires + paiements locaux comme MTN MoMo & Orange Money."
+      }
+    }
   }
 }
