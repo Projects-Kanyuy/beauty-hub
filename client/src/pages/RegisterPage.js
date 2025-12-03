@@ -17,13 +17,12 @@ const RegisterPage = () => {
   const location = useLocation();
 
   const searchParams = new URLSearchParams(location.search);
-  const selectedPlan = searchParams.get("plan") || "starter";
+  const selectedPlan = searchParams.get("plan");
   const couponCode = searchParams.get("coupon");
 
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
-    salonName: "",
     email: "",
     phone: "",
     password: "",
@@ -53,24 +52,26 @@ const RegisterPage = () => {
       await register(payload);
       toast.success(t("register.accountCreated"));
 
-      if (couponCode) {
-        try {
-          await redeemCouponCode({
-            code: couponCode,
-          });
-          toast.success(t("register.couponRedeemed"));
-          navigate("/salon-owner/dashboard");
-        } catch (err) {
-          console.log({ err });
-          toast.error(
-            `${t("register.couponRedeemFailed")}:  ${
-              err?.response?.data?.message ?? ""
-            }`
-          );
-          return;
+      // Plan & coupon flow
+      if (selectedPlan && selectedPlan !== "null") {
+        if (couponCode) {
+          try {
+            await redeemCouponCode({ code: couponCode });
+            toast.success(t("register.couponRedeemed"));
+            navigate("/salon-owner/dashboard");
+          } catch (err) {
+            toast.error(
+              `${t("register.couponRedeemFailed")}: ${
+                err?.response?.data?.message ?? ""
+              }`
+            );
+            navigate(`/payment?plan=${selectedPlan}`);
+          }
+        } else {
+          navigate(`/payment?plan=${selectedPlan}`);
         }
       } else {
-        navigate(`/payment?plan=${selectedPlan}`);
+        navigate("/salon-owner/dashboard");
       }
     } catch (err) {
       toast.error(
@@ -87,7 +88,8 @@ const RegisterPage = () => {
         {t("register.createAccount")}
       </h3>
       <p className="text-text-muted mb-6">
-        {t("register.joinMessage", { plan: selectedPlan.toUpperCase() })}
+        Join BeautyHub and start growing your beauty business
+        {!selectedPlan ? "." : ` with the ${selectedPlan.toUpperCase()} plan.`}
       </p>
 
       <form onSubmit={handleSubmit} className="space-y-4">
@@ -133,21 +135,7 @@ const RegisterPage = () => {
 
         <div>
           <label className="block text-sm font-medium text-text-muted mb-1">
-            {t("register.salonName")} *
-          </label>
-          <input
-            type="text"
-            name="salonName"
-            onChange={handleChange}
-            placeholder={t("register.salonNamePlaceholder")}
-            className="w-full p-2 border rounded-lg"
-            required
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-text-muted mb-1">
-            {t("register.phoneNumber")}
+            Phone Number
           </label>
           <input
             type="tel"
@@ -183,19 +171,12 @@ const RegisterPage = () => {
             {t("register.confirmPassword")}
           </label>
           <input
-            type={showPassword ? "text" : "password"}
+            type="password"
             name="confirmPassword"
             onChange={handleChange}
             className="w-full p-2 border rounded-lg"
             required
           />
-          <button
-            type="button"
-            onClick={() => setShowPassword(!showPassword)}
-            className="absolute right-3 top-8 text-gray-500"
-          >
-            {showPassword ? <FaEyeSlash /> : <FaEye />}
-          </button>
         </div>
 
         <div className="flex items-start space-x-2 pt-2">

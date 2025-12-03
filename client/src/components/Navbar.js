@@ -1,3 +1,5 @@
+"use client";
+
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { FaBars, FaTimes } from "react-icons/fa";
@@ -37,11 +39,11 @@ const Navbar = ({ isLoggedIn, user, handleLogout }) => {
 
   return (
     <header className="bg-white shadow-sm sticky top-0 z-50">
-      <nav className="container mx-auto px-4 py-4 flex justify-between items-center">
+      <nav className="container mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
         {/* Logo */}
         <Link to="/" onClick={closeDrawer} className="text-3xl font-extrabold">
           <span className="bg-gradient-to-r from-primary-pink to-primary-purple text-transparent bg-clip-text">
-            BeautyHeaven
+            BeautyHub
           </span>
         </Link>
 
@@ -57,9 +59,10 @@ const Navbar = ({ isLoggedIn, user, handleLogout }) => {
           ) : (
             <>
               <NavItem to="/">{t("header.home")}</NavItem>
+              <NavItem to="/become-salon-owner">Add Your Business</NavItem>
               <NavItem to="/tips">{t("header.tips")}</NavItem>
-              <NavItem to="/subscriptions">{t("header.subscriptions")}</NavItem>
               <NavItem to="/about">{t("header.about")}</NavItem>
+              <NavItem to="/contact">Contact</NavItem>
             </>
           )}
         </ul>
@@ -137,6 +140,9 @@ const Navbar = ({ isLoggedIn, user, handleLogout }) => {
               <NavItem to="/" onClick={closeDrawer}>
                 {t("header.home")}
               </NavItem>
+              <NavItem to="/become-salon-owner" onClick={closeDrawer}>
+                Add Your Business
+              </NavItem>
               <NavItem to="/tips" onClick={closeDrawer}>
                 {t("header.tips")}
               </NavItem>
@@ -145,6 +151,9 @@ const Navbar = ({ isLoggedIn, user, handleLogout }) => {
               </NavItem>
               <NavItem to="/about" onClick={closeDrawer}>
                 {t("header.about")}
+              </NavItem>
+              <NavItem to="/contact" onClick={closeDrawer}>
+                Contact
               </NavItem>
             </>
           )}

@@ -1,3 +1,4 @@
+// src/components/SalonOwnerLayout.js
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
@@ -20,7 +21,7 @@ const SidebarLink = ({ to, icon: Icon, children, onClick }) => (
     to={to}
     onClick={onClick}
     className={({ isActive }) =>
-      `flex items-center space-x-3 px-4 py-3 rounded-lg transition-all cursor-pointer ${
+      `flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors cursor-pointer ${
         isActive
           ? "bg-primary-purple text-white shadow-md"
           : "text-gray-300 hover:bg-purple-700 hover:text-white"
@@ -37,31 +38,29 @@ const SalonOwnerLayout = ({ children }) => {
   const [open, setOpen] = useState(false);
 
   return (
-    <div className="flex h-screen bg-gray-100 overflow-hidden">
+    <div className="flex min-h-screen bg-gray-100 overflow-hidden">
       {/* MOBILE FLOATING MENU BUTTON */}
-      {/* MOBILE FLOATING MENU BUTTON */}
-{!open && (
-  <button
-    onClick={() => setOpen(true)}
-    className="lg:hidden fixed top-4 left-4 z-[60] bg-white border shadow-md p-3 rounded-full active:scale-90 transition-all"
-  >
-    <FaBars size={22} className="text-primary-purple" />
-  </button>
-)}
-
+      {!open && (
+        <button
+          onClick={() => setOpen(true)}
+          className="lg:hidden fixed top-4 left-4 z-[60] bg-white border shadow-md p-3 rounded-full active:scale-90 transition-all"
+        >
+          <FaBars size={22} className="text-primary-purple" />
+        </button>
+      )}
 
       {/* BACKDROP FOR MOBILE SIDEBAR */}
       {open && (
         <div
           className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40 lg:hidden"
           onClick={() => setOpen(false)}
-        ></div>
+        />
       )}
 
       {/* SIDEBAR */}
       <aside
         className={`fixed lg:static top-0 left-0 h-full w-64 bg-gray-900 text-white p-6 flex flex-col z-50 transform duration-300
-          ${open ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}`}
+        ${open ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}`}
       >
         {/* HEADER */}
         <div className="flex items-center justify-between mb-8">
@@ -150,7 +149,7 @@ const SalonOwnerLayout = ({ children }) => {
         </div>
       </aside>
 
-      {/* CONTENT */}
+      {/* MAIN CONTENT */}
       <main className="flex-1 overflow-y-auto p-6 md:p-8 lg:p-10">
         {children}
       </main>

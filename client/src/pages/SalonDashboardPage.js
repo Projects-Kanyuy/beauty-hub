@@ -1,4 +1,5 @@
-// src/pages/SalonDashboardPage.js
+"use client";
+
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
@@ -8,7 +9,11 @@ import {
   FaSpinner,
 } from "react-icons/fa";
 import { Link } from "react-router-dom";
-import { fetchMySalon, fetchSalonAppointments } from "../api";
+import {
+  fetchMySalon,
+  fetchSalonAppointments,
+  getActiveSubscription,
+} from "../api";
 import { useAuth } from "../context/AuthContext";
 
 const SalonDashboardPage = () => {
@@ -18,10 +23,33 @@ const SalonDashboardPage = () => {
   const [appointments, setAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [hasActiveSubscription, setHasActiveSubscription] = useState(false);
+
+  useEffect(() => {
+    const loadSubscriptionData = async () => {
+      if (!user) {
+        setLoading(false);
+        return;
+      }
+      try {
+        setLoading(true);
+        setError(null);
+
+        const { data: subscription } = await getActiveSubscription();
+        setHasActiveSubscription(!!subscription?.data);
+      } catch (err) {
+        console.error("Subscription loading error:", err);
+        setError(err.response?.data?.message || t("salondashboard.errorLoad"));
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadSubscriptionData();
+  }, [user, t]);
 
   useEffect(() => {
     const loadDashboardData = async () => {
-      if (!user) {
+      if (!(user && hasActiveSubscription)) {
         setLoading(false);
         return;
       }
@@ -30,6 +58,7 @@ const SalonDashboardPage = () => {
         setError(null);
         const { data: salon } = await fetchMySalon();
         setSalonData(salon);
+
         const { data: appts } = await fetchSalonAppointments(salon._id);
         setAppointments(appts);
       } catch (err) {
@@ -40,7 +69,7 @@ const SalonDashboardPage = () => {
       }
     };
     loadDashboardData();
-  }, [user, t]);
+  }, [hasActiveSubscription, user, t]);
 
   if (loading)
     return (
@@ -73,6 +102,27 @@ const SalonDashboardPage = () => {
 
   return (
     <div>
+      {!hasActiveSubscription && (
+        <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-8 rounded">
+          <div className="flex justify-between items-center">
+            <div>
+              <h3 className="text-lg font-bold text-yellow-800">
+                No Active Subscription
+              </h3>
+              <p className="text-yellow-700 mt-1">
+                You don't have an active subscription. Subscribe to unlock all
+                features and start receiving bookings.
+              </p>
+            </div>
+            <Link to="/subscriptions" className="ml-4 flex-shrink-0">
+              <button className="px-4 py-2 bg-primary-purple text-white rounded-lg font-semibold hover:opacity-90 whitespace-nowrap">
+                Choose a Plan
+              </button>
+            </Link>
+          </div>
+        </div>
+      )}
+
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-text-main">
           {t("salondashboard.welcomeBack", {
@@ -81,6 +131,7 @@ const SalonDashboardPage = () => {
         </h1>
         <p className="text-text-muted">{t("salondashboard.summary")}</p>
       </div>
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <div className="bg-white p-6 rounded-lg shadow-sm">
           <p className="text-sm text-text-muted">
@@ -111,6 +162,7 @@ const SalonDashboardPage = () => {
           <p className="text-3xl font-bold text-gray-400">...</p>
         </div>
       </div>
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 bg-white p-6 rounded-lg shadow-sm">
           <div className="flex justify-between items-center mb-4">
@@ -164,6 +216,7 @@ const SalonDashboardPage = () => {
             )}
           </div>
         </div>
+
         <div className="space-y-8">
           <div className="bg-white p-6 rounded-lg shadow-sm">
             <h2 className="text-xl font-bold mb-4">
@@ -193,6 +246,7 @@ const SalonDashboardPage = () => {
               </Link>
             </div>
           </div>
+
           <div className="bg-white p-6 rounded-lg shadow-sm">
             <h2 className="text-xl font-bold mb-4">
               {t("salondashboard.recentMessages")}

@@ -3,20 +3,21 @@ import { useEffect, useState } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { getActiveSubscription } from "./api";
 import { useAuth } from "./context/AuthContext";
 
-// --- Import Layouts & Protected Routes ---
+// --- Layouts & Protected Routes ---
 import Footer from "./components/Footer";
 import Navbar from "./components/Navbar";
 import SalonOwnerLayout from "./components/SalonOwnerLayout";
 import CustomerProtectedRoute from "./components/routing/CustomerProtectedRoute";
 import SalonOwnerProtectedRoute from "./components/routing/SalonOwnerProtectedRoute";
 
-// --- Import All Pages ---
-import { getActiveSubscription } from "./api";
+// --- Pages ---
 import Chatbot from "./components/Chatbot";
 import AboutPage from "./pages/AboutPage";
 import BeautyTipsPage from "./pages/BeautyTipsPage";
+import BecomeSalonOwnerPage from "./pages/BecomeSalonOwnerPage";
 import ComparePage from "./pages/ComparePage";
 import ContactPage from "./pages/ContactPage";
 import CustomerSettingsPage from "./pages/CustomerSettingsPage";
@@ -108,6 +109,7 @@ function App() {
             )
           }
         />
+        <Route path="/become-salon-owner" element={<BecomeSalonOwnerPage />} />
         <Route
           path="/subscriptions"
           element={
