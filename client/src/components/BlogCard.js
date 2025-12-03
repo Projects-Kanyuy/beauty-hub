@@ -1,14 +1,21 @@
 // src/components/BlogCard.js
-import React from 'react';
-import { Link } from 'react-router-dom';
-import { FaCalendarAlt, FaClock, FaArrowRight } from 'react-icons/fa';
+import { useTranslation } from "react-i18next";
+import { FaArrowRight, FaCalendarAlt, FaClock } from "react-icons/fa";
+import { Link } from "react-router-dom";
 
 const BlogCard = ({ post }) => {
+  const { t } = useTranslation();
   return (
     <div className="bg-white rounded-lg shadow-md overflow-hidden group">
       <div className="relative">
-        <img src={post.imageUrl} alt={post.title} className="w-full h-56 object-cover transform group-hover:scale-105 transition-transform duration-300" />
-        <span className="absolute top-4 left-4 bg-primary-pink text-white text-xs font-semibold px-3 py-1.5 rounded-md">{post.category}</span>
+        <img
+          src={post.imageUrl}
+          alt={post.title}
+          className="w-full h-56 object-cover transform group-hover:scale-105 transition-transform duration-300"
+        />
+        <span className="absolute top-4 left-4 bg-primary-pink text-white text-xs font-semibold px-3 py-1.5 rounded-md">
+          {post.category}
+        </span>
       </div>
       <div className="p-6">
         <div className="flex items-center space-x-4 text-sm text-text-muted mb-3">
@@ -24,11 +31,12 @@ const BlogCard = ({ post }) => {
         <h3 className="text-xl font-bold text-text-main mb-3 group-hover:text-primary-purple transition-colors">
           <Link to={`/blog/${post.id}`}>{post.title}</Link>
         </h3>
-        <p className="text-text-muted mb-4 text-base">
-          {post.excerpt}
-        </p>
-        <Link to={`/blog/${post.id}`} className="font-semibold text-primary-purple hover:text-primary-pink flex items-center space-x-2">
-          <span>Read More</span>
+        <p className="text-text-muted mb-4 text-base">{post.excerpt}</p>
+        <Link
+          to={`/blog/${post.id}`}
+          className="font-semibold text-primary-purple hover:text-primary-pink flex items-center space-x-2"
+        >
+          <span>{t("blogCard.readMore")}</span>
           <FaArrowRight />
         </Link>
       </div>

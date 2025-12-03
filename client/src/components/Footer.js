@@ -29,7 +29,7 @@ const Footer = () => {
 
           {/* Column 2: Quick Links */}
           <div>
-            <h4 className="font-bold text-lg mb-4">Quick Links</h4>
+            <h4 className="font-bold text-lg mb-4">{t("footer.quickLinks")}</h4>
             <ul className="space-y-3 text-gray-400">
               <li>
                 <Link to="/about" className="hover:text-white">
@@ -56,7 +56,7 @@ const Footer = () => {
 
           {/* Column 3: Legal */}
           <div>
-            <h4 className="font-bold text-lg mb-4">Legal</h4>
+            <h4 className="font-bold text-lg mb-4">{t("footer.legal")}</h4>
             <ul className="space-y-3 text-gray-400">
               <li>
                 <Link to="/privacy" className="hover:text-white">
@@ -79,7 +79,8 @@ const Footer = () => {
 
         <div className="mt-12 border-t border-gray-700 pt-8 flex flex-col sm:flex-row justify-between items-center">
           <p className="text-gray-500 text-sm">
-            &copy; {new Date().getFullYear()} BeautyHeaven. All rights reserved.
+            &copy; {new Date().getFullYear()} {t("footer.title")}.{" "}
+            {t("footer.copyright")}
           </p>
           <a
             href="mailto:support@beautyheaven.site"

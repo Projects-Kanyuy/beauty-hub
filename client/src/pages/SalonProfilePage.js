@@ -1,19 +1,18 @@
-// src/pages/SalonProfilePage.js
-import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { fetchMySalon, updateMySalon, createSalon } from "../api";
-import { toast } from "react-toastify";
+import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { FaSpinner } from "react-icons/fa";
-import ProfileSection from "../components/ProfileSection";
-import PhotoUploader from "../components/PhotoUploader";
+import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
+import { createSalon, fetchMySalon, updateMySalon } from "../api";
 import Button from "../components/Button";
+import PhotoUploader from "../components/PhotoUploader";
+import ProfileSection from "../components/ProfileSection";
 
-// A blank template for when a user is creating a new profile
 const blankProfile = {
   name: "",
   description: "",
   phone: "",
-  email: "", // You might want to pre-fill this with the user's login email
+  email: "",
   address: "",
   city: "",
   photos: [],
@@ -28,7 +27,6 @@ const blankProfile = {
   },
 };
 
-// A simple helper component for input fields to keep the main form clean
 const InputField = ({ label, name, value, onChange }) => (
   <div>
     <label className="block text-sm font-semibold text-text-main mb-1">
@@ -45,6 +43,7 @@ const InputField = ({ label, name, value, onChange }) => (
 );
 
 const SalonProfilePage = () => {
+  const { t } = useTranslation();
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -64,16 +63,14 @@ const SalonProfilePage = () => {
           setProfile(blankProfile);
         } else {
           console.error("Failed to load profile:", err);
-          setError(
-            err.response?.data?.message || "Could not load your salon profile."
-          );
+          setError(err.response?.data?.message || t("salonprofile.loadFailed"));
         }
       } finally {
         setLoading(false);
       }
     };
     loadProfile();
-  }, []);
+  }, [t]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -87,10 +84,7 @@ const SalonProfilePage = () => {
   const handleHoursChange = (day, value) => {
     setProfile((prev) => ({
       ...prev,
-      openingHours: {
-        ...prev.openingHours,
-        [day]: value,
-      },
+      openingHours: { ...prev.openingHours, [day]: value },
     }));
   };
 
@@ -104,17 +98,15 @@ const SalonProfilePage = () => {
           profile
         );
         setProfile(updatedProfile);
-        toast.success("Profile updated successfully!");
+        toast.success(t("salonprofile.updatedSuccess"));
       } else {
         await createSalon(profile);
-        toast.success(
-          "Profile created successfully! Redirecting to dashboard..."
-        );
+        toast.success(t("salonprofile.createdSuccess"));
         setTimeout(() => navigate("/salon-owner/dashboard"), 2000);
       }
     } catch (err) {
       console.error("Failed to save profile:", err);
-      toast.error(err.response?.data?.message || "Error saving profile.");
+      toast.error(err.response?.data?.message || t("salonprofile.saveError"));
     } finally {
       setIsSaving(false);
     }
@@ -129,7 +121,7 @@ const SalonProfilePage = () => {
   if (error)
     return (
       <div className="bg-red-100 text-red-700 p-6 rounded-lg">
-        <h2 className="font-bold">Error</h2>
+        <h2 className="font-bold">{t("salonprofile.errorTitle")}</h2>
         <p>{error}</p>
       </div>
     );
@@ -139,43 +131,45 @@ const SalonProfilePage = () => {
     <div className="space-y-8">
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold text-text-main">
-          {isEditMode ? "Edit My Salon Profile" : "Create Your Salon Profile"}
+          {isEditMode
+            ? t("salonprofile.editTitle")
+            : t("salonprofile.createTitle")}
         </h1>
         <Button variant="gradient" onClick={handleSave} disabled={isSaving}>
           {isSaving
-            ? "Saving..."
+            ? t("salonprofile.saving")
             : isEditMode
-            ? "Save Changes"
-            : "Create Profile"}
+            ? t("salonprofile.saveChanges")
+            : t("salonprofile.createProfile")}
         </Button>
       </div>
 
       <ProfileSection
-        title="Basic Information"
-        description="This is the main information that will be displayed on your public salon page."
+        title={t("salonprofile.basicInfoTitle")}
+        description={t("salonprofile.basicInfoDesc")}
       >
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <InputField
-            label="Salon Name"
+            label={t("salonprofile.salonName")}
             name="name"
             value={profile.name}
             onChange={handleChange}
           />
           <InputField
-            label="Phone Number"
+            label={t("salonprofile.phone")}
             name="phone"
             value={profile.phone}
             onChange={handleChange}
           />
           <InputField
-            label="Business Email"
+            label={t("salonprofile.email")}
             name="email"
             value={profile.email}
             onChange={handleChange}
           />
           <div className="md:col-span-2">
             <label className="block text-sm font-semibold text-text-main mb-1">
-              Description
+              {t("salonprofile.description")}
             </label>
             <textarea
               name="description"
@@ -189,8 +183,8 @@ const SalonProfilePage = () => {
       </ProfileSection>
 
       <ProfileSection
-        title="Photo Gallery"
-        description="Upload high-quality images of your salon, your work, and your team."
+        title={t("salonprofile.photoGalleryTitle")}
+        description={t("salonprofile.photoGalleryDesc")}
       >
         <PhotoUploader
           photos={profile.photos || []}
@@ -199,18 +193,18 @@ const SalonProfilePage = () => {
       </ProfileSection>
 
       <ProfileSection
-        title="Location"
-        description="Help customers find you easily."
+        title={t("salonprofile.locationTitle")}
+        description={t("salonprofile.locationDesc")}
       >
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <InputField
-            label="Address"
+            label={t("salonprofile.address")}
             name="address"
             value={profile.address}
             onChange={handleChange}
           />
           <InputField
-            label="City"
+            label={t("salonprofile.city")}
             name="city"
             value={profile.city}
             onChange={handleChange}
@@ -219,8 +213,8 @@ const SalonProfilePage = () => {
       </ProfileSection>
 
       <ProfileSection
-        title="Opening Hours"
-        description="Let customers know when you are open."
+        title={t("salonprofile.openingHoursTitle")}
+        description={t("salonprofile.openingHoursDesc")}
       >
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {profile.openingHours &&

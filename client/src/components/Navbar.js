@@ -10,10 +10,10 @@ const NavItem = ({ to, children, onClick }) => (
       to={to}
       onClick={onClick}
       className={({ isActive }) =>
-        `hover:text-primary-pink transition-colors pb-1 text-base ${
+        `block py-2 hover:text-primary-pink transition-colors text-lg ${
           isActive
-            ? "font-bold text-primary-purple border-b-2 border-primary-purple"
-            : "font-semibold text-text-main"
+            ? "font-bold text-primary-purple"
+            : "font-medium text-text-main"
         }`
       }
     >
@@ -22,146 +22,134 @@ const NavItem = ({ to, children, onClick }) => (
   </li>
 );
 
-// The Navbar now accepts the `user` object as a prop
 const Navbar = ({ isLoggedIn, user, handleLogout }) => {
   const { t } = useTranslation();
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
-  // Helper function to get initials from a name (e.g., "Ndip Samuel" -> "NS")
-  const getInitials = (name) => {
-    if (!name) return "?"; // Return a placeholder if name is not available
-    const names = name.split(" ");
-    // Handle single names like "Admin"
-    if (names.length === 1 && names[0].length > 1) {
-      return names[0].substring(0, 2).toUpperCase();
-    }
-    // Handle multiple names
-    if (names.length > 1) {
-      return `${names[0][0]}${names[names.length - 1][0]}`.toUpperCase();
-    }
-    // Fallback for very short names
-    return name.substring(0, 2).toUpperCase();
-  };
-
+  const toggleDrawer = () => setIsDrawerOpen(!isDrawerOpen);
   const closeDrawer = () => setIsDrawerOpen(false);
+
+  const getInitials = (name) => {
+    if (!name) return "?";
+    const parts = name.split(" ");
+    return (parts[0][0] + (parts[1]?.[0] || "")).toUpperCase();
+  };
 
   return (
     <header className="bg-white shadow-sm sticky top-0 z-50">
       <nav className="container mx-auto px-4 py-4 flex justify-between items-center">
         {/* Logo */}
-        <Link to="/" className="text-3xl font-extrabold">
+        <Link to="/" onClick={closeDrawer} className="text-3xl font-extrabold">
           <span className="bg-gradient-to-r from-primary-pink to-primary-purple text-transparent bg-clip-text">
             BeautyHeaven
           </span>
         </Link>
 
-        {/* Dynamic Navigation Links - Desktop */}
+        {/* Desktop Navigation */}
         <ul className="hidden lg:flex items-center space-x-8">
           {isLoggedIn ? (
-            // Logged In View
             <>
-              <NavItem to="/dashboard">{t("dashboard")}</NavItem>
-              <NavItem to="/favorites">{t("favorites")}</NavItem>
-              <NavItem to="/compare">{t("compare")}</NavItem>
-              <NavItem to="/messages">{t("messages")}</NavItem>
+              <NavItem to="/dashboard">{t("header.dashboard")}</NavItem>
+              <NavItem to="/favorites">{t("header.favorites")}</NavItem>
+              <NavItem to="/compare">{t("header.compare")}</NavItem>
+              <NavItem to="/messages">{t("header.messages")}</NavItem>
             </>
           ) : (
-            // Guest View
             <>
-              <NavItem to="/">{t("home")}</NavItem>
-              <NavItem to="/tips">{t("tips")}</NavItem>
-              <NavItem to="/subscriptions">{t("subscriptions")}</NavItem>
-              <NavItem to="/about">{t("about")}</NavItem>
-              {/* <NavItem to="/contact">Contact</NavItem> */}
+              <NavItem to="/">{t("header.home")}</NavItem>
+              <NavItem to="/tips">{t("header.tips")}</NavItem>
+              <NavItem to="/subscriptions">{t("header.subscriptions")}</NavItem>
+              <NavItem to="/about">{t("header.about")}</NavItem>
             </>
           )}
         </ul>
 
-        {/* Dynamic User Actions */}
-        <div className="flex items-center space-x-4">
+        {/* Desktop Right Actions */}
+        <div className="hidden lg:flex items-center space-x-5">
           <LanguageSwitcher />
           {isLoggedIn && (
-            // Logged In View with dynamic initial
             <>
-              <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center font-bold text-text-main cursor-pointer">
+              <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center font-bold text-text-main">
                 {getInitials(user?.name)}
               </div>
               <button
                 onClick={handleLogout}
-                className="hidden md:block px-5 py-2.5 rounded-lg font-bold text-white bg-gray-800 hover:bg-gray-900 transition-colors"
+                className="px-5 py-2 rounded-lg font-semibold text-white bg-gray-800 hover:bg-gray-900"
               >
-                {t("logout")}
+                {t("header.logout")}
               </button>
             </>
           )}
         </div>
 
-        <button
-          onClick={() => setIsDrawerOpen(!isDrawerOpen)}
-          className="lg:hidden p-2 text-text-main hover:text-primary-pink transition-colors"
-          aria-label="Toggle menu"
-        >
-          {isDrawerOpen ? <FaTimes size={24} /> : <FaBars size={24} />}
+        {/* Mobile Menu Button */}
+        <button onClick={toggleDrawer} className="lg:hidden p-2 text-text-main">
+          {isDrawerOpen ? <FaTimes size={26} /> : <FaBars size={26} />}
         </button>
       </nav>
 
-      {isDrawerOpen && (
-        <div className="lg:hidden border-t border-gray-200">
-          <div className="container mx-auto px-4 sm:px-6 py-4">
-            {/* Language switcher at the top of drawer */}
-            <div className="flex justify-center">
-              <LanguageSwitcher />
-            </div>
-            <ul className="flex flex-col space-y-4">
-              {isLoggedIn ? (
-                // Logged In View
-                <>
-                  <NavItem to="/dashboard" onClick={closeDrawer}>
-                    {t("dashboard")}
-                  </NavItem>
-                  <NavItem to="/favorites" onClick={closeDrawer}>
-                    {t("favorites")}
-                  </NavItem>
-                  <NavItem to="/compare" onClick={closeDrawer}>
-                    {t("compare")}
-                  </NavItem>
-                  <NavItem to="/messages" onClick={closeDrawer}>
-                    {t("messages")}
-                  </NavItem>
-                  <button
-                    onClick={() => {
-                      handleLogout();
-                      closeDrawer();
-                    }}
-                    className="w-full mt-4 px-5 py-2.5 rounded-lg font-bold text-white bg-gray-800 hover:bg-gray-900 transition-colors text-left"
-                  >
-                    {t("logout")}
-                  </button>
-                </>
-              ) : (
-                // Guest View
-                <>
-                  <NavItem to="/" onClick={closeDrawer}>
-                    {t("home")}
-                  </NavItem>
-                  <NavItem to="/tips" onClick={closeDrawer}>
-                    {t("tips")}
-                  </NavItem>
-                  <NavItem to="/subscriptions" onClick={closeDrawer}>
-                    {t("subscriptions")}
-                  </NavItem>
-                  <NavItem to="/about" onClick={closeDrawer}>
-                    {t("about")}
-                  </NavItem>
-                  {/* <NavItem to="/contact" onClick={closeDrawer}>
-                    Contact
-                  </NavItem> */}
-                </>
-              )}
-            </ul>
-          </div>
+      {/* --- MOBILE DRAWER MENU --- */}
+      <div
+        className={`fixed inset-0 bg-black/30 backdrop-blur-sm transition-opacity duration-300 lg:hidden ${
+          isDrawerOpen ? "opacity-100 visible" : "opacity-0 invisible"
+        }`}
+        onClick={closeDrawer}
+      ></div>
+
+      <div
+        className={`fixed top-0 right-0 w-72 h-full bg-white shadow-xl p-6 transform transition-transform duration-300 lg:hidden z-[100] ${
+          isDrawerOpen ? "translate-x-0" : "translate-x-full"
+        }`}
+      >
+        <div className="flex justify-between items-center mb-5">
+          <h2 className="font-bold text-xl text-primary-purple">Menu</h2>
+          <LanguageSwitcher />
         </div>
-      )}
+
+        <ul className="flex flex-col space-y-4">
+          {isLoggedIn ? (
+            <>
+              <NavItem to="/dashboard" onClick={closeDrawer}>
+                {t("header.dashboard")}
+              </NavItem>
+              <NavItem to="/favorites" onClick={closeDrawer}>
+                {t("header.favorites")}
+              </NavItem>
+              <NavItem to="/compare" onClick={closeDrawer}>
+                {t("header.compare")}
+              </NavItem>
+              <NavItem to="/messages" onClick={closeDrawer}>
+                {t("header.messages")}
+              </NavItem>
+
+              <button
+                onClick={() => {
+                  handleLogout();
+                  closeDrawer();
+                }}
+                className="mt-4 w-full bg-gray-800 text-white py-2 rounded-lg font-semibold"
+              >
+                {t("header.logout")}
+              </button>
+            </>
+          ) : (
+            <>
+              <NavItem to="/" onClick={closeDrawer}>
+                {t("header.home")}
+              </NavItem>
+              <NavItem to="/tips" onClick={closeDrawer}>
+                {t("header.tips")}
+              </NavItem>
+              <NavItem to="/subscriptions" onClick={closeDrawer}>
+                {t("header.subscriptions")}
+              </NavItem>
+              <NavItem to="/about" onClick={closeDrawer}>
+                {t("header.about")}
+              </NavItem>
+            </>
+          )}
+        </ul>
+      </div>
     </header>
   );
 };

@@ -1,19 +1,21 @@
 // src/pages/SalonAppointmentsPage.js
-import React, { useState, useEffect } from "react";
-import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid/index.js";
-import timeGridPlugin from "@fullcalendar/timegrid/index.js";
 import interactionPlugin from "@fullcalendar/interaction/index.js";
+import FullCalendar from "@fullcalendar/react";
+import timeGridPlugin from "@fullcalendar/timegrid/index.js";
+import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
+import { FaCheckCircle, FaQuestionCircle, FaSpinner } from "react-icons/fa";
+import { toast } from "react-toastify";
 import {
   fetchMySalon,
   fetchSalonAppointments,
   updateAppointmentStatus,
-} from "../api"; // Use the correct API function
-import { toast } from "react-toastify"; // Import toast
-import { FaCheckCircle, FaQuestionCircle, FaSpinner } from "react-icons/fa";
+} from "../api";
 import Button from "../components/Button";
 
 const SalonAppointmentsPage = () => {
+  const { t } = useTranslation();
   const [events, setEvents] = useState([]);
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -24,23 +26,17 @@ const SalonAppointmentsPage = () => {
       setLoading(true);
       setError(null);
 
-      // 1. Get the salon ID
       const { data: salon } = await fetchMySalon();
-      if (!salon) throw new Error("Salon profile not found.");
+      if (!salon) throw new Error(t("appointments.errorNoSalon"));
 
-      // 2. Fetch appointments for that salon
       const { data: appointments } = await fetchSalonAppointments(salon._id);
 
-      // 3. Format appointments for FullCalendar
       const formattedEvents = appointments.map((appt) => ({
         id: appt._id,
         title: `${appt.customer.name} - ${appt.serviceName}`,
         start: appt.startTime,
         end: appt.endTime,
-        extendedProps: {
-          ...appt, // Pass all original appointment data
-        },
-        // Color-code events based on status
+        extendedProps: { ...appt },
         backgroundColor:
           appt.status === "Confirmed"
             ? "#10B981"
@@ -58,11 +54,12 @@ const SalonAppointmentsPage = () => {
       setEvents(formattedEvents);
     } catch (err) {
       console.error(err);
-      setError(err.response?.data?.message || "Failed to load appointments.");
+      setError(err.response?.data?.message || t("appointments.errorLoad"));
     } finally {
       setLoading(false);
     }
   };
+
   useEffect(() => {
     loadAppointments();
   }, []);
@@ -74,11 +71,8 @@ const SalonAppointmentsPage = () => {
   const handleConfirm = async () => {
     if (!selectedEvent) return;
     try {
-      // --- THIS IS THE FIX ---
-      // Call the specific updateAppointmentStatus function
       await updateAppointmentStatus(selectedEvent._id, { status: "Confirmed" });
 
-      // Update local state for immediate UI feedback
       setEvents((prevEvents) =>
         prevEvents.map((e) =>
           e.id === selectedEvent._id
@@ -87,13 +81,10 @@ const SalonAppointmentsPage = () => {
         )
       );
       setSelectedEvent((prev) => ({ ...prev, status: "Confirmed" }));
-
-      // --- REPLACE alert() WITH toast.success() ---
-      toast.success("Appointment Confirmed!");
+      toast.success(t("appointments.confirmed"));
     } catch (error) {
       console.error("Failed to confirm appointment:", error);
-      // --- REPLACE alert() WITH toast.error() ---
-      toast.error("Failed to confirm appointment.");
+      toast.error(t("appointments.confirmFailed"));
     }
   };
 
@@ -106,7 +97,7 @@ const SalonAppointmentsPage = () => {
   if (error)
     return (
       <div className="bg-red-100 text-red-700 p-6 rounded-lg">
-        <h2 className="font-bold">Error</h2>
+        <h2 className="font-bold">{t("appointments.error")}</h2>
         <p>{error}</p>
       </div>
     );
@@ -114,7 +105,7 @@ const SalonAppointmentsPage = () => {
   return (
     <div>
       <h1 className="text-3xl font-bold text-text-main mb-6">
-        Appointments Calendar
+        {t("appointments.title")}
       </h1>
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 bg-white p-6 rounded-lg shadow-sm">
@@ -132,7 +123,9 @@ const SalonAppointmentsPage = () => {
           />
         </div>
         <div className="bg-white p-6 rounded-lg shadow-sm">
-          <h2 className="text-xl font-bold mb-4">Appointment Details</h2>
+          <h2 className="text-xl font-bold mb-4">
+            {t("appointments.details")}
+          </h2>
           {selectedEvent ? (
             <div className="space-y-4">
               <h3 className="font-semibold text-lg">
@@ -150,14 +143,17 @@ const SalonAppointmentsPage = () => {
                 ) : (
                   <FaQuestionCircle />
                 )}
-                <span>Status: {selectedEvent.status}</span>
+                <span>
+                  {t("appointments.status")}: {selectedEvent.status}
+                </span>
               </p>
               <div className="border-t pt-4 space-y-3 text-text-muted">
                 <p>
-                  <strong>Service:</strong> {selectedEvent.serviceName}
+                  <strong>{t("appointments.service")}:</strong>{" "}
+                  {selectedEvent.serviceName}
                 </p>
                 <p>
-                  <strong>Time:</strong>{" "}
+                  <strong>{t("appointments.time")}:</strong>{" "}
                   {new Date(selectedEvent.startTime).toLocaleTimeString([], {
                     hour: "2-digit",
                     minute: "2-digit",
@@ -176,17 +172,17 @@ const SalonAppointmentsPage = () => {
                     className="!py-2 flex-1"
                     onClick={handleConfirm}
                   >
-                    Confirm
+                    {t("appointments.confirm")}
                   </Button>
                 )}
                 <Button variant="secondary" className="!py-2 flex-1">
-                  Reschedule
+                  {t("appointments.reschedule")}
                 </Button>
               </div>
             </div>
           ) : (
             <div className="text-center text-text-muted py-10">
-              <p>Click on an appointment to view details.</p>
+              <p>{t("appointments.clickToView")}</p>
             </div>
           )}
         </div>

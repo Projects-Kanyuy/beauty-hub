@@ -13,16 +13,16 @@ const LanguageSwitcher = () => {
   ];
 
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex justify-center gap-2">
       {languages.map(({ code, label }) => (
         <button
           key={code}
           onClick={() => changeLanguage(code)}
-          className={`px-4 py-1.5 rounded-full font-semibold transition-all duration-300
+          className={`px-3 py-1 rounded-full text-sm font-semibold transition-all duration-300
             ${
               i18n.language === code
                 ? "bg-gradient-to-r from-primary-pink to-primary-purple text-white shadow-md"
-                : "bg-gray-200 text-gray-800 hover:bg-gray-300"
+                : "bg-gray-700 text-gray-200 hover:bg-gray-600"
             }`}
         >
           {label}

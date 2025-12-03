@@ -1,10 +1,12 @@
-import React from 'react';
+import { useTranslation } from "react-i18next";
 
 const SearchResultsPage = () => {
+  const { t } = useTranslation();
+
   return (
     <div className="container mx-auto p-8">
-      <h1 className="text-4xl font-heading">Search Results</h1>
-      <p className="mt-4">This is where the list of salons will appear based on the search criteria.</p>
+      <h1 className="text-4xl font-heading">{t("searchResults.header")}</h1>
+      <p className="mt-4">{t("searchResults.description")}</p>
     </div>
   );
 };

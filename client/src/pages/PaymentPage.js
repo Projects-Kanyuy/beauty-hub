@@ -1,24 +1,26 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
-import { toast } from "react-toastify";
-import Button from "../components/Button";
+import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
-  FaCheckCircle,
   FaArrowLeft,
+  FaCheckCircle,
+  FaExclamationCircle,
   FaSpinner,
   FaTimesCircle,
-  FaExclamationCircle,
 } from "react-icons/fa";
+import { useLocation, useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 import {
-  getSubscriptionPlanById,
-  subscribe,
   getPaymentStatus,
+  getSubscriptionPlanById,
   redeemCouponCode,
+  subscribe,
 } from "../api";
+import Button from "../components/Button";
 
 const PaymentPage = () => {
+  const { t } = useTranslation();
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -48,15 +50,13 @@ const PaymentPage = () => {
         setPlan(data?.data);
       } catch (err) {
         console.error("Failed to fetch plan:", err);
-        setError(
-          "Failed to load plan details. The server might be unavailable."
-        );
+        setError(t("payment.errorLoadingPlan"));
       } finally {
         setFetching(false);
       }
     };
     getPlanDetails();
-  }, [planId]);
+  }, [planId, t]);
 
   // Poll payment status
   useEffect(() => {
@@ -72,7 +72,6 @@ const PaymentPage = () => {
         if (["Completed", "Failed", "Cancelled"].includes(status)) {
           setPaymentStatus(status);
 
-          // Redeem coupon only if payment succeeded and coupon is not free
           if (
             status === "Completed" &&
             couponCode &&
@@ -84,11 +83,10 @@ const PaymentPage = () => {
                 code: couponCode.trim(),
                 subscriptionId,
               });
-              toast.success("Coupon applied successfully!");
+              toast.success(t("payment.couponApplied"));
             } catch (err) {
               toast.error(
-                err.response?.data?.message ||
-                  "Failed to redeem coupon. Please contact support."
+                err.response?.data?.message || t("payment.couponRedeemError")
               );
             } finally {
               setRedeemingCoupon(false);
@@ -108,7 +106,7 @@ const PaymentPage = () => {
     return () => {
       if (pollTimeout) clearTimeout(pollTimeout);
     };
-  }, [isPaymentInitiated, paymentId, couponCode, subscriptionId]);
+  }, [isPaymentInitiated, paymentId, couponCode, subscriptionId, t]);
 
   // Handle payment / free coupon
   const handlePayment = async (e) => {
@@ -116,16 +114,14 @@ const PaymentPage = () => {
     setLoading(true);
 
     try {
-      // Free coupon bypass
       if (couponCode.trim().toUpperCase().startsWith("FREE")) {
         try {
           await redeemCouponCode({ code: couponCode.trim() });
-          toast.success("Subscription activated for free!");
+          toast.success(t("payment.subscriptionFree"));
           navigate("/salon-owner/dashboard");
         } catch (err) {
           toast.error(
-            err.response?.data?.message ||
-              "Failed to redeem free coupon. Please contact support."
+            err.response?.data?.message || t("payment.couponRedeemError")
           );
         } finally {
           setLoading(false);
@@ -133,7 +129,6 @@ const PaymentPage = () => {
         return;
       }
 
-      // Otherwise, initiate payment
       setIsPaymentInitiated(true);
 
       const subscribeData = { planId };
@@ -144,10 +139,10 @@ const PaymentPage = () => {
       setPaymentId(newPaymentId);
       setSubscriptionId(newSubscriptionId);
 
-      toast.info("Payment processing...");
+      toast.info(t("payment.paymentProcessing"));
       window.open(response?.data?.data?.paymentUrl, "_blank");
     } catch (err) {
-      toast.error("Payment initiation failed. Please try again.");
+      toast.error(t("payment.paymentFailedInitiate"));
       setIsPaymentInitiated(false);
     } finally {
       setLoading(false);
@@ -168,34 +163,34 @@ const PaymentPage = () => {
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4">
       <div className="container mx-auto max-w-2xl">
-        {/* Header */}
         <button
           onClick={() => navigate(-1)}
           className="flex items-center text-primary-purple hover:text-primary-pink mb-8 font-semibold transition-colors"
         >
-          <FaArrowLeft className="mr-2" /> Back
+          <FaArrowLeft className="mr-2" /> {t("payment.back")}
         </button>
 
         {fetching ? (
           <div className="text-center py-20">
             <FaSpinner className="text-5xl text-primary-purple mx-auto animate-spin" />
             <p className="mt-4 font-semibold text-text-muted">
-              Loading plan details...
+              {t("payment.loadingPlan")}
             </p>
           </div>
         ) : error ? (
           <div className="text-center py-20 text-red-600 bg-red-50 p-6 rounded-lg shadow-sm">
-            <h3 className="font-bold text-lg">An Error Occurred</h3>
+            <h3 className="font-bold text-lg">{t("payment.errorOccurred")}</h3>
             <p>{error}</p>
           </div>
         ) : (
           <div className="bg-white p-8 rounded-lg shadow-md">
-            <h1 className="text-3xl font-bold mb-8">Order Summary</h1>
+            <h1 className="text-3xl font-bold mb-8">
+              {t("payment.orderSummary")}
+            </h1>
 
-            {/* Plan Details */}
             <div className="mb-8 pb-8 border-b">
               <h2 className="font-semibold text-xl mb-1">
-                {plan?.planName} Plan
+                {plan?.planName} {t("payment.plan")}
               </h2>
               <h4 className="font-semibold text-md mb-6 text-gray-600">
                 {plan?.description}
@@ -210,59 +205,55 @@ const PaymentPage = () => {
               </ul>
             </div>
 
-            {/* Pricing Breakdown */}
             <div className="space-y-4 mb-8 pb-8 border-b">
               <div className="flex justify-between text-gray-600">
-                <span>Monthly Subscription</span>
+                <span>{t("payment.monthlySubscription")}</span>
                 <span className="font-semibold">
                   {plan?.currency} {plan?.amount}
                 </span>
               </div>
               <div className="flex justify-between text-gray-600">
-                <span>Setup Fee</span>
+                <span>{t("payment.setupFee")}</span>
                 <span className="font-semibold">{plan?.currency} 0</span>
               </div>
               <div className="flex justify-between text-gray-600">
-                <span>Tax</span>
+                <span>{t("payment.tax")}</span>
                 <span className="font-semibold">{plan?.currency} 0</span>
               </div>
             </div>
 
-            {/* Total */}
             <div className="flex justify-between items-center mb-8">
-              <span className="text-lg font-bold">Total (Monthly)</span>
+              <span className="text-lg font-bold">
+                {t("payment.totalMonthly")}
+              </span>
               <span className="text-4xl font-bold text-primary-purple">
                 {plan?.currency} {plan?.amount}
               </span>
             </div>
 
-            {/* Terms */}
             <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg mb-8">
               <p className="text-sm text-gray-700">
-                By clicking "Pay Now", you will be redirected to our payment
-                provider to complete the transaction securely. Your subscription
-                to the <strong>{plan?.planName} Plan</strong> at{" "}
-                <strong>
-                  {plan?.currency} {plan?.amount}/month
-                </strong>{" "}
-                will begin immediately after payment. You can cancel anytime.
+                {t("payment.terms", {
+                  planName: plan?.planName,
+                  amount: plan?.amount,
+                  currency: plan?.currency,
+                })}
               </p>
             </div>
 
-            {/* Coupon Section */}
             <div className="mb-6">
               <label className="block mb-2 font-semibold text-gray-700">
-                Have a coupon code?
+                {t("payment.couponLabel")}
               </label>
               <input
                 type="text"
                 value={couponCode}
                 onChange={(e) => setCouponCode(e.target.value)}
-                placeholder="Enter coupon code"
+                placeholder={t("payment.couponPlaceholder")}
                 className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-purple"
               />
               <p className="mt-2 text-sm text-gray-600">
-                🎁 Free coupon code for new users:{" "}
+                🎁 {t("payment.freeCouponMessage")}{" "}
                 <strong>ADD-0NCJ-ENH2</strong>
               </p>
             </div>
@@ -277,15 +268,16 @@ const PaymentPage = () => {
                 <FaSpinner className="animate-spin text-white" />
               )}
               {redeemingCoupon
-                ? "Redeeming Coupon..."
+                ? t("payment.redeemingCoupon")
                 : isPaymentInitiated
-                ? "Processing..."
-                : `Pay Now - ${plan?.currency} ${plan?.amount}/month`}
+                ? t("payment.processing")
+                : `${t("payment.payNow")} - ${plan?.currency} ${
+                    plan?.amount
+                  }/month`}
             </Button>
 
-            {/* Security Notice */}
             <p className="text-xs text-gray-500 text-center mt-4">
-              🔒 Payments are processed securely by our trusted payment provider
+              {t("payment.securityNotice")}
             </p>
           </div>
         )}
@@ -296,10 +288,10 @@ const PaymentPage = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white p-8 rounded-lg shadow-lg text-center">
             <FaSpinner className="text-5xl text-primary-purple mx-auto animate-spin mb-4" />
-            <h2 className="text-xl font-bold mb-2">Processing Payment</h2>
-            <p className="text-gray-600">
-              Please wait while we process your payment...
-            </p>
+            <h2 className="text-xl font-bold mb-2">
+              {t("payment.processingPayment")}
+            </h2>
+            <p className="text-gray-600">{t("payment.pleaseWait")}</p>
           </div>
         </div>
       )}
@@ -309,17 +301,16 @@ const PaymentPage = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white p-8 rounded-lg shadow-lg text-center max-w-sm">
             <FaCheckCircle className="text-6xl text-green-500 mx-auto mb-4" />
-            <h2 className="text-2xl font-bold mb-2">Payment Successful!</h2>
+            <h2 className="text-2xl font-bold mb-2">{t("payment.success")}</h2>
             <p className="text-gray-600 mb-6">
-              Your subscription to the {plan?.planName} Plan has been activated.
-              You will be redirected to your dashboard.
+              {t("payment.successMessage", { planName: plan?.planName })}
             </p>
             <Button
               variant="gradient"
               onClick={handleStatusModalAction}
               className="w-full"
             >
-              Go to Dashboard
+              {t("payment.goToDashboard")}
             </Button>
           </div>
         </div>
@@ -329,17 +320,14 @@ const PaymentPage = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white p-8 rounded-lg shadow-lg text-center max-w-sm">
             <FaExclamationCircle className="text-6xl text-red-500 mx-auto mb-4" />
-            <h2 className="text-2xl font-bold mb-2">Payment Failed</h2>
-            <p className="text-gray-600 mb-6">
-              Your payment could not be processed. Please check your payment
-              details and try again.
-            </p>
+            <h2 className="text-2xl font-bold mb-2">{t("payment.failed")}</h2>
+            <p className="text-gray-600 mb-6">{t("payment.failedMessage")}</p>
             <Button
               variant="gradient"
               onClick={handleStatusModalAction}
               className="w-full"
             >
-              Close
+              {t("payment.close")}
             </Button>
           </div>
         </div>
@@ -349,17 +337,18 @@ const PaymentPage = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white p-8 rounded-lg shadow-lg text-center max-w-sm">
             <FaTimesCircle className="text-6xl text-yellow-500 mx-auto mb-4" />
-            <h2 className="text-2xl font-bold mb-2">Payment Cancelled</h2>
+            <h2 className="text-2xl font-bold mb-2">
+              {t("payment.cancelled")}
+            </h2>
             <p className="text-gray-600 mb-6">
-              Your payment was cancelled. No charges have been made to your
-              account.
+              {t("payment.cancelledMessage")}
             </p>
             <Button
               variant="gradient"
               onClick={handleStatusModalAction}
               className="w-full"
             >
-              Close
+              {t("payment.close")}
             </Button>
           </div>
         </div>

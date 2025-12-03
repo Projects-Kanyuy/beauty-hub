@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { FaTimes, FaMapMarkerAlt, FaHome } from "react-icons/fa";
 import Button from "./Button";
+import { useTranslation } from "react-i18next";
 
 const BookingModal = ({
   isOpen,
@@ -10,6 +11,7 @@ const BookingModal = ({
   salonName,
   onBookingConfirmed,
 }) => {
+  const { t } = useTranslation();
   const [formData, setFormData] = useState({
     customerName: "",
     customerPhone: "",
@@ -84,7 +86,7 @@ const BookingModal = ({
       >
         {/* Header */}
         <div className="sticky top-0 bg-white border-b flex justify-between items-center p-6 rounded-t-2xl">
-          <h2 className="text-2xl font-bold">Book Appointment</h2>
+          <h2 className="text-2xl font-bold">{t("booking.title")}</h2>
           <button
             onClick={onClose}
             className="text-gray-500 hover:text-gray-700 text-2xl"
@@ -109,13 +111,13 @@ const BookingModal = ({
             {/* Customer Information */}
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-3">
-                Your Information
+                {t("booking.yourInfo")}
               </label>
               <div className="space-y-3">
                 <input
                   type="text"
                   name="customerName"
-                  placeholder="Full Name *"
+                  placeholder={t("booking.fullName")}
                   value={formData.customerName}
                   onChange={handleChange}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-purple"
@@ -124,7 +126,7 @@ const BookingModal = ({
                 <input
                   type="tel"
                   name="customerPhone"
-                  placeholder="Phone Number *"
+                  placeholder={t("booking.phone")}
                   value={formData.customerPhone}
                   onChange={handleChange}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-purple"
@@ -136,7 +138,7 @@ const BookingModal = ({
             {/* Appointment Details */}
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-3">
-                Preferred Date & Time
+                {t("booking.dateTime")}
               </label>
               <div className="grid grid-cols-1 gap-3">
                 <input
@@ -153,7 +155,7 @@ const BookingModal = ({
             {/* Location Preference */}
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-3">
-                Service Location
+                {t("booking.location")}
               </label>
               <div className="grid grid-cols-2 gap-3">
                 <button
@@ -166,7 +168,7 @@ const BookingModal = ({
                   }`}
                 >
                   <FaMapMarkerAlt className="text-xl" />
-                  <span className="font-semibold">At Salon</span>
+                  <span className="font-semibold">{t("booking.atSalon")}</span>
                 </button>
                 <button
                   type="button"
@@ -178,13 +180,12 @@ const BookingModal = ({
                   }`}
                 >
                   <FaHome className="text-xl" />
-                  <span className="font-semibold">At Home</span>
+                  <span className="font-semibold">{t("booking.atHome")}</span>
                 </button>
               </div>
               {formData.location === "home" && (
                 <p className="text-sm text-gray-600 mt-2 bg-yellow-50 p-2 rounded">
-                  Note: Home services may have additional fees. The salon will
-                  confirm details in the chat.
+                  {t("booking.homeNote")}
                 </p>
               )}
             </div>
@@ -207,8 +208,7 @@ const BookingModal = ({
             {/* Submit Section */}
             <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg">
               <p className="text-sm text-gray-700">
-                After you book, you'll be able to chat directly with the salon
-                to confirm details and discuss any special requests.
+                {t("booking.afterBooking")}
               </p>
             </div>
 
@@ -218,7 +218,7 @@ const BookingModal = ({
                 onClick={onClose}
                 className="flex-1 px-4 py-3 border border-gray-300 rounded-lg font-semibold hover:bg-gray-50 transition-colors"
               >
-                Cancel
+                {t("booking.cancel")}
               </button>
               <Button
                 variant="gradient"
@@ -226,7 +226,7 @@ const BookingModal = ({
                 disabled={loading}
                 className="flex-1 !py-3"
               >
-                {loading ? "Booking..." : "Request to Book"}
+                {loading ? t("booking.loading") : t("booking.submit")}
               </Button>
             </div>
           </form>
