@@ -5,6 +5,7 @@ import { FaTimes } from "react-icons/fa";
 import Button from "./Button";
 
 const ServiceModal = ({ isOpen, onClose, onSubmit, initialData }) => {
+  const { t } = useTranslation(); //  translation hook
   const [service, setService] = useState({
     name: "",
     description: "",
@@ -23,8 +24,6 @@ const ServiceModal = ({ isOpen, onClose, onSubmit, initialData }) => {
   }, [initialData, isOpen]);
 
   if (!isOpen) return null;
-
-  const { t } = useTranslation(); //  translation hook
 
   const handleChange = (e) => {
     const { name, value } = e.target;

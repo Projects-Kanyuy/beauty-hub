@@ -299,6 +299,7 @@
   "register": {
     "createAccount": "Create Your Account",
     "joinMessage": "Join BeautyHub and start growing your beauty business with the {{plan}} plan.",
+    "joinMessageNoPlan": "Join BeautyHub and start growing your beauty business.",
     "firstName": "First Name",
     "lastName": "Last Name",
     "email": "Email",
@@ -349,6 +350,10 @@
     "errorLoad": "Failed to load appointments."
   },
   "salondashboard": {
+    "noSubscription": "No active subscription",
+    "subscribeToUnlock": "Subscribe to unlock all features of BeautyHub.",
+    "choosePlan": "Choose Plan",
+
     "welcomeBack": "Welcome back, {{name}}!",
     "summary": "Here's a summary of your salon's activity today.",
     "todaysBookings": "Today's Bookings",
@@ -530,5 +535,55 @@
     "faq2Answer": "Yes, new salon owners get a 7-day free trial to explore all features before committing.",
     "faq3Question": "What payment methods do you accept?",
     "faq3Answer": "We accept credit cards, debit cards, and local payment methods like MTN MoMo and Orange Money."
+  },
+  "becomeOwnerPage": {
+    "hero": {
+      "title": "Grow Your Beauty Business",
+      "subtitle": "Join thousands of salon owners using BeautyHeaven to attract more customers, manage appointments, and scale faster."
+    },
+    "why": {
+      "title": "Why Choose BeautyHeaven?",
+      "card1": {
+        "title": "Easy Management",
+        "text": "Manage your salon profile, services and appointments all in one place."
+      },
+      "card2": {
+        "title": "More Bookings",
+        "text": "Get discovered by thousands of beauty-seeking customers in your area."
+      },
+      "card3": {
+        "title": "Business Analytics",
+        "text": "Track bookings, earnings and insights to grow smarter."
+      },
+      "card4": {
+        "title": "Direct Communication",
+        "text": "Chat with customers, build relationships and offer better service."
+      }
+    },
+    "stats": {
+      "salons": "Active Salons",
+      "bookings": "Monthly Bookings",
+      "customers": "Happy Customers"
+    },
+    "cta": {
+      "title": "Ready to Get Started?",
+      "pricing": "See Our Pricing",
+      "startFree": "Start for Free"
+    },
+    "faq": {
+      "title": "Frequently Asked Questions",
+      "q1": {
+        "question": "Do I need a subscription to get started?",
+        "answer": "No, you can create an account and set up your salon profile for free. You only pay when you want premium features."
+      },
+      "q2": {
+        "question": "Can I change my plan later?",
+        "answer": "Yes. You can upgrade, downgrade or cancel your subscription anytime."
+      },
+      "q3": {
+        "question": "What payment methods do you accept?",
+        "answer": "We support cards & local payments like MTN MoMo and Orange Money."
+      }
+    }
   }
 }

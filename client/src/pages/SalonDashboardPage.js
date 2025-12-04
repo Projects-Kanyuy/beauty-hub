@@ -25,6 +25,7 @@ const SalonDashboardPage = () => {
   const [error, setError] = useState(null);
   const [hasActiveSubscription, setHasActiveSubscription] = useState(false);
 
+  // Load subscription status
   useEffect(() => {
     const loadSubscriptionData = async () => {
       if (!user) {
@@ -34,7 +35,6 @@ const SalonDashboardPage = () => {
       try {
         setLoading(true);
         setError(null);
-
         const { data: subscription } = await getActiveSubscription();
         setHasActiveSubscription(!!subscription?.data);
       } catch (err) {
@@ -47,6 +47,7 @@ const SalonDashboardPage = () => {
     loadSubscriptionData();
   }, [user, t]);
 
+  // Load salon and appointment data
   useEffect(() => {
     const loadDashboardData = async () => {
       if (!(user && hasActiveSubscription)) {
@@ -58,7 +59,6 @@ const SalonDashboardPage = () => {
         setError(null);
         const { data: salon } = await fetchMySalon();
         setSalonData(salon);
-
         const { data: appts } = await fetchSalonAppointments(salon._id);
         setAppointments(appts);
       } catch (err) {
@@ -69,7 +69,7 @@ const SalonDashboardPage = () => {
       }
     };
     loadDashboardData();
-  }, [hasActiveSubscription, user, t]);
+  }, [user, hasActiveSubscription, t]);
 
   if (loading)
     return (
@@ -78,7 +78,7 @@ const SalonDashboardPage = () => {
       </div>
     );
 
-  if (error) {
+  if (error)
     return (
       <div className="bg-red-50 border border-red-200 text-red-700 p-6 rounded-lg">
         <h2 className="font-bold text-xl">{t("salondashboard.errorTitle")}</h2>
@@ -93,7 +93,6 @@ const SalonDashboardPage = () => {
         )}
       </div>
     );
-  }
 
   const todayAppointments = appointments.filter(
     (a) => new Date(a.startTime).toDateString() === new Date().toDateString()
@@ -107,16 +106,15 @@ const SalonDashboardPage = () => {
           <div className="flex justify-between items-center">
             <div>
               <h3 className="text-lg font-bold text-yellow-800">
-                No Active Subscription
+                {t("salondashboard.noSubscription")}
               </h3>
               <p className="text-yellow-700 mt-1">
-                You don't have an active subscription. Subscribe to unlock all
-                features and start receiving bookings.
+                {t("salondashboard.subscribeToUnlock")}
               </p>
             </div>
             <Link to="/subscriptions" className="ml-4 flex-shrink-0">
               <button className="px-4 py-2 bg-primary-purple text-white rounded-lg font-semibold hover:opacity-90 whitespace-nowrap">
-                Choose a Plan
+                {t("salondashboard.choosePlan")}
               </button>
             </Link>
           </div>
@@ -132,6 +130,7 @@ const SalonDashboardPage = () => {
         <p className="text-text-muted">{t("salondashboard.summary")}</p>
       </div>
 
+      {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <div className="bg-white p-6 rounded-lg shadow-sm">
           <p className="text-sm text-text-muted">
@@ -163,6 +162,7 @@ const SalonDashboardPage = () => {
         </div>
       </div>
 
+      {/* Appointments */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 bg-white p-6 rounded-lg shadow-sm">
           <div className="flex justify-between items-center mb-4">
@@ -217,6 +217,7 @@ const SalonDashboardPage = () => {
           </div>
         </div>
 
+        {/* Quick Actions & Recent Messages */}
         <div className="space-y-8">
           <div className="bg-white p-6 rounded-lg shadow-sm">
             <h2 className="text-xl font-bold mb-4">
@@ -227,21 +228,21 @@ const SalonDashboardPage = () => {
                 to="/salon-owner/profile"
                 className="flex items-center space-x-3 p-3 bg-gray-100 rounded-md hover:bg-gray-200"
               >
-                <FaCalendarPlus className="text-primary-purple" />{" "}
+                <FaCalendarPlus className="text-primary-purple" />
                 <span>{t("salondashboard.addBooking")}</span>
               </Link>
               <Link
                 to="/salon-owner/messages"
                 className="flex items-center space-x-3 p-3 bg-gray-100 rounded-md hover:bg-gray-200"
               >
-                <FaRegComments className="text-primary-purple" />{" "}
+                <FaRegComments className="text-primary-purple" />
                 <span>{t("salondashboard.replyMessages")}</span>
               </Link>
               <Link
                 to="/salon-owner/reviews"
                 className="flex items-center space-x-3 p-3 bg-gray-100 rounded-md hover:bg-gray-200"
               >
-                <FaRegStar className="text-primary-purple" />{" "}
+                <FaRegStar className="text-primary-purple" />
                 <span>{t("salondashboard.respondReviews")}</span>
               </Link>
             </div>

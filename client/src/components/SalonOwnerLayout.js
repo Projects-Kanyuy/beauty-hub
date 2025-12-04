@@ -17,13 +17,12 @@ import {
 import { Link, NavLink } from "react-router-dom";
 import LanguageSwitcher from "./LanguageSwitcher";
 
-// SidebarLink Component
 const SidebarLink = ({ to, icon: Icon, children, onClick }) => (
   <NavLink
     to={to}
     onClick={onClick}
     className={({ isActive }) =>
-      `flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors cursor-pointer ${
+      `flex items-center space-x-3 px-4 py-3 rounded-lg transition-all cursor-pointer ${
         isActive
           ? "bg-primary-purple text-white shadow-md"
           : "text-gray-300 hover:bg-purple-700 hover:text-white"
@@ -35,7 +34,6 @@ const SidebarLink = ({ to, icon: Icon, children, onClick }) => (
   </NavLink>
 );
 
-// SalonOwnerLayout Component
 const SalonOwnerLayout = ({ children }) => {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
@@ -73,7 +71,7 @@ const SalonOwnerLayout = ({ children }) => {
             </span>
           </Link>
 
-          {/* Close button for mobile */}
+          {/* Close (mobile) */}
           <button
             onClick={() => setOpen(false)}
             className="lg:hidden text-gray-300"
@@ -82,7 +80,6 @@ const SalonOwnerLayout = ({ children }) => {
           </button>
         </div>
 
-        {/* OWNER PORTAL LABEL */}
         <p className="text-xs text-gray-400 mb-4 tracking-wider uppercase">
           {t("ownerSidebar.ownerPortal")}
         </p>
@@ -147,13 +144,13 @@ const SalonOwnerLayout = ({ children }) => {
           </SidebarLink>
         </nav>
 
-        {/* LANGUAGE SWITCHER */}
+        {/* LANGUAGE */}
         <div className="mt-4 pt-4 border-t border-gray-700">
           <LanguageSwitcher />
         </div>
       </aside>
 
-      {/* MAIN CONTENT */}
+      {/* CONTENT */}
       <main className="flex-1 overflow-y-auto p-6 md:p-8 lg:p-10">
         {children}
       </main>
