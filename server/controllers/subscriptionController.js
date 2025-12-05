@@ -5,6 +5,7 @@ const Payment = require("../models/paymentModel");
 const mongoose = require("mongoose");
 const { createPaymentLink, login } = require("../services/swychrService");
 const Coupon = require("../models/couponModel");
+const convertCurrency = require("../utils/currencyConverter");
 
 const subscribe = asyncHandler(async (req, res) => {
   const { planId } = req.body;
@@ -32,6 +33,18 @@ const subscribe = asyncHandler(async (req, res) => {
 
     console.log("fetched plan: ", { plan });
 
+    // get the rates from pressmark, since it is already implemented there
+    const rates = await axios.get(
+      "https://api.pressmark.site/api/currency/rates"
+    );
+
+    const amountInXAF = convertCurrency(
+      plan?.amount,
+      plan?.currency,
+      "XAF",
+      rates
+    );
+
     // step 2: create the subscription
     const subscriptionPayload = {
       user: user?._id,
@@ -45,8 +58,8 @@ const subscribe = asyncHandler(async (req, res) => {
       entity: "Subscription",
       entityId: createdSubscription?._id,
       userId: user?._id,
-      amount: plan?.amount,
-      currency: plan?.currency,
+      amount: amountInXAF,
+      currency: "XAF",
     };
     const createdPayment = await Payment.create(paymentPayload);
 
@@ -58,8 +71,8 @@ const subscribe = asyncHandler(async (req, res) => {
       name: user?.name || "Customer",
       email: user?.email,
       mobile: user?.phone,
-      amount: plan?.amount,
-      currency: plan?.currency,
+      amount: amountInXAF,
+      currency: "XAF",
       transaction_id: createdPayment._id,
       description: `BeautyHub - ${plan.planName} Plan`,
       pass_digital_charge: false,
@@ -90,7 +103,7 @@ const subscribe = asyncHandler(async (req, res) => {
         paymentUrl:
           swychrResponse.data?.payment_link ||
           `https://pay.accountpe.com/link/${createdSubscription?._id}`,
-        amount: plan.amount,
+        amount: amountInXAF,
         planName: plan.planName,
         planSpecs: plan.planSpecs,
       },
@@ -250,9 +263,6 @@ const redeemCouponCode = asyncHandler(async (req, res) => {
         );
       } else {
         // Extend existing subscription
-
-        console.log({ existing }, existing.endDate);
-
         const newExpiry = existing.endDate
           ? new Date(existing.endDate.getTime() + ONE_MONTH)
           : new Date(Date.now() + ONE_MONTH);

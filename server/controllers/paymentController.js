@@ -177,7 +177,7 @@ const checkPaymentStatus = asyncHandler(async (req, res) => {
   const payment = await Payment.findById(transactionId);
 
   if (!payment) {
-    return res.status(200).json({ message: "Transaction not found – ignored" });
+    return res.status(200).json({ message: "Transaction not found - ignored" });
   }
 
   const session = await mongoose.startSession();
