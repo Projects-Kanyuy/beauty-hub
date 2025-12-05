@@ -6,6 +6,7 @@ const mongoose = require("mongoose");
 const { createPaymentLink, login } = require("../services/swychrService");
 const Coupon = require("../models/couponModel");
 const convertCurrency = require("../utils/currencyConverter");
+const axios = require("axios");
 
 const subscribe = asyncHandler(async (req, res) => {
   const { planId } = req.body;
@@ -34,9 +35,11 @@ const subscribe = asyncHandler(async (req, res) => {
     console.log("fetched plan: ", { plan });
 
     // get the rates from pressmark, since it is already implemented there
-    const rates = await axios.get(
+    const { data: rates } = await axios.get(
       "https://api.pressmark.site/api/currency/rates"
     );
+
+    console.log({ rates });
 
     const amountInXAF = convertCurrency(
       plan?.amount,
