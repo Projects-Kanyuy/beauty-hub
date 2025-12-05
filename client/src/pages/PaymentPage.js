@@ -40,6 +40,7 @@ const PaymentPage = () => {
   // Coupon states
   const [couponCode, setCouponCode] = useState("");
   const [redeemingCoupon, setRedeemingCoupon] = useState(false);
+  const [paymentUrl, setPaymentUrl] = useState();
 
   // Fetch plan details
   useEffect(() => {
@@ -140,6 +141,9 @@ const PaymentPage = () => {
       setSubscriptionId(newSubscriptionId);
 
       toast.info(t("payment.paymentProcessing"));
+
+      setPaymentUrl(response?.data?.data?.paymentUrl);
+
       window.open(response?.data?.data?.paymentUrl, "_blank");
     } catch (err) {
       toast.error(t("payment.paymentFailedInitiate"));
@@ -292,6 +296,20 @@ const PaymentPage = () => {
               {t("payment.processingPayment")}
             </h2>
             <p className="text-gray-600">{t("payment.pleaseWait")}</p>
+            {paymentUrl && (
+              <p>
+                You should be redirected to pay in 5 seconds. If nothing
+                happens,{" "}
+                <a
+                  href={paymentUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-primary-purple underline"
+                >
+                  click here
+                </a>
+              </p>
+            )}
           </div>
         </div>
       )}
