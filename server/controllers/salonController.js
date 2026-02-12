@@ -1,0 +1,477 @@
+// server/controllers/salonController.js
+const asyncHandler = require("express-async-handler");
+const Salon = require("../models/salonModel");
+
+/**
+ * @swagger
+ * /api/salons:
+ *   get:
+ *     summary: Get all salons (Public)
+ *     description: Returns a list of all registered salons with their basic info and services.
+ *     tags: [Salons]
+ *     responses:
+ *       200:
+ *         description: List of salons
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Salon'
+ */
+const getSalons = asyncHandler(async (req, res) => {
+  const salons = await Salon.find({});
+  res.json(salons);
+});
+
+/**
+ * @swagger
+ * /api/salons/{id}:
+ *   get:
+ *     summary: Get a single salon by ID (Public)
+ *     tags: [Salons]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Salon ID
+ *     responses:
+ *       200:
+ *         description: Salon details
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Salon'
+ *       404:
+ *         description: Salon not found
+ */
+const getSalonById = asyncHandler(async (req, res) => {
+  const salon = await Salon.findById(req.params.id);
+  if (salon) res.json(salon);
+  else {
+    res.status(404);
+    throw new Error("Salon not found");
+  }
+});
+
+// /**
+//  * @swagger
+//  * /api/salons:
+//  *   post:
+//  *     summary: Create salon profile after successful Swychr payment
+//  *     description: |
+//  *       Salon creation is paywalled behind Swychr payment gateway.
+//  *
+//  *       The user must complete payment via Swychr and provide the resulting
+//  *       **Swychr transaction reference** (e.g., `SWY-XXXXXXX`) in the `paymentReference` field.
+//  *
+//  *       The backend will:
+//  *       • Verify the transaction directly with Swychr (using merchant credentials)
+//  *       • Confirm the exact amount matches the selected plan
+//  *       • Ensure the transaction status is `successful`
+//  *       • Prevent reuse of the same reference
+//  *
+//  *       On successful verification → creates the salon profile and activates the subscription instantly.
+//  *     tags: [Salons]
+//  *     security:
+//  *       - bearerAuth: []
+//  *     requestBody:
+//  *       required: true
+//  *       content:
+//  *         application/json:
+//  *           schema:
+//  *             type: object
+//  *             required:
+//  *               - subscriptionTypeId
+//  *               - paymentReference
+//  *               - name
+//  *               - description
+//  *               - address
+//  *               - city
+//  *               - phone
+//  *             properties:
+//  *               subscriptionTypeId:
+//  *                 type: string
+//  *                 description: MongoDB ObjectId of the chosen subscription plan (from SubscriptionType collection)
+//  *                 example: 671f3a2b9e4d8c1f5a6b7c8d
+//  *               paymentReference:
+//  *                 type: string
+//  *                 description: Swychr transaction reference returned after successful payment (e.g., SWY-20251120XXXXXX)
+//  *                 example: SWY-20251120123456789
+//  *               name:
+//  *                 type: string
+//  *                 description: Name of the salon
+//  *                 example: Glamour Beauty Hub
+//  *               description:
+//  *                 type: string
+//  *                 description: Short description about the salon
+//  *                 example: Premium hair & beauty services in Lagos
+//  *               address:
+//  *                 type: string
+//  *                 description: Full physical address of the salon
+//  *                 example: 123 Adeola Odeku Street, Victoria Island
+//  *               city:
+//  *                 type: string
+//  *                 description: City where the salon is located
+//  *                 example: Lagos
+//  *               phone:
+//  *                 type: string
+//  *                 description: Contact phone number (preferably WhatsApp-enabled)
+//  *                 example: +2348012345678
+//  *               openingHours:
+//  *                 type: object
+//  *                 description: Optional opening hours (any format, stored as-is)
+//  *                 example:
+//  *                   monday: "09:00 - 18:00"
+//  *                   tuesday: "09:00 - 18:00"
+//  *                   sunday: "Closed"
+//  *     responses:
+//  *       201:
+//  *         description: Salon created successfully and subscription activated
+//  *         content:
+//  *           application/json:
+//  *             schema:
+//  *               type: object
+//  *               properties:
+//  *                 message:
+//  *                   type: string
+//  *                   example: Salon created successfully! Your subscription is active.
+//  *                 salon:
+//  *                   $ref: '#/components/schemas/Salon'
+//  *       400:
+//  *         description: Bad request – invalid plan, payment verification failed, duplicate salon, etc.
+//  *       401:
+//  *         description: Unauthorized – missing or invalid JWT token
+//  */
+const createSalon = asyncHandler(async (req, res) => {
+  const { name, description, address, city, phone, openingHours, photos } =
+    req.body;
+
+  const ownerId = req.user._id;
+
+  // 1. Prevent duplicate salon
+  const existingSalon = await Salon.findOne({ owner: ownerId });
+  if (existingSalon) {
+    res.status(400);
+    throw new Error("You already have a salon profile");
+  }
+
+  // 4. Create the salon
+  const salon = await Salon.create({
+    owner: ownerId,
+    name,
+    description,
+    address,
+    city,
+    phone,
+    openingHours,
+    photos,
+    isVerified: true, // Paid users get instant verification
+  });
+
+  res.status(201).json({
+    message: "Salon created successfully! Your subscription is active.",
+    salon,
+  });
+});
+
+/**
+ * @swagger
+ * /api/salons/{id}:
+ *   put:
+ *     summary: Update salon profile (Owner only)
+ *     tags: [Salons]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name: { type: string }
+ *               description: { type: string }
+ *               address: { type: string }
+ *               city: { type: string }
+ *               phone: { type: string }
+ *               openingHours: { type: object }
+ *               photos: { type: array, items: { type: string } }
+ *     responses:
+ *       200:
+ *         description: Updated salon
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Salon'
+ *       401:
+ *         description: Not authorized
+ *       404:
+ *         description: Salon not found
+ */
+const updateSalon = asyncHandler(async (req, res) => {
+  const salon = await Salon.findById(req.params.id);
+
+  if (!salon) {
+    res.status(404);
+    throw new Error("Salon not found");
+  }
+
+  if (salon.owner.toString() !== req.user._id.toString()) {
+    res.status(401);
+    throw new Error("Not authorized to update this salon");
+  }
+
+  salon.name = req.body.name || salon.name;
+  salon.description = req.body.description || salon.description;
+  salon.address = req.body.address || salon.address;
+  salon.city = req.body.city || salon.city;
+  salon.phone = req.body.phone || salon.phone;
+  salon.openingHours = req.body.openingHours || salon.openingHours;
+  salon.photos = req.body.photos || salon.photos;
+
+  const updatedSalon = await salon.save();
+  res.json(updatedSalon);
+});
+
+/**
+ * @swagger
+ * /api/salons/{id}/services:
+ *   post:
+ *     summary: Add a new service to salon (Owner only)
+ *     tags: [Salons]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - name
+ *               - price
+ *               - duration
+ *             properties:
+ *               name:
+ *                 type: string
+ *                 example: "Box Braids"
+ *               description:
+ *                 type: string
+ *               price:
+ *                 type: number
+ *                 example: 35000
+ *               duration:
+ *                 type: string
+ *                 example: "3-4 hours"
+ *     responses:
+ *       201:
+ *         description: Service added successfully
+ */
+
+// just adding this log to force deployment
+const addSalonService = asyncHandler(async (req, res) => {
+  const { name, description, price, currency, homeService, duration, homeServiceFee } =
+    req.body;
+
+  if (!name || !description || !price || !currency) {
+    return res.status(400).json({
+      message:
+        "missing required field, check that name, description, price and currency have been provided",
+    });
+  }
+  const salon = await Salon.findById(req.params.id);
+
+  if (!salon) {
+    return res.status(404).json({
+      message: `salon with id ${req.params.id} not found`,
+    });
+  }
+
+  if (salon.owner.toString() !== req.user._id.toString()) {
+    res.status(401);
+    throw new Error("Not authorized");
+  }
+
+  const service = {
+    name,
+    description,
+    price,
+    currency,
+    duration,
+    homeService,
+    homeServiceFee
+  };
+
+  await Salon.findByIdAndUpdate(req.params.id, {
+    $addToSet: { services: service },
+  });
+
+  return res.status(200).json({
+    message: "service added successfully",
+  });
+});
+
+/**
+ * @swagger
+ * /api/salons/{id}/services/{service_id}:
+ *   put:
+ *     summary: Update a service (Owner only)
+ *     tags: [Salons]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: string }
+ *       - in: path
+ *         name: service_id
+ *         required: true
+ *         schema: { type: string }
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name: { type: string }
+ *               description: { type: string }
+ *               price: { type: number }
+ *               duration: { type: string }
+ *     responses:
+ *       200:
+ *         description: Service updated
+ *       404:
+ *         description: Salon or service not found
+ */
+const updateSalonService = asyncHandler(async (req, res) => {
+  const salon = await Salon.findById(req.params.id);
+
+  if (!salon) {
+    res.status(404);
+    throw new Error("Salon not found");
+  }
+
+  if (salon.owner.toString() !== req.user._id.toString()) {
+    res.status(401);
+    throw new Error("Not authorized");
+  }
+
+  const service = salon.services.id(req.params.service_id);
+  if (!service) {
+    res.status(404);
+    throw new Error("Service not found");
+  }
+
+  service.name = req.body.name || service.name;
+  service.description = req.body.description || service.description;
+  service.price = req.body.price || service.price;
+  service.duration = req.body.duration || service.duration;
+
+  await salon.save();
+  res.json({ message: "Service updated" });
+});
+
+/**
+ * @swagger
+ * /api/salons/{id}/services/{service_id}:
+ *   delete:
+ *     summary: Delete a service (Owner only)
+ *     tags: [Salons]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: string }
+ *       - in: path
+ *         name: service_id
+ *         required: true
+ *         schema: { type: string }
+ *     responses:
+ *       200:
+ *         description: Service removed successfully
+ *       404:
+ *         description: Salon or service not found
+ */
+const deleteSalonService = asyncHandler(async (req, res) => {
+  const salon = await Salon.findById(req.params.id);
+
+  if (!salon) {
+    res.status(404);
+    throw new Error("Salon not found");
+  }
+
+  if (salon.owner.toString() !== req.user._id.toString()) {
+    res.status(401);
+    throw new Error("Not authorized");
+  }
+
+  const service = salon.services.id(req.params.service_id);
+  if (!service) {
+    res.status(404);
+    throw new Error("Service not found");
+  }
+
+  await service.deleteOne();
+  await salon.save();
+  res.json({ message: "Service removed" });
+});
+
+/**
+ * @swagger
+ * /api/salons/mysalon:
+ *   get:
+ *     summary: Get logged-in owner's salon profile
+ *     description: Returns the full salon profile belonging to the authenticated salon owner.
+ *     tags: [Salons]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Owner's salon
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Salon'
+ *       404:
+ *         description: No salon profile found — owner needs to create one
+ */
+const getMySalon = asyncHandler(async (req, res) => {
+  const salon = await Salon.findOne({ owner: req.user._id });
+
+  if (salon) {
+    res.json(salon);
+  } else {
+    res.status(404);
+    throw new Error(
+      "Salon profile not found for this user. Please create one."
+    );
+  }
+});
+
+module.exports = {
+  getSalons,
+  getSalonById,
+  createSalon,
+  updateSalon,
+  addSalonService,
+  updateSalonService,
+  deleteSalonService,
+  getMySalon,
+};

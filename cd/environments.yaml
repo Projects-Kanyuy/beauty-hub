@@ -1,0 +1,9 @@
+- envId: dev
+  name: Development
+  gitRefName: main
+  awsAccountId: 362954627441
+  domainName: beautyheaven.site
+  projectName: beautyhub
+  hostedZoneId: Z063089022OK1J6PCL9RC
+
+

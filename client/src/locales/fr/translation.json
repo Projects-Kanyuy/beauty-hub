@@ -1,0 +1,594 @@
+{
+  "whatsappMessage": "Bonjour, j'ai besoin d'aide pour réserver",
+  "header": {
+    "home": "Accueil",
+    "tips": "Conseils Beauté",
+    "addBusiness": "Ajouter Votre Entreprise",
+    "about": "À Propos",
+    "contact": "Contactez-nous",
+    "dashboard": "Tableau de bord",
+    "favorites": "Favoris",
+    "compare": "Comparer",
+    "messages": "Messages",
+    "logout": "Déconnexion"
+  },
+  "footer": {
+    "title": "BeautyHeaven",
+    "description": "Votre plateforme de confiance pour découvrir et se connecter avec les meilleurs professionnels de la beauté à travers l'Afrique. Trouvez des salons, des artistes des ongles et des spécialistes de la beauté bien notés près de chez vous.",
+    "quickLinks": "Liens rapides",
+    "about": "À Propos",
+    "addBusiness": "Ajouter Votre Entreprise",
+    "contact": "Contactez-nous",
+    "beautyTips": "Conseils Beauté",
+    "legal": "Mentions légales",
+    "privacy": "Politique de confidentialité",
+    "terms": "Conditions d'utilisation",
+    "cookies": "Politique de cookies",
+    "copyright": "Tous droits réservés.",
+    "contactSupport": "Contacter le support"
+  },
+  "authLayout": {
+    "branding": "BeautyHeaven ♡",
+    "heading": "Développez Votre Entreprise de Beauté",
+    "description": "Rejoignez la principale plateforme de beauté du Cameroun et connectez-vous avec des milliers de clients potentiels.",
+    "features": {
+      "visibility": "Visibilité Accrue",
+      "analytics": "Outils d'Analyse",
+      "booking": "Gestion des Réservations"
+    },
+    "testimonial": {
+      "text": "\"BeautyHeaven m'a aidée à doubler ma clientèle en 3 mois !\"",
+      "author": "- Marie, Salon Elegance Douala"
+    }
+  },
+  "blogCard": {
+    "readMore": "Lire Plus"
+  },
+  "booking": {
+    "title": "Réserver un rendez-vous",
+    "yourInfo": "Vos informations",
+    "fullName": "Nom complet *",
+    "phoneNumber": "Numéro de téléphone *",
+    "preferredDateTime": "Date et heure souhaitées",
+    "serviceLocation": "Lieu du service",
+    "atSalon": "Au salon",
+    "atHome": "À domicile",
+    "homeServiceNote": "Note : Les services à domicile peuvent inclure des frais supplémentaires. Le salon confirmera les détails dans le chat.",
+    "afterBooking": "Après votre réservation, vous pourrez discuter directement avec le salon pour confirmer les détails et discuter de toute demande spéciale.",
+    "cancel": "Annuler",
+    "loading": "Réservation...",
+    "request": "Demander une réservation"
+  },
+  "dashboardPanel": {
+    "viewAll": "Voir tout >"
+  },
+  "listingCard": {
+    "reviews": "avis"
+  },
+  "photoUploader": {
+    "addPhoto": "Ajouter une photo",
+    "galleryAlt": "Galerie du salon"
+  },
+  "salonCard": {
+    "homeServices": "Service à domicile",
+    "verified": "Vérifié",
+    "startingFrom": "À partir de",
+    "reviews": "avis",
+    "responseTime": "Répond en ~ une heure",
+    "online": "En ligne",
+    "viewAndBook": "Voir & Réserver"
+  },
+  "ownerSidebar": {
+    "ownerPortal": "PORTAIL PROPRIÉTAIRE",
+    "dashboard": "Tableau de bord",
+    "appointments": "Rendez-vous",
+    "mySalonProfile": "Profil de mon salon",
+    "services": "Services",
+    "messages": "Messages",
+    "reviews": "Avis",
+    "analytics": "Analytique",
+    "settings": "Paramètres"
+  },
+  "saloonsearch": {
+    "placeholder": "Recherchez des salons, services ou lieux...",
+    "locationPlaceholder": "Douala",
+    "searchButton": "Rechercher"
+  },
+  "filters": {
+    "all": "Tous",
+    "braiding": "Tressage",
+    "naturalHair": "Cheveux naturels",
+    "nails": "Ongles",
+    "spa": "Spa & Soins du visage",
+    "makeup": "Maquillage",
+    "moreFilters": "Filtres"
+  },
+  "search": {
+    "servicePlaceholder": "Service, nom du salon...",
+    "locationPlaceholder": "Douala, CM",
+    "searchButton": "Rechercher"
+  },
+  "about": {
+    "heroTitle": "À propos de BeautyHeaven",
+    "heroSubtitle": "Connecter les professionnels de la beauté et les clients à travers l'Afrique avec confiance et technologie.",
+    "missionTitle": "Notre Mission",
+    "missionText1": "Notre mission est de responsabiliser les entrepreneurs de la beauté en fournissant une plateforme robuste pour mettre en valeur leurs talents, gérer leur activité et se connecter à un public plus large. Nous visons à simplifier le processus pour que les clients découvrent, réservent et évaluent les services de beauté, garantissant une expérience fluide et fiable pour tous.",
+    "missionText2": "Nous croyons au pouvoir de la communauté et nous nous efforçons de construire un écosystème de soutien où les professionnels de la beauté peuvent prospérer et où les clients peuvent trouver le partenaire parfait pour leurs besoins.",
+    "empowerment": {
+      "title": "Autonomisation",
+      "desc": "Soutenir les entreprises locales."
+    },
+    "community": {
+      "title": "Communauté",
+      "desc": "Créer des liens solides."
+    },
+    "trust": {
+      "title": "Confiance",
+      "desc": "Avis vérifiés et authentiques."
+    },
+    "quality": {
+      "title": "Qualité",
+      "desc": "Mettre en avant les meilleurs talents."
+    },
+    "ctaTitle": "Rejoignez notre plateforme en croissance",
+    "ctaText": "Que vous cherchiez votre prochain soin de beauté ou que vous souhaitiez développer votre salon, BeautyHeaven est là pour vous.",
+    "exploreSalons": "Explorer les salons",
+    "listBusiness": "Inscrire votre entreprise"
+  },
+  "beautyTips": {
+    "title": "Conseils et Tendances Beauté",
+    "subtitle": "Découvrez les riches traditions de beauté du Cameroun, des remèdes naturels anciens aux techniques de coiffure modernes qui célèbrent notre patrimoine culturel diversifié.",
+    "viewAll": "Voir Tous les Articles"
+  },
+  "compare": {
+    "title": "Comparer les Salons",
+    "subtitle": "Voyez comment vos meilleurs choix se comparent côte à côte.",
+    "rating": "Note",
+    "reviews": "Avis",
+    "startingPrice": "Prix de départ",
+    "responseTime": "Temps de réponse",
+    "bookNow": "Réserver",
+    "nothing": "Rien à comparer",
+    "addToCompare": "Ajoutez des salons à votre liste de comparaison pour les voir ici.",
+    "explore": "Explorer les Salons"
+  },
+  "contact": {
+    "title": "Contactez-nous",
+    "subtitle": "Une question ou un retour ? Nous serions ravis de vous entendre.",
+    "sendMessage": "Envoyez-nous un message",
+    "fullName": "Nom complet",
+    "email": "Adresse e-mail",
+    "subject": "Sujet",
+    "message": "Message",
+    "sendButton": "Envoyer le message",
+    "contactInfo": "Informations de contact",
+    "office": "Notre bureau",
+    "officeAddress": "123 Avenue de la Beauté, Douala, Cameroun",
+    "phone": "Téléphone",
+    "phoneNumber": "+237 6XX XXX XXX",
+    "supportEmail": "support@beautyheaven.site"
+  },
+  "settings": {
+    "accountSettings": "Paramètres du compte",
+    "saveChanges": "Enregistrer les modifications",
+    "profileInfoTitle": "Informations du profil",
+    "profileInfoDescription": "Gérez vos informations personnelles.",
+    "fullName": "Nom complet",
+    "emailAddress": "Adresse e-mail",
+    "emailNotice": "Votre e-mail est utilisé pour la connexion et ne peut pas être modifié.",
+    "changePasswordTitle": "Changer le mot de passe",
+    "changePasswordDescription": "Pour votre sécurité, nous recommandons un mot de passe fort.",
+    "currentPassword": "Mot de passe actuel",
+    "newPassword": "Nouveau mot de passe",
+    "confirmPassword": "Confirmer le nouveau mot de passe",
+    "dangerZoneTitle": "Zone de danger",
+    "dangerZoneDescription": "Soyez prudent, ces actions sont irréversibles.",
+    "deleteAccount": "Supprimer le compte",
+    "deleteAccountDescription": "Supprimez définitivement votre compte et toutes les données associées.",
+    "successMessage": "Paramètres enregistrés avec succès !"
+  },
+  "dashboard": {
+    "welcomeBack": "Bon retour, {{name}} !",
+    "beautyLover": "Amoureux(se) de la beauté",
+    "location": "{{city}}, {{country}}",
+    "settings": "Paramètres",
+    "quickActions": "Actions rapides",
+    "findSalons": "Trouver des salons",
+    "findSalonsDesc": "Découvrez de nouveaux salons près de chez vous",
+    "bookAppointment": "Réserver un rendez-vous",
+    "bookAppointmentDesc": "Planifiez votre prochaine séance beauté",
+    "messages": "Messages",
+    "messagesDesc": "{{count}} nouveaux messages",
+    "nearMe": "À proximité",
+    "nearMeDesc": "Salons dans votre région",
+    "recentBookings": "Rendez-vous récents",
+    "noBookings": "Aucun rendez-vous pour le moment",
+    "bookFirstAppointment": "Réservez votre premier rendez-vous",
+    "favoriteSalons": "Salons favoris",
+    "noFavorites": "Aucun favori pour le moment",
+    "discoverSalons": "Découvrez des salons",
+    "recentActivity": "Activité récente",
+    "stats": {
+      "Bookings": "Rendez-vous",
+      "Favorites": "Favoris",
+      "Reviews": "Avis",
+      "Messages": "Messages"
+    }
+  },
+  "favoritesPage": {
+    "title": "Mes Favoris",
+    "description": "Vos salons enregistrés, tous au même endroit.",
+    "noFavoritesTitle": "Aucun favori pour le moment",
+    "noFavoritesDescription": "Cliquez sur l'icône cœur sur n'importe quel salon pour l'enregistrer ici.",
+    "homeButton": "Accueil"
+  },
+  "homePage": {
+    "featuredSalons": {
+      "title": "Salons en Vedette",
+      "description": "Parcourez et réservez parmi notre sélection de salons les mieux notés",
+      "viewAll": "Voir tout",
+      "errorMessage": "Impossible de charger les salons.",
+      "loading": "Chargement des salons...",
+      "errorTitle": "Une erreur s'est produite",
+      "noSalonsTitle": "Aucun salon trouvé",
+      "noSalonsDescription": "Aucun salon n'est actuellement répertorié. Soyez le premier à en ajouter un !"
+    },
+    "ctaSalonOwners": {
+      "title": "Vous êtes propriétaire d'un salon ?",
+      "description": "Rejoignez des milliers d'entreprises de beauté qui développent leur clientèle avec BeautyHeaven. Obtenez plus de réservations, gérez votre entreprise et croissez plus rapidement.",
+      "button": "Commencez votre essai gratuit"
+    }
+  },
+  "listingDetail": {
+    "title": "Page de Détails du Salon",
+    "showingDetails": "Affichage des détails pour la fiche avec l'ID :",
+    "description": "C'est ici que le profil complet du salon avec galerie, services et avis sera affiché."
+  },
+  "login": {
+    "success": "Connexion réussie !",
+    "error": "Une erreur est survenue. Veuillez réessayer.",
+    "signIn": "Se connecter",
+    "createAccount": "Créer un compte",
+    "portalTitle": "Portail Propriétaire de Salon",
+    "portalDescription": "Gérez votre salon, vos services et connectez-vous avec vos clients",
+    "title": "Connexion Salon",
+    "businessEmail": "Email professionnel",
+    "password": "Mot de passe",
+    "rememberMe": "Se souvenir de moi",
+    "forgotPassword": "Mot de passe oublié ?",
+    "signingIn": "Connexion..."
+  },
+  "nearMe": {
+    "title": "Salons Près de Vous",
+    "description": "Des professionnels de beauté très bien notés dans votre zone immédiate.",
+    "loading": "Recherche de salons près de vous..."
+  },
+  "payment": {
+    "back": "Retour",
+    "loadingPlan": "Chargement des détails du plan...",
+    "errorOccurred": "Une erreur s'est produite",
+    "errorLoadingPlan": "Échec du chargement des détails du plan. Le serveur peut être indisponible.",
+    "orderSummary": "Résumé de la commande",
+    "plan": "Plan",
+    "monthlySubscription": "Abonnement mensuel",
+    "setupFee": "Frais d'installation",
+    "tax": "Taxe",
+    "totalMonthly": "Total (Mensuel)",
+    "terms": "En cliquant sur \"Payer maintenant\", vous serez redirigé vers notre fournisseur de paiement pour finaliser la transaction en toute sécurité. Votre abonnement au plan {{planName}} à {{currency}} {{amount}}/mois commencera immédiatement après paiement. Vous pouvez annuler à tout moment.",
+    "couponLabel": "Avez-vous un code promo ?",
+    "couponPlaceholder": "Entrez le code promo",
+    "freeCouponMessage": "Code promo gratuit pour les nouveaux utilisateurs :",
+    "redeemingCoupon": "Application du coupon...",
+    "payNow": "Payer maintenant",
+    "processing": "Traitement...",
+    "subscriptionFree": "Abonnement activé gratuitement !",
+    "couponApplied": "Coupon appliqué avec succès !",
+    "couponRedeemError": "Échec de l'application du coupon. Veuillez contacter le support.",
+    "paymentProcessing": "Traitement du paiement...",
+    "paymentFailedInitiate": "Échec de l'initialisation du paiement. Veuillez réessayer.",
+    "securityNotice": "🔒 Les paiements sont traités en toute sécurité par notre fournisseur de paiement de confiance",
+    "processingPayment": "Traitement du paiement",
+    "pleaseWait": "Veuillez patienter pendant le traitement de votre paiement...",
+    "redirecting": "Vous serez redirigé vers la page de paiement dans 5 secondes.",
+    "clickHere": "cliquez ici",
+    "success": "Paiement réussi !",
+    "successMessage": "Votre abonnement au plan {{planName}} a été activé. Vous serez redirigé vers votre tableau de bord.",
+    "failed": "Échec du paiement",
+    "failedMessage": "Votre paiement n'a pas pu être traité. Veuillez vérifier vos informations de paiement et réessayer.",
+    "cancelled": "Paiement annulé",
+    "cancelledMessage": "Votre paiement a été annulé. Aucun montant n'a été prélevé.",
+    "goToDashboard": "Aller au tableau de bord",
+    "close": "Fermer"
+  },
+  "register": {
+    "createAccount": "Créez votre compte",
+    "joinMessage": "Rejoignez BeautyHub et commencez à développer votre entreprise de beauté avec le plan {{plan}}.",
+    "joinMessageNoPlan": "Rejoignez BeautyHub et commencez à développer votre entreprise de beauté.",
+    "firstName": "Prénom",
+    "lastName": "Nom",
+    "email": "Email",
+    "salonName": "Nom du salon",
+    "salonNamePlaceholder": "ex: Salon de beauté africain",
+    "phoneNumber": "Numéro de téléphone",
+    "password": "Mot de passe",
+    "confirmPassword": "Confirmer le mot de passe",
+    "agreeTerms": "J'accepte les",
+    "termsOfService": "Conditions d'utilisation",
+    "privacyPolicy": "Politique de confidentialité",
+    "and": "et",
+    "creatingAccount": "Création du compte...",
+    "createAccountContinue": "Créer un compte et continuer",
+    "alreadyHaveAccount": "Vous avez déjà un compte ?",
+    "signIn": "Se connecter",
+    "passwordsMismatch": "Les mots de passe ne correspondent pas.",
+    "accountCreated": "Compte créé avec succès !",
+    "couponRedeemed": "Coupon appliqué ! Votre abonnement est actif.",
+    "couponRedeemFailed": "Échec de l'application du coupon",
+    "registrationFailed": "Échec de l'inscription. Veuillez réessayer."
+  },
+  "analytics": {
+    "title": "Analyses & Insights",
+    "totalEarnings": "Revenus totaux (Octobre)",
+    "newClients": "Nouveaux clients (Octobre)",
+    "completedAppointments": "Rendez-vous terminés",
+    "averageRating": "Note moyenne",
+    "bookingsOverTime": "Réservations au fil du temps",
+    "servicePopularity": "Popularité des services",
+    "error": "Erreur",
+    "errorLoadData": "Impossible de charger les données analytiques.",
+    "noData": "Aucune donnée analytique disponible."
+  },
+  "appointments": {
+    "title": "Calendrier des rendez-vous",
+    "details": "Détails du rendez-vous",
+    "status": "Statut",
+    "service": "Service",
+    "time": "Heure",
+    "confirm": "Confirmer",
+    "reschedule": "Replanifier",
+    "clickToView": "Cliquez sur un rendez-vous pour afficher les détails.",
+    "confirmed": "Rendez-vous confirmé !",
+    "confirmFailed": "Échec de la confirmation du rendez-vous.",
+    "subscriptionRequired": "Vous devez avoir un abonnement actif pour afficher et gérer les rendez-vous.",
+    "error": "Erreur",
+    "errorNoSalon": "Profil du salon introuvable.",
+    "errorLoad": "Échec du chargement des rendez-vous."
+  },
+  "salondashboard": {
+    "noSubscription": "Aucun abonnement actif",
+    "subscribeToUnlock": "Activez votre compte pour commencer à recevoir des clients.",
+    "choosePlan": "Activer le compte",
+    "welcomeBack": "Bon retour, {{name}} !",
+    "summary": "Voici un résumé de l'activité de votre salon aujourd'hui.",
+    "todaysBookings": "Réservations d'aujourd'hui",
+    "pendingRequests": "Demandes en attente",
+    "totalEarnings": "Revenus totaux (Mois)",
+    "newReviews": "Nouveaux avis",
+    "todaysAppointments": "Rendez-vous d'aujourd'hui",
+    "viewCalendar": "Voir le calendrier",
+    "noAppointments": "Aucun rendez-vous prévu pour aujourd'hui.",
+    "quickActions": "Actions rapides",
+    "addBooking": "Ajouter une réservation sur place",
+    "replyMessages": "Répondre aux messages",
+    "respondReviews": "Répondre aux avis",
+    "recentMessages": "Messages récents",
+    "noNewMessages": "Aucun nouveau message.",
+    "errorTitle": "Erreur lors du chargement du tableau de bord",
+    "createProfile": "Créer votre profil de salon",
+    "errorLoad": "Échec du chargement des données du tableau de bord."
+  },
+  "salondetail": {
+    "back": "Retour",
+    "loading": "Chargement des détails du salon...",
+    "loadFailed": "Échec du chargement des détails du salon",
+    "loadFailedGoBack": "Échec du chargement du salon. Veuillez revenir en arrière et réessayer.",
+    "new": "Nouveau",
+    "reviews": "avis",
+    "services": "Services",
+    "homeService": "Service à domicile",
+    "book": "Réserver",
+    "noServices": "Aucun service répertorié pour ce salon pour le moment.",
+    "aboutSalon": "À propos de ce salon",
+    "aboutSalonPlaceholder": "Salon de beauté professionnel dédié à la fourniture de services de qualité. Venez nous rendre visite pour découvrir notre expertise et notre ambiance conviviale.",
+    "gallery": "Galerie",
+    "whyBook": "Pourquoi réserver chez nous ?",
+    "easyBooking": "Réservation facile et support par chat",
+    "professionalStylists": "Stylistes professionnels",
+    "qualityServices": "Services de qualité",
+    "bookingSuccess": "Rendez-vous demandé avec succès ! Ouverture du chat avec le salon...",
+    "bookingFailed": "Échec de la réservation. Veuillez réessayer."
+  },
+  "salonmessages": {
+    "title": "Messages",
+    "loadFailed": "Impossible de charger les messages.",
+    "errorTitle": "Erreur",
+    "noConversations": "Aucune conversation pour le moment.",
+    "noMessagesYet": "Aucun message pour le moment.",
+    "unknown": "Inconnu",
+    "typeMessage": "Tapez votre message...",
+    "selectConversation": "Sélectionnez une conversation pour commencer à discuter."
+  },
+  "salonprofile": {
+    "loadFailed": "Impossible de charger votre profil de salon.",
+    "errorTitle": "Erreur",
+    "editTitle": "Modifier mon profil de salon",
+    "subscriptionRequired": "Activez votre compte pour configurer votre profil de salon et commencer à recevoir des réservations.",
+    "createTitle": "Créer votre profil de salon",
+    "saving": "Enregistrement...",
+    "saveChanges": "Enregistrer les modifications",
+    "createProfile": "Créer le profil",
+    "updatedSuccess": "Profil mis à jour avec succès !",
+    "createdSuccess": "Profil créé avec succès ! Redirection vers le tableau de bord...",
+    "saveError": "Erreur lors de l'enregistrement du profil.",
+    "basicInfoTitle": "Informations de base",
+    "basicInfoDesc": "Ceci est l'information principale qui sera affichée sur votre page publique.",
+    "salonName": "Nom du salon",
+    "phone": "Numéro de téléphone",
+    "email": "Email professionnel",
+    "description": "Description",
+    "photoGalleryTitle": "Galerie de photos",
+    "photoGalleryDesc": "Téléchargez des images de haute qualité de votre salon, de votre travail et de votre équipe.",
+    "locationTitle": "Localisation",
+    "locationDesc": "Aidez les clients à vous trouver facilement.",
+    "address": "Adresse",
+    "city": "Ville",
+    "openingHoursTitle": "Horaires d'ouverture",
+    "openingHoursDesc": "Informez les clients de vos heures d'ouverture."
+  },
+  "salonreviews": {
+    "header": "Avis des clients",
+    "loadFailed": "Impossible de charger les avis. Veuillez réessayer plus tard.",
+    "errorTitle": "Erreur",
+    "emptyReply": "La réponse ne peut pas être vide.",
+    "replyPosted": "Réponse publiée avec succès !",
+    "replyFailed": "Échec de la publication de la réponse.",
+    "yourReply": "Votre réponse :",
+    "replyPlaceholder": "Écrire une réponse publique...",
+    "postReply": "Publier la réponse",
+    "noReviews": "Vous n'avez pas encore d'avis."
+  },
+  "salonservices": {
+    "header": "Gérer mes services",
+    "addButton": "Ajouter un nouveau service",
+    "table": {
+      "name": "Nom du service",
+      "price": "Prix",
+      "duration": "Durée",
+      "actions": "Actions"
+    },
+    "minutes": "min",
+    "noServices": "Vous n'avez pas encore ajouté de services.",
+    "confirmDelete": "Êtes-vous sûr de vouloir supprimer ce service ?",
+    "deleteSuccess": "Service supprimé avec succès !",
+    "deleteError": "Erreur lors de la suppression du service : {{error}}",
+    "addSuccess": "Service ajouté avec succès !",
+    "updateSuccess": "Service mis à jour avec succès !",
+    "saveError": "Erreur lors de l'enregistrement du service : {{error}}",
+    "loadError": "Impossible de charger vos services."
+  },
+  "salonsettings": {
+    "header": "Paramètres",
+    "saveChanges": "Enregistrer les modifications",
+    "saving": "Enregistrement...",
+    "accountInfo": "Informations du compte",
+    "accountInfoDesc": "Gérez votre email et votre mot de passe.",
+    "fullName": "Nom complet",
+    "email": "Email de connexion",
+    "newPassword": "Nouveau mot de passe",
+    "confirmPassword": "Confirmez le nouveau mot de passe",
+    "passwordPlaceholder": "Laissez vide pour garder le mot de passe actuel",
+    "notifications": "Préférences de notification",
+    "notificationsDesc": "Choisissez comment vous souhaitez être notifié.",
+    "newBooking": "Email pour une nouvelle réservation",
+    "newReview": "Email pour un nouvel avis",
+    "newMessage": "Email pour un nouveau message",
+    "passwordMismatch": "Les nouveaux mots de passe ne correspondent pas !",
+    "saved": "Paramètres enregistrés avec succès !",
+    "saveError": "Échec de l'enregistrement des paramètres."
+  },
+  "searchResults": {
+    "header": "Résultats de recherche",
+    "description": "C'est ici que la liste des salons apparaîtra selon vos critères de recherche."
+  },
+  "salons": {
+    "header": "Tous les salons",
+    "discover": "Découvrez et réservez parmi {{count}} salons incroyables",
+    "searchPlaceholder": "Rechercher des salons par nom ou description...",
+    "filters": "Filtres",
+    "filterLocation": "Localisation",
+    "filterRating": "Note minimum",
+    "allLocations": "Toutes les localisations",
+    "allRatings": "Toutes les notes",
+    "stars": "Étoiles",
+    "resetFilters": "Réinitialiser les filtres",
+    "activeSearch": "Recherche",
+    "unknownLocation": "Inconnu",
+    "loading": "Chargement des salons...",
+    "fetchError": "Impossible de charger les salons. Le serveur pourrait être indisponible.",
+    "errorTitle": "Une erreur est survenue",
+    "noResultsTitle": "Aucun salon trouvé",
+    "noResultsDesc": "Essayez d'ajuster votre recherche ou vos filtres",
+    "showingResults": "Affichage de {{filtered}} sur {{total}} salons"
+  },
+  "subscriptions": {
+    "heroTitle": "Développez votre entreprise de beauté avec BeautyHeaven",
+    "heroDesc": "Choisissez le plan parfait pour votre salon et commencez à attirer plus de clients dès aujourd'hui.",
+    "pricingTitle": "Tarification simple et transparente",
+    "pricingDesc": "Commencez avec n'importe quel plan et passez à un plan supérieur à tout moment au fur et à mesure que votre entreprise se développe.",
+    "freeCoupon": "Code promo gratuit pour les nouveaux utilisateurs :",
+    "loading": "Chargement des plans...",
+    "errorTitle": "Une erreur est survenue",
+    "fetchError": "Impossible de charger les abonnements. Le serveur pourrait être indisponible.",
+    "noPlansTitle": "Aucun plan d'abonnement trouvé",
+    "noPlansDesc": "Il n'y a actuellement aucun plan d'abonnement. Contactez un administrateur pour en ajouter un.",
+    "mostPopular": "Le plus populaire",
+    "perMonth": "Mois",
+    "choosePlan": "Choisir le plan",
+    "featuresTitle": "Pourquoi les propriétaires de salons choisissent BeautyHeaven",
+    "feature1Title": "Gérez votre salon",
+    "feature1Desc": "Gestion complète du profil, des services et des rendez-vous en un seul endroit.",
+    "feature2Title": "Analytique",
+    "feature2Desc": "Suivez les réservations, le comportement des clients et développez votre entreprise grâce aux données.",
+    "feature3Title": "Faites-vous découvrir",
+    "feature3Desc": "Une plus grande visibilité signifie que plus de clients locaux trouvent votre entreprise.",
+    "feature4Title": "Chat direct",
+    "feature4Desc": "Communiquez directement avec les clients et développez des relations.",
+    "faqTitle": "Questions fréquemment posées",
+    "faq1Question": "Puis-je changer de plan plus tard ?",
+    "faq1Answer": "Oui, vous pouvez passer à un plan supérieur ou inférieur à tout moment. Les changements prennent effet lors du prochain cycle de facturation.",
+    "faq2Question": "Offrez-vous un essai gratuit ?",
+    "faq2Answer": "Oui, les nouveaux propriétaires de salon bénéficient d'un essai gratuit de 7 jours pour explorer toutes les fonctionnalités avant de s'engager.",
+    "faq3Question": "Quels modes de paiement acceptez-vous ?",
+    "faq3Answer": "Nous acceptons les cartes de crédit, les cartes de débit et les méthodes de paiement locales comme MTN MoMo et Orange Money."
+  },
+  "becomeOwnerPage": {
+    "hero": {
+      "title": "Développez Votre Salon de Beauté",
+      "subtitle": "Rejoignez des milliers de propriétaires de salons utilisant BeautyHeaven pour attirer plus de clients, gérer les rendez-vous et grandir rapidement."
+    },
+    "why": {
+      "title": "Pourquoi Choisir BeautyHeaven ?",
+      "card1": {
+        "title": "Gestion Facile",
+        "text": "Gérez votre profil, vos services et rendez-vous au même endroit."
+      },
+      "card2": {
+        "title": "Plus de Réservations",
+        "text": "Soyez découvert par des milliers de clients recherchant des services beauté."
+      },
+      "card3": {
+        "title": "Analyse Commerciale",
+        "text": "Suivez vos réservations, revenus et statistiques pour croître intelligemment."
+      },
+      "card4": {
+        "title": "Communication Directe",
+        "text": "Discutez avec les clients, créez des relations et offrez un meilleur service."
+      }
+    },
+    "stats": {
+      "salons": "Salons Actifs",
+      "bookings": "Réservations Mensuelles",
+      "customers": "Clients Satisfaits"
+    },
+    "cta": {
+      "title": "Prêt à Commencer ?",
+      "pricing": "Voir Nos Tarifs",
+      "startFree": "Commencer Gratuitement"
+    },
+    "faq": {
+      "title": "Questions Fréquemment Posées",
+      "q1": {
+        "question": "Ai-je besoin d’un abonnement pour commencer ?",
+        "answer": "Non ! Créez votre compte et configurez votre salon gratuitement. Payez seulement pour les fonctionnalités premium."
+      },
+      "q2": {
+        "question": "Puis-je changer de plan plus tard ?",
+        "answer": "Oui ! Vous pouvez mettre à niveau, rétrograder ou annuler à tout moment."
+      },
+      "q3": {
+        "question": "Quels moyens de paiement acceptez-vous ?",
+        "answer": "Cartes bancaires + paiements locaux comme MTN MoMo & Orange Money."
+      }
+    }
+  }
+}
