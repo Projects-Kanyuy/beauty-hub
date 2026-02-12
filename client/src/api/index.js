@@ -2,9 +2,9 @@
 import axios from "axios";
 
 // const API = axios.create({ baseURL: process.env.REACT_APP_API_URL });
-const API = axios.create({ baseURL: "https://api.beautyheaven.site" });
+//const API = axios.create({ baseURL: "https://api.beautyheaven.site" });
 
-// const API = axios.create({ baseURL: "http://localhost:8000" });
+ const API = axios.create({ baseURL: "http://localhost:8000" });
 
 // --- THIS IS THE INTERCEPTOR ---
 // It will run on every request made by this API instance
