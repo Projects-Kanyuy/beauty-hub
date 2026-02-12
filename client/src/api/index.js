@@ -7,7 +7,7 @@ import axios from "axios";
 //const API = axios.create({ baseURL: "http://localhost:5000" });
 // live demo- "https://beauty-hub-jj4h.onrender.com"
 
-const baseURL = process.env.REACT_APP_API_URL || "http://localhost:5000";
+const baseURL = process.env.REACT_APP_API_URL";
 
 const API = axios.create({ baseURL });
 
