@@ -3,112 +3,113 @@ const Subscription = require("../models/subscriptionModel");
 const SubscriptionType = require("../models/subscriptionTypeModel");
 const Payment = require("../models/paymentModel");
 const mongoose = require("mongoose");
-const { createPaymentLink, login } = require("../services/swychrService");
+const { createPaymentLink, login, getFiatRate } = require("../services/swychrService");
 const Coupon = require("../models/couponModel");
 const convertCurrency = require("../utils/currencyConverter");
 const axios = require("axios");
+/**
+ * @desc    Initiate Subscription with Dynamic Currency Conversion
+ * @route   POST /api/subscriptions/subscribe
+ * @access  Private
+ */
 const subscribe = asyncHandler(async (req, res) => {
-  const { planId } = req.body;
+  const { planId, countryCode, currency } = req.body;
   const user = req.user;
 
-  console.log("--- STARTING USD SUBSCRIBE ---");
-  console.log("Plan ID:", planId);
-  console.log("User Email:", user?.email);
+  console.log("--- INITIATING DYNAMIC SUBSCRIBE ---");
+  console.log("Input:", { planId, countryCode, currency });
 
-  if (!planId) {
-    return res.status(400).json({ message: "Subscription plan id not found" });
+  if (!planId || !countryCode || !currency) {
+    return res.status(400).json({ message: "Missing required fields: planId, countryCode, or currency" });
   }
 
   const session = await mongoose.startSession();
   session.startTransaction();
 
   try {
+    // 1. Fetch Plan
     const plan = await SubscriptionType.findById(planId).session(session);
-    if (!plan) throw new Error("Plan not found in database");
+    if (!plan) throw new Error("Subscription plan not found");
 
-    // Force USD logic
-    const finalAmount = plan.amount;
-    const finalCurrency = "USD";
+    // 2. Login to Swychr
+    const token = await login();
 
-    console.log(`Processing ${finalAmount} ${finalCurrency}`);
+    // 3. Get the exact Rate again to ensure precision
+    const rateValue = await getFiatRate(token, countryCode, 1);
+    const finalAmount = Math.ceil(plan.amount * rateValue);
 
-    // 1. Create Subscription
+    console.log(`Final Calculation: $${plan.amount} * ${rateValue} = ${finalAmount} ${currency}`);
+
+    // 4. Create Subscription
     const [createdSubscription] = await Subscription.create(
       [{
-        user: user?._id,
+        user: user._id,
         plan: planId,
         durationMonths: plan.durationMonths,
       }],
       { session }
     );
 
-    // 2. Create Payment
+    // 5. Create Payment record
     const [createdPayment] = await Payment.create(
       [{
         entity: "Subscription",
-        entityId: createdSubscription?._id,
-        userId: user?._id,
+        entityId: createdSubscription._id,
+        userId: user._id,
         amount: finalAmount,
-        currency: finalCurrency,
+        currency: currency,
       }],
       { session }
     );
 
-    // 3. Swychr Login
-    console.log("Logging into Swychr...");
-    const token = await login();
-
-    // 4. Swychr Payload
+    // 6. Prepare Swychr Payload
     const payload = {
-      country_code: "CM", // Some gateways prefer CM even for USD, try "US" first
+      country_code: countryCode,
       name: user?.name || "Customer",
       email: user?.email,
-      mobile: user?.phone || "0000000000", // Ensure this isn't empty
+      mobile: user?.phone || "0000000000",
       amount: finalAmount,
-      currency: finalCurrency,
+      currency: currency,
       transaction_id: createdPayment._id.toString(),
       description: `BeautyHub - ${plan.planName} Plan`,
       pass_digital_charge: false,
     };
 
-    console.log("Sending Payload to Swychr:", payload);
-
+    // 7. Call Swychr
     const swychrResponse = await createPaymentLink(token, payload);
-    
-    console.log("Swychr API Response:", swychrResponse);
+    console.log("Swychr Response:", swychrResponse);
 
-    if (swychrResponse.status !== "success" && !swychrResponse.success && swychrResponse.message !== "Payment link created successfully") {
-       throw new Error(`Swychr Error: ${swychrResponse.message || "Unknown Provider Error"}`);
+    // Check success (Swychr uses status: 200 or status: "success")
+    const isSuccess = swychrResponse.status === 200 || swychrResponse.status === "success" || swychrResponse.success;
+
+    if (!isSuccess) {
+      throw new Error(swychrResponse.message || "Failed to create Swychr link");
     }
 
     const paymentUrl = swychrResponse.data?.payment_link || swychrResponse.payment_link;
 
-    if (!paymentUrl) throw new Error("Payment link was not returned by provider");
-
+    // 8. Update records with URL
     await Payment.findByIdAndUpdate(createdPayment._id, { $set: { paymentUrl } }).session(session);
     await Subscription.findByIdAndUpdate(createdSubscription._id, { $set: { paymentRef: createdPayment._id } }).session(session);
 
+    // 9. COMMIT
     await session.commitTransaction();
     session.endSession();
 
     return res.json({
       success: true,
-      data: { paymentUrl, amount: finalAmount, currency: finalCurrency },
+      data: {
+        paymentUrl,
+        paymentReference: createdPayment._id,
+        subscriptionId: createdSubscription._id
+      }
     });
 
   } catch (error) {
-    // THIS IS THE MOST IMPORTANT PART:
-    console.error("!!! CRITICAL SUBSCRIBE ERROR !!!");
-    console.error(error); // This will now show the full stack trace in your terminal
-    
+    console.error("CRITICAL SUBSCRIBE ERROR:", error.message);
     await session.abortTransaction();
     session.endSession();
-
-    return res.status(500).json({ 
-      success: false, 
-      message: error.message,
-      stack: process.env.NODE_ENV === 'development' ? error.stack : null 
-    });
+    return res.status(500).json({ success: false, message: error.message });
   }
 });
 

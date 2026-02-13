@@ -80,7 +80,11 @@ const transactionSchema = new mongoose.Schema({
   user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   plan: { type: mongoose.Schema.Types.ObjectId, ref: 'SubscriptionType' },
   amount: { type: Number, required: true },
-  currency: { type: String, default: 'USD' },
+    currency: {
+    type: String,
+    required: true,
+    default: 'USD'
+  },
   status: { type: String, enum: ['PENDING', 'LINK_CREATED', 'PAID', 'FAILED', 'CANCELLED'], default: 'PENDING' },
   paymentUrl: String,
   customerName: String,

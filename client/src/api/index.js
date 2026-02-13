@@ -77,5 +77,7 @@ export const getPaymentStatus = (paymentId) =>
 
 export const redeemCouponCode = (body) =>
   API.post("/api/subscriptions/redeem-coupon-code", body);
+export const getSwychrRate = (currency) => 
+  API.get(`/api/subscriptions/get-rate/${currency}`);
 
 // Add more appointment-related API calls here

@@ -36,7 +36,6 @@ const paymentSchema = new mongoose.Schema(
 
     currency: {
       type: String,
-      enum: ["USD", "XAF"],
       default: "XAF",
       required: true,
     },
