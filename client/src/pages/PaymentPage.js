@@ -24,13 +24,25 @@ import Button from "../components/Button";
 
 // Swychr Supported Regional Mapping
 const SUPPORTED_REGIONS = [
+  { name: "Benin", code: "BJ", currency: "XOF" },
+  { name: "Burkina Faso", code: "BF", currency: "XOF" },
   { name: "Cameroon", code: "CM", currency: "XAF" },
+  { name: "Congo Brazzaville", code: "CG", currency: "XAF" },
+  { name: "Congo DRC", code: "CD", currency: "CDF" },
+  { name: "Cote D'Ivoire", code: "CI", currency: "XOF" },
+  { name: "Gabon", code: "GA", currency: "XAF" },
+  { name: "Guinea Conakry", code: "GN", currency: "GNF" },
+  { name: "India", code: "IN", currency: "INR" },
+  { name: "Kenya", code: "KE", currency: "KES" },
+  { name: "Mali", code: "ML", currency: "XOF" },
   { name: "Nigeria", code: "NG", currency: "NGN" },
-  { name: "Ghana", code: "GH", currency: "GHS" },
-  { name: "Cote d'Ivoire", code: "CI", currency: "XAF" },
-  { name: "Other (International USD)", code: "US", currency: "USD" },
+  { name: "Senegal", code: "SN", currency: "XOF" },
+  { name: "Tanzania", code: "TZ", currency: "TZS" },
+  { name: "Togo", code: "TG", currency: "XOF" },
+  { name: "Uganda", code: "UG", currency: "UGX" },
+  { name: "Zambia", code: "ZM", currency: "ZMW" },
+  { name: "International", code: "US", currency: "USD" },
 ];
-
 const PaymentPage = () => {
   const { t } = useTranslation();
   const location = useLocation();
@@ -209,25 +221,38 @@ const PaymentPage = () => {
           </div>
 
           {/* Region Selector */}
-          <div className="mb-10">
-            <label className="flex items-center gap-2 text-sm font-bold text-gray-700 mb-4 tracking-wide uppercase">
-              <FaGlobe className="text-blue-500" /> Payment Region
-            </label>
-            <div className="grid grid-cols-1 gap-3">
-              {SUPPORTED_REGIONS.map((region) => (
-                <div 
-                  key={region.code}
-                  onClick={() => setSelectedRegion(region)}
-                  className={`flex items-center justify-between p-4 rounded-2xl border-2 cursor-pointer transition-all ${
-                    selectedRegion.code === region.code ? 'border-primary-purple bg-purple-50' : 'border-gray-100 hover:border-gray-200'
-                  }`}
-                >
-                  <span className="font-bold text-gray-700">{region.name}</span>
-                  <span className="text-xs font-black text-gray-400 uppercase">{region.currency}</span>
-                </div>
-              ))}
-            </div>
-          </div>
+     {/* Region Selector - Apple Style Dropdown */}
+<div className="mb-10">
+  <label className="flex items-center gap-2 text-xs font-black text-gray-400 mb-3 uppercase tracking-[0.2em]">
+    <FaGlobe className="text-blue-500" /> Select Payment Country
+  </label>
+  <div className="relative group">
+    <select 
+      value={selectedRegion.code}
+      onChange={(e) => {
+        const region = SUPPORTED_REGIONS.find(r => r.code === e.target.value);
+        setSelectedRegion(region);
+      }}
+      className="w-full p-5 bg-[#F5F5F7] border-2 border-transparent focus:border-primary-purple rounded-[2rem] appearance-none cursor-pointer font-bold text-[#1D1D1F] outline-none transition-all"
+    >
+      {SUPPORTED_REGIONS.map((region) => (
+        <option key={region.code} value={region.code}>
+          {region.name} ({region.currency})
+        </option>
+      ))}
+    </select>
+    
+    {/* Custom Arrow for Apple Look */}
+    <div className="absolute right-6 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400 group-hover:text-primary-purple transition-colors">
+      <svg width="12" height="8" viewBox="0 0 12 8" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M1 1L6 6L11 1" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+      </svg>
+    </div>
+  </div>
+  <p className="mt-3 px-4 text-[10px] text-gray-400 italic">
+    * Swychr supports direct localized payments for {selectedRegion.name}.
+  </p>
+</div>
 
           {/* Pricing Logic */}
           <div className="space-y-4 mb-10 py-6 border-y border-gray-100">
