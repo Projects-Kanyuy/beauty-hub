@@ -1,4 +1,3 @@
-/* global fbq */
 "use client";
 
 import { useEffect, useState } from "react";
@@ -9,380 +8,333 @@ import {
   FaExclamationCircle,
   FaSpinner,
   FaTimesCircle,
+  FaGlobe,
+  FaTicketAlt,
 } from "react-icons/fa";
 import { useLocation, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import { getPaymentStatus, redeemCouponCode, subscribe } from "../api";
-import { useSubscriptionPlan } from "../api/swr";
+import {
+  getPaymentStatus,
+  getSubscriptionPlanById,
+  redeemCouponCode,
+  subscribe,
+  getSwychrRate,
+} from "../api";
 import Button from "../components/Button";
 
+// Swychr Supported Regional Mapping
+const SUPPORTED_REGIONS = [
+  { name: "Benin", code: "BJ", currency: "XOF" },
+  { name: "Burkina Faso", code: "BF", currency: "XOF" },
+  { name: "Cameroon", code: "CM", currency: "XAF" },
+  { name: "Congo Brazzaville", code: "CG", currency: "XAF" },
+  { name: "Congo DRC", code: "CD", currency: "CDF" },
+  { name: "Cote D'Ivoire", code: "CI", currency: "XOF" },
+  { name: "Gabon", code: "GA", currency: "XAF" },
+  { name: "Guinea Conakry", code: "GN", currency: "GNF" },
+  { name: "India", code: "IN", currency: "INR" },
+  { name: "Kenya", code: "KE", currency: "KES" },
+  { name: "Mali", code: "ML", currency: "XOF" },
+  { name: "Nigeria", code: "NG", currency: "NGN" },
+  { name: "Senegal", code: "SN", currency: "XOF" },
+  { name: "Tanzania", code: "TZ", currency: "TZS" },
+  { name: "Togo", code: "TG", currency: "XOF" },
+  { name: "Uganda", code: "UG", currency: "UGX" },
+  { name: "Zambia", code: "ZM", currency: "ZMW" },
+  { name: "International", code: "US", currency: "USD" },
+];
 const PaymentPage = () => {
   const { t } = useTranslation();
   const location = useLocation();
   const navigate = useNavigate();
 
   const searchParams = new URLSearchParams(location.search);
-  const planId =
-    searchParams.get("plan") ||
-    searchParams.get("plan_id") ||
-    location.state?.plan?.id ||
-    location.state?.plan?._id;
-  const couponFromQuery = searchParams.get("coupon");
-  const transactionFromQuery =
-    searchParams.get("transaction_id") || searchParams.get("payment_id");
-  const subscriptionFromQuery = searchParams.get("subscription_id");
+  const planId = searchParams.get("plan") || location.state?.plan?.id;
 
-  const {
-    data: planResponse,
-    isLoading: fetching,
-    error,
-  } = useSubscriptionPlan(planId);
-  const plan = planResponse?.data || null;
-
+  // Plan & UI States
+  const [plan, setPlan] = useState(null);
+  const [fetching, setFetching] = useState(true);
+  const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
+
+  // Multi-Currency States
+  const [selectedRegion, setSelectedRegion] = useState(SUPPORTED_REGIONS[0]);
+  const [exchangeRate, setExchangeRate] = useState(1);
+  const [fetchingRate, setFetchingRate] = useState(false);
+
+  // Payment Tracking States
   const [isPaymentInitiated, setIsPaymentInitiated] = useState(false);
   const [paymentStatus, setPaymentStatus] = useState(null);
   const [paymentId, setPaymentId] = useState(null);
-  const [subscriptionId, setSubscriptionId] = useState(null);
+  const [paymentUrl, setPaymentUrl] = useState("");
 
-  // Coupon states
-  const [couponCode, setCouponCode] = useState(couponFromQuery ?? "");
+  // Coupon States
+  const [couponCode, setCouponCode] = useState("");
   const [redeemingCoupon, setRedeemingCoupon] = useState(false);
-  const [paymentUrl, setPaymentUrl] = useState();
 
-  const planFetchError =
-    !planId && !transactionFromQuery ? t("payment.errorLoadingPlan") : null;
-
+  // 1. Fetch Plan Details on Mount
   useEffect(() => {
-    if (!paymentId && transactionFromQuery) {
-      setPaymentId(transactionFromQuery);
-      setIsPaymentInitiated(true);
-    }
-    if (!subscriptionId && subscriptionFromQuery) {
-      setSubscriptionId(subscriptionFromQuery);
-    }
-  }, [paymentId, subscriptionId, transactionFromQuery, subscriptionFromQuery]);
-
-  // Poll payment status
-  useEffect(() => {
-    if (!isPaymentInitiated || !paymentId) return;
-
-    let pollTimeout;
-
-    const pollPaymentStatus = async () => {
+    const getPlanDetails = async () => {
+      if (!planId) {
+        setError("No plan selected");
+        setFetching(false);
+        return;
+      }
       try {
-        const response = await getPaymentStatus(paymentId);
-        const status = response.data?.data?.status;
-
-        if (["Completed", "Failed", "Cancelled"].includes(status)) {
-          setPaymentStatus(status);
-
-          if (
-            status === "Completed" &&
-            couponCode &&
-            !couponCode.toUpperCase().startsWith("FREE")
-          ) {
-            try {
-              setRedeemingCoupon(true);
-              await redeemCouponCode({
-                code: couponCode.trim(),
-                subscriptionId,
-              });
-              toast.success(t("payment.couponApplied"));
-            } catch (err) {
-              toast.error(
-                err.response?.data?.message || t("payment.couponRedeemError"),
-              );
-            } finally {
-              setRedeemingCoupon(false);
-            }
-          }
-        } else {
-          pollTimeout = setTimeout(pollPaymentStatus, 5000);
-        }
+        setFetching(true);
+        const { data } = await getSubscriptionPlanById(planId);
+        setPlan(data?.data);
       } catch (err) {
-        console.error("Error polling payment status:", err);
-        pollTimeout = setTimeout(pollPaymentStatus, 5000);
+        console.error("Failed to fetch plan:", err);
+        setError(t("payment.errorLoadingPlan"));
+      } finally {
+        setFetching(false);
       }
     };
+    getPlanDetails();
+  }, [planId, t]);
 
-    pollPaymentStatus();
+  // 2. Fetch Swychr Conversion Rate when Region Changes
+  useEffect(() => {
+ const fetchRate = async () => {
+  try {
+    setFetchingRate(true);
+    const response = await getSwychrRate(selectedRegion.code);
+    
+    // If the backend is fixed, response.data.rate will be 12 (for GH)
+    if (response.data && response.data.success) {
+      setExchangeRate(response.data.rate); 
+    }
+  } catch (err) {
+    // Only use 615 as a last resort if the internet is down
+    setExchangeRate(615); 
+  } finally {
+    setFetchingRate(false);
+  }
+};
+    if (plan) fetchRate();
+  }, [selectedRegion, plan]);
 
-    return () => {
-      if (pollTimeout) clearTimeout(pollTimeout);
-    };
-  }, [isPaymentInitiated, paymentId, couponCode, subscriptionId, t]);
+  // 3. Poll Payment Status after initiation
+  useEffect(() => {
+    if (!isPaymentInitiated || !paymentId || paymentStatus) return;
 
-  // Handle payment / free coupon
+    const interval = setInterval(async () => {
+      try {
+        const response = await getPaymentStatus(paymentId);
+        const status = response.data?.data?.status; // Status from Swychr: PENDING, PAID, FAILED
+
+        if (status === "PAID" || status === "Completed") {
+          setPaymentStatus("Completed");
+          clearInterval(interval);
+        } else if (status === "FAILED" || status === "Failed") {
+          setPaymentStatus("Failed");
+          clearInterval(interval);
+        }
+      } catch (err) {
+        console.error("Polling error:", err);
+      }
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [isPaymentInitiated, paymentId, paymentStatus]);
+
+  // 4. Calculate Display Amount
+  const localAmount = Math.ceil((plan?.amount || 0) * exchangeRate);
+
+  // 5. Main Payment Logic
   const handlePayment = async (e) => {
     e.preventDefault();
-
-    // Facebook Pixel track payment initiation
-    fbq("track", "AddPaymentInfo");
-    console.log("FB Event: AddPaymentInfo sent");
-
     setLoading(true);
 
     try {
+      // Handle Free Coupons first
       if (couponCode.trim().toUpperCase().startsWith("FREE")) {
-        try {
-          await redeemCouponCode({ code: couponCode.trim() });
-          toast.success(t("payment.subscriptionFree"));
-          navigate("/salon-owner/dashboard");
-        } catch (err) {
-          toast.error(
-            err.response?.data?.message || t("payment.couponRedeemError"),
-          );
-        } finally {
-          setLoading(false);
-        }
+        setRedeemingCoupon(true);
+        await redeemCouponCode({ code: couponCode.trim() });
+        toast.success(t("payment.subscriptionFree"));
+        navigate("/salon-owner/dashboard");
         return;
       }
 
-      setIsPaymentInitiated(true);
+      // Initiate Swychr Subscription
+      const subscribeData = { 
+        planId, 
+        countryCode: selectedRegion.code, 
+        currency: selectedRegion.currency 
+      };
 
-      const subscribeData = { planId };
       const response = await subscribe(subscribeData);
+      
+      const pUrl = response.data?.data?.paymentUrl;
+      const pRef = response.data?.data?.paymentReference;
 
-      const newPaymentId = response.data?.data?.paymentReference;
-      const newSubscriptionId = response.data?.data?.subscriptionId;
-      setPaymentId(newPaymentId);
-      setSubscriptionId(newSubscriptionId);
-
-      toast.info(t("payment.paymentProcessing"));
-
-      setPaymentUrl(response?.data?.data?.paymentUrl);
-
-      window.open(response?.data?.data?.paymentUrl, "_blank");
+      if (pUrl) {
+        setPaymentId(pRef);
+        setPaymentUrl(pUrl);
+        setIsPaymentInitiated(true);
+        window.open(pUrl, "_blank"); // Open Swychr Checkout
+        toast.info(t("payment.paymentProcessing"));
+      }
     } catch (err) {
-      console.log({ err });
-      toast.error(t("payment.paymentFailedInitiate"));
-      setIsPaymentInitiated(false);
+      console.error(err);
+      toast.error(err.response?.data?.message || t("payment.paymentFailedInitiate"));
     } finally {
       setLoading(false);
+      setRedeemingCoupon(false);
     }
   };
 
-  const handleStatusModalAction = () => {
-    if (paymentStatus === "Completed" || paymentStatus === "Success") {
+  const closeModal = () => {
+    if (paymentStatus === "Completed") {
       navigate("/salon-owner/dashboard");
     } else {
-      setPaymentStatus(null);
       setIsPaymentInitiated(false);
-      setPaymentId(null);
-      setSubscriptionId(null);
+      setPaymentStatus(null);
     }
   };
 
+  if (fetching) return <div className="flex justify-center items-center h-screen"><FaSpinner className="animate-spin text-4xl text-primary-purple" /></div>;
+
   return (
-    <div className="min-h-screen bg-gray-50 py-12 px-4">
-      <div className="container mx-auto max-w-2xl">
-        <button
-          onClick={() => navigate(-1)}
-          className="flex items-center text-primary-purple hover:text-primary-pink mb-8 font-semibold transition-colors"
-        >
+    <div className="min-h-screen bg-[#F5F5F7] py-12 px-4">
+      <div className="max-w-2xl mx-auto">
+        <button onClick={() => navigate(-1)} className="flex items-center text-gray-500 hover:text-black mb-8 transition-all">
           <FaArrowLeft className="mr-2" /> {t("payment.back")}
         </button>
 
-        {fetching ? (
-          <div className="text-center py-20">
-            <FaSpinner className="text-5xl text-primary-purple mx-auto animate-spin" />
-            <p className="mt-4 font-semibold text-text-muted">
-              {t("payment.loadingPlan")}
-            </p>
+        <div className="bg-white rounded-[2.5rem] shadow-xl overflow-hidden p-8 md:p-12 border border-white">
+          <h1 className="text-3xl font-bold mb-2">{t("payment.orderSummary")}</h1>
+          <p className="text-gray-400 mb-10">Review your plan and select payment region.</p>
+
+          {/* Plan Details Card */}
+          <div className="bg-[#F5F5F7] rounded-3xl p-6 mb-8">
+            <h2 className="text-xl font-bold text-primary-purple">{plan?.planName} Plan</h2>
+            <p className="text-gray-600 mt-1 mb-4">{plan?.description}</p>
+            <ul className="space-y-3">
+              {plan?.planSpecs?.map((spec, i) => (
+                <li key={i} className="flex items-center text-sm text-gray-700">
+                  <FaCheckCircle className="text-green-500 mr-2" /> {spec}
+                </li>
+              ))}
+            </ul>
           </div>
-        ) : error || planFetchError ? (
-          <div className="text-center py-20 text-red-600 bg-red-50 p-6 rounded-lg shadow-sm">
-            <h3 className="font-bold text-lg">{t("payment.errorOccurred")}</h3>
-            <p>{planFetchError || t("payment.errorLoadingPlan")}</p>
-            {transactionFromQuery && (
-              <div className="mt-4 inline-flex items-center gap-2 rounded-full bg-green-100 px-4 py-1.5 text-sm font-semibold text-green-700">
-                <span className="inline-flex h-2 w-2 rounded-full bg-green-500" />
-                Payment verified
+
+          {/* Region Selector */}
+     {/* Region Selector - Apple Style Dropdown */}
+<div className="mb-10">
+  <label className="flex items-center gap-2 text-xs font-black text-gray-400 mb-3 uppercase tracking-[0.2em]">
+    <FaGlobe className="text-blue-500" /> Select Payment Country
+  </label>
+  <div className="relative group">
+    <select 
+      value={selectedRegion.code}
+      onChange={(e) => {
+        const region = SUPPORTED_REGIONS.find(r => r.code === e.target.value);
+        setSelectedRegion(region);
+      }}
+      className="w-full p-5 bg-[#F5F5F7] border-2 border-transparent focus:border-primary-purple rounded-[2rem] appearance-none cursor-pointer font-bold text-[#1D1D1F] outline-none transition-all"
+    >
+      {SUPPORTED_REGIONS.map((region) => (
+        <option key={region.code} value={region.code}>
+          {region.name} ({region.currency})
+        </option>
+      ))}
+    </select>
+    
+    {/* Custom Arrow for Apple Look */}
+    <div className="absolute right-6 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400 group-hover:text-primary-purple transition-colors">
+      <svg width="12" height="8" viewBox="0 0 12 8" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M1 1L6 6L11 1" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+      </svg>
+    </div>
+  </div>
+  <p className="mt-3 px-4 text-[10px] text-gray-400 italic">
+    * Swychr supports direct localized payments for {selectedRegion.name}.
+  </p>
+</div>
+
+          {/* Pricing Logic */}
+          <div className="space-y-4 mb-10 py-6 border-y border-gray-100">
+            <div className="flex justify-between text-gray-500">
+              <span>Standard Price</span>
+              <span className="font-medium">$ {plan?.amount} / mo</span>
+            </div>
+            <div className="flex justify-between items-center text-black">
+              <span className="text-lg font-bold">Total Payable</span>
+              <div className="text-right">
+                {fetchingRate ? (
+                  <FaSpinner className="animate-spin ml-auto" />
+                ) : (
+                  <>
+                    <span className="text-4xl font-black text-primary-purple">
+                      {selectedRegion.currency} {localAmount}
+                    </span>
+                    <p className="text-[10px] text-gray-400 uppercase tracking-widest mt-1">Swychr Live Exchange Rate Applied</p>
+                  </>
+                )}
               </div>
-            )}
+            </div>
           </div>
-        ) : (
-          <div className="bg-white p-8 rounded-lg shadow-md">
-            <h1 className="text-3xl font-bold mb-8">
-              {t("payment.orderSummary")}
-            </h1>
 
-            <div className="mb-8 pb-8 border-b">
-              <h2 className="font-semibold text-xl mb-1">
-                {plan?.planName} {t("payment.plan")}
-              </h2>
-              <h4 className="font-semibold text-md mb-6 text-gray-600">
-                {plan?.description}
-              </h4>
-              <ul className="space-y-3">
-                {plan?.planSpecs?.map((feature, idx) => (
-                  <li key={idx} className="flex items-center text-gray-700">
-                    <FaCheckCircle className="text-green-500 mr-3 flex-shrink-0" />
-                    {feature}
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            <div className="space-y-4 mb-8 pb-8 border-b">
-              <div className="flex justify-between text-gray-600">
-                <span>{t("payment.monthlySubscription")}</span>
-                <span className="font-semibold">
-                  {plan?.currency} {plan?.amount}
-                </span>
-              </div>
-              <div className="flex justify-between text-gray-600">
-                <span>{t("payment.setupFee")}</span>
-                <span className="font-semibold">{plan?.currency} 0</span>
-              </div>
-              <div className="flex justify-between text-gray-600">
-                <span>{t("payment.tax")}</span>
-                <span className="font-semibold">{plan?.currency} 0</span>
-              </div>
-            </div>
-
-            <div className="flex justify-between items-center mb-8">
-              <span className="text-lg font-bold">
-                {t("payment.totalMonthly")}
-              </span>
-              <span className="text-4xl font-bold text-primary-purple">
-                {plan?.currency} {plan?.amount}
-              </span>
-            </div>
-
-            <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg mb-8">
-              <p className="text-sm text-gray-700">
-                {t("payment.terms", {
-                  planName: plan?.planName,
-                  amount: plan?.amount,
-                  currency: plan?.currency,
-                })}
-              </p>
-            </div>
-
-            <div className="mb-6">
-              <label className="block mb-2 font-semibold text-gray-700">
-                {t("payment.couponLabel")}
-              </label>
-              <input
+          {/* Coupon Input */}
+          <div className="mb-10">
+            <div className="relative">
+              <FaTicketAlt className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
+              <input 
                 type="text"
+                placeholder="Promo or Coupon Code"
                 value={couponCode}
                 onChange={(e) => setCouponCode(e.target.value)}
-                placeholder={t("payment.couponPlaceholder")}
-                className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-purple"
+                className="w-full pl-12 pr-4 py-4 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-primary-purple outline-none transition-all"
               />
-              <p className="mt-2 text-sm text-gray-600">
-                🎁 {t("payment.freeCouponMessage")}{" "}
-                <strong>ADD-0NCJ-ENH2</strong>
-              </p>
             </div>
-
-            <Button
-              variant="gradient"
-              onClick={handlePayment}
-              disabled={loading || isPaymentInitiated || redeemingCoupon}
-              className="w-full !py-3 text-lg flex items-center justify-center gap-2"
-            >
-              {(loading || redeemingCoupon) && (
-                <FaSpinner className="animate-spin text-white" />
-              )}
-              {redeemingCoupon
-                ? t("payment.redeemingCoupon")
-                : isPaymentInitiated
-                  ? t("payment.processing")
-                  : `${t("payment.payNow")} - ${plan?.currency} ${
-                      plan?.amount
-                    }/month`}
-            </Button>
-
-            <p className="text-xs text-gray-500 text-center mt-4">
-              {t("payment.securityNotice")}
-            </p>
           </div>
-        )}
+
+          <Button
+            variant="gradient"
+            onClick={handlePayment}
+            disabled={loading || fetchingRate || isPaymentInitiated}
+            className="w-full !py-5 text-xl rounded-full shadow-lg flex items-center justify-center gap-3"
+          >
+            {loading && <FaSpinner className="animate-spin" />}
+            {isPaymentInitiated ? "Awaiting Payment..." : `Pay Now - ${selectedRegion.currency} ${localAmount}`}
+          </Button>
+        </div>
       </div>
 
-      {/* Payment / Processing Modal */}
+      {/* MODALS */}
       {isPaymentInitiated && !paymentStatus && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white p-8 rounded-lg shadow-lg text-center">
-            <FaSpinner className="text-5xl text-primary-purple mx-auto animate-spin mb-4" />
-            <h2 className="text-xl font-bold mb-2">
-              {t("payment.processingPayment")}
-            </h2>
-            <p className="text-gray-600">{t("payment.pleaseWait")}</p>
-            {paymentUrl && (
-              <p className="text-gray-600 text-sm">
-                {t("payment.redirecting")}{" "}
-                <a
-                  href={paymentUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="text-primary-purple underline"
-                >
-                  {t("payment.clickHere")}
-                </a>
-              </p>
-            )}
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[1000] p-6">
+          <div className="bg-white p-10 rounded-[3rem] text-center max-w-sm w-full">
+            <FaSpinner className="text-6xl text-primary-purple animate-spin mx-auto mb-6" />
+            <h2 className="text-2xl font-bold mb-4">Processing Payment</h2>
+            <p className="text-gray-500 mb-8 leading-relaxed text-sm">Please complete the transaction in the new window. This page will update automatically once finished.</p>
+            <a href={paymentUrl} target="_blank" rel="noreferrer" className="text-primary-purple font-bold underline">Re-open payment link</a>
           </div>
         </div>
       )}
 
-      {/* Payment Status Modals */}
       {paymentStatus === "Completed" && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white p-8 rounded-lg shadow-lg text-center max-w-sm">
-            <FaCheckCircle className="text-6xl text-green-500 mx-auto mb-4" />
-            <h2 className="text-2xl font-bold mb-2">{t("payment.success")}</h2>
-            <p className="text-gray-600 mb-6">
-              {t("payment.successMessage", { planName: plan?.planName })}
-            </p>
-            <Button
-              variant="gradient"
-              onClick={handleStatusModalAction}
-              className="w-full"
-            >
-              {t("payment.goToDashboard")}
-            </Button>
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[1000] p-6">
+          <div className="bg-white p-10 rounded-[3rem] text-center max-w-sm w-full shadow-2xl">
+            <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+              <FaCheckCircle className="text-4xl text-green-500" />
+            </div>
+            <h2 className="text-2xl font-bold mb-2 text-black tracking-tight">Success!</h2>
+            <p className="text-gray-500 mb-10 leading-relaxed">Your {plan?.planName} subscription is now active.</p>
+            <Button variant="gradient" onClick={closeModal} className="w-full">Go to Dashboard</Button>
           </div>
         </div>
       )}
 
-      {paymentStatus === "Failed" && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white p-8 rounded-lg shadow-lg text-center max-w-sm">
-            <FaExclamationCircle className="text-6xl text-red-500 mx-auto mb-4" />
-            <h2 className="text-2xl font-bold mb-2">{t("payment.failed")}</h2>
-            <p className="text-gray-600 mb-6">{t("payment.failedMessage")}</p>
-            <Button
-              variant="gradient"
-              onClick={handleStatusModalAction}
-              className="w-full"
-            >
-              {t("payment.close")}
-            </Button>
-          </div>
-        </div>
-      )}
-
-      {paymentStatus === "Cancelled" && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white p-8 rounded-lg shadow-lg text-center max-w-sm">
-            <FaTimesCircle className="text-6xl text-yellow-500 mx-auto mb-4" />
-            <h2 className="text-2xl font-bold mb-2">
-              {t("payment.cancelled")}
-            </h2>
-            <p className="text-gray-600 mb-6">
-              {t("payment.cancelledMessage")}
-            </p>
-            <Button
-              variant="gradient"
-              onClick={handleStatusModalAction}
-              className="w-full"
-            >
-              {t("payment.close")}
-            </Button>
+      {(paymentStatus === "Failed" || paymentStatus === "Cancelled") && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[1000] p-6">
+          <div className="bg-white p-10 rounded-[3rem] text-center max-w-sm w-full shadow-2xl">
+            <FaExclamationCircle className="text-6xl text-red-500 mx-auto mb-6" />
+            <h2 className="text-2xl font-bold mb-2">Payment Failed</h2>
+            <p className="text-gray-500 mb-10 leading-relaxed">We couldn't verify your payment. Please try again or contact support.</p>
+            <Button variant="gradient" onClick={closeModal} className="w-full">Try Again</Button>
           </div>
         </div>
       )}

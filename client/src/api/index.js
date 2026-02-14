@@ -5,7 +5,7 @@ import axios from "axios";
 //const API = axios.create({ baseURL: "https://api.beautyheaven.site" });
 
  const API = axios.create({ baseURL: "http://localhost:8000" });
-
+export const apiClient = API; 
 // --- THIS IS THE INTERCEPTOR ---
 // It will run on every request made by this API instance
 API.interceptors.request.use((req) => {
@@ -79,5 +79,11 @@ export const redeemCouponCode = (body) =>
   API.post("/api/subscriptions/redeem-coupon-code", body);
 export const getSwychrRate = (currency) => 
   API.get(`/api/subscriptions/get-rate/${currency}`);
+export const createSubscriptionPlan = (data) => 
+  API.post("/api/subscriptions/types", data);
+export const updateSubscriptionPlan = (id, data) => 
+  API.put(`/api/subscriptions/types/${id}`, data);
+export const deleteSubscriptionPlan = (id) =>
+   API.delete(`/api/subscriptions/types/${id}`);
 
 // Add more appointment-related API calls here
