@@ -1,8 +1,4 @@
 {
-<<<<<<< HEAD
-=======
-  "whatsappMessage": "Bonjour, j'ai besoin d'aide pour réserver",
->>>>>>> 42bb2b9d18658346a36e31bec3dedba580790abe
   "header": {
     "home": "Accueil",
     "tips": "Conseils Beauté",
@@ -229,16 +225,9 @@
     "featuredSalons": {
       "title": "Salons en Vedette",
       "description": "Parcourez et réservez parmi notre sélection de salons les mieux notés",
-<<<<<<< HEAD
       "viewAll": "Voir Tout",
       "loading": "Chargement des salons...",
       "errorTitle": "Une erreur est survenue",
-=======
-      "viewAll": "Voir tout",
-      "errorMessage": "Impossible de charger les salons.",
-      "loading": "Chargement des salons...",
-      "errorTitle": "Une erreur s'est produite",
->>>>>>> 42bb2b9d18658346a36e31bec3dedba580790abe
       "noSalonsTitle": "Aucun salon trouvé",
       "noSalonsDescription": "Aucun salon n'est actuellement répertorié. Soyez le premier à en ajouter un !"
     },
@@ -283,11 +272,7 @@
     "setupFee": "Frais d'installation",
     "tax": "Taxe",
     "totalMonthly": "Total (Mensuel)",
-<<<<<<< HEAD
     "terms": "En cliquant sur \"Payer maintenant\", vous serez redirigé vers notre fournisseur de paiement pour compléter la transaction en toute sécurité. Votre abonnement au plan {{planName}} à {{currency}} {{amount}}/mois commencera immédiatement après le paiement. Vous pouvez annuler à tout moment.",
-=======
-    "terms": "En cliquant sur \"Payer maintenant\", vous serez redirigé vers notre fournisseur de paiement pour finaliser la transaction en toute sécurité. Votre abonnement au plan {{planName}} à {{currency}} {{amount}}/mois commencera immédiatement après paiement. Vous pouvez annuler à tout moment.",
->>>>>>> 42bb2b9d18658346a36e31bec3dedba580790abe
     "couponLabel": "Avez-vous un code promo ?",
     "couponPlaceholder": "Entrez le code promo",
     "freeCouponMessage": "Code promo gratuit pour les nouveaux utilisateurs :",
@@ -302,21 +287,12 @@
     "securityNotice": "🔒 Les paiements sont traités en toute sécurité par notre fournisseur de paiement de confiance",
     "processingPayment": "Traitement du paiement",
     "pleaseWait": "Veuillez patienter pendant le traitement de votre paiement...",
-<<<<<<< HEAD
-=======
-    "redirecting": "Vous serez redirigé vers la page de paiement dans 5 secondes.",
-    "clickHere": "cliquez ici",
->>>>>>> 42bb2b9d18658346a36e31bec3dedba580790abe
     "success": "Paiement réussi !",
     "successMessage": "Votre abonnement au plan {{planName}} a été activé. Vous serez redirigé vers votre tableau de bord.",
     "failed": "Échec du paiement",
     "failedMessage": "Votre paiement n'a pas pu être traité. Veuillez vérifier vos informations de paiement et réessayer.",
     "cancelled": "Paiement annulé",
-<<<<<<< HEAD
     "cancelledMessage": "Votre paiement a été annulé. Aucun montant n'a été prélevé sur votre compte.",
-=======
-    "cancelledMessage": "Votre paiement a été annulé. Aucun montant n'a été prélevé.",
->>>>>>> 42bb2b9d18658346a36e31bec3dedba580790abe
     "goToDashboard": "Aller au tableau de bord",
     "close": "Fermer"
   },
@@ -366,30 +342,18 @@
     "time": "Heure",
     "confirm": "Confirmer",
     "reschedule": "Replanifier",
-<<<<<<< HEAD
     "clickToView": "Cliquez sur un rendez-vous pour voir les détails.",
     "confirmed": "Rendez-vous confirmé !",
     "confirmFailed": "Échec de la confirmation du rendez-vous.",
-=======
-    "clickToView": "Cliquez sur un rendez-vous pour afficher les détails.",
-    "confirmed": "Rendez-vous confirmé !",
-    "confirmFailed": "Échec de la confirmation du rendez-vous.",
-    "subscriptionRequired": "Vous devez avoir un abonnement actif pour afficher et gérer les rendez-vous.",
->>>>>>> 42bb2b9d18658346a36e31bec3dedba580790abe
     "error": "Erreur",
     "errorNoSalon": "Profil du salon introuvable.",
     "errorLoad": "Échec du chargement des rendez-vous."
   },
   "salondashboard": {
     "noSubscription": "Aucun abonnement actif",
-<<<<<<< HEAD
     "subscribeToUnlock": "Abonnez-vous pour débloquer toutes les fonctionnalités de BeautyHub.",
     "choosePlan": "Choisir un forfait",
 
-=======
-    "subscribeToUnlock": "Activez votre compte pour commencer à recevoir des clients.",
-    "choosePlan": "Activer le compte",
->>>>>>> 42bb2b9d18658346a36e31bec3dedba580790abe
     "welcomeBack": "Bon retour, {{name}} !",
     "summary": "Voici un résumé de l'activité de votre salon aujourd'hui.",
     "todaysBookings": "Réservations d'aujourd'hui",
@@ -444,10 +408,6 @@
     "loadFailed": "Impossible de charger votre profil de salon.",
     "errorTitle": "Erreur",
     "editTitle": "Modifier mon profil de salon",
-<<<<<<< HEAD
-=======
-    "subscriptionRequired": "Activez votre compte pour configurer votre profil de salon et commencer à recevoir des réservations.",
->>>>>>> 42bb2b9d18658346a36e31bec3dedba580790abe
     "createTitle": "Créer votre profil de salon",
     "saving": "Enregistrement...",
     "saveChanges": "Enregistrer les modifications",
