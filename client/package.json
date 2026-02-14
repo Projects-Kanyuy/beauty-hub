@@ -32,10 +32,6 @@
     "react-scripts": "5.0.1",
     "react-toastify": "^11.0.5",
     "recharts": "^3.2.1",
-<<<<<<< HEAD
-=======
-    "swr": "^2.3.8",
->>>>>>> 42bb2b9d18658346a36e31bec3dedba580790abe
     "web-vitals": "^2.1.4"
   },
   "scripts": {
@@ -63,10 +59,6 @@
     ]
   },
   "devDependencies": {
-<<<<<<< HEAD
-=======
-    "baseline-browser-mapping": "^2.9.16",
->>>>>>> 42bb2b9d18658346a36e31bec3dedba580790abe
     "tailwindcss": "^3.4.18",
     "typescript": "4.9.5"
   }
