@@ -6,6 +6,7 @@ import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { redeemCouponCode } from "../api";
+import { useSubscriptionPlan } from "../api/swr";
 import AuthLayout from "../components/AuthLayout";
 import Button from "../components/Button";
 import { useAuth } from "../context/AuthContext";
@@ -19,6 +20,16 @@ const RegisterPage = () => {
   const searchParams = new URLSearchParams(location.search);
   const selectedPlan = searchParams.get("plan");
   const couponCode = searchParams.get("coupon");
+  const statePlan = location.state?.plan;
+  const planId =
+    selectedPlan && selectedPlan !== "null"
+      ? selectedPlan
+      : statePlan?._id || statePlan?.id;
+
+  const { data: planResponse, isLoading: isPlanLoading } =
+    useSubscriptionPlan(planId);
+  const plan = statePlan || planResponse?.data || null;
+  const planName = plan?.planName || null;
 
   const [formData, setFormData] = useState({
     firstName: "",
@@ -47,6 +58,7 @@ const RegisterPage = () => {
       name: `${formData.firstName} ${formData.lastName}`,
       email: formData.email,
       password: formData.password,
+      phone: formData.phone,
       role: "salon_owner",
     };
 
@@ -55,10 +67,10 @@ const RegisterPage = () => {
       toast.success(t("register.accountCreated"));
 
       // Coupon redemption flow
-      if (selectedPlan && selectedPlan !== "null") {
-        if (couponCode) {
+      if (planId) {
+        if (couponCode && couponCode.toUpperCase().startsWith("FREE")) {
           try {
-            await redeemCouponCode(couponCode);
+            await redeemCouponCode({ code: couponCode.trim() });
             toast.success(t("register.couponRedeemed"));
             navigate("/salon-owner/dashboard");
           } catch (err) {
@@ -67,10 +79,20 @@ const RegisterPage = () => {
                 err?.response?.data?.message ?? ""
               }`
             );
-            navigate(`/payment?plan=${selectedPlan}`);
+            navigate(
+              `/payment?plan=${planId}${
+                couponCode ? `&coupon=${encodeURIComponent(couponCode)}` : ""
+              }`,
+              { state: { plan } }
+            );
           }
         } else {
-          navigate(`/payment?plan=${selectedPlan}`);
+          navigate(
+            `/payment?plan=${planId}${
+              couponCode ? `&coupon=${encodeURIComponent(couponCode)}` : ""
+            }`,
+            { state: { plan } }
+          );
         }
       } else {
         // No plan selected
@@ -91,8 +113,12 @@ const RegisterPage = () => {
         {t("register.createAccount")}
       </h3>
       <p className="text-text-muted mb-6">
-        {selectedPlan && selectedPlan !== "null"
-          ? t("register.joinMessage", { plan: selectedPlan.toUpperCase() })
+        {planId
+          ? planName
+            ? t("register.joinMessage", { plan: planName })
+            : isPlanLoading
+              ? t("payment.loadingPlan")
+              : t("register.joinMessageNoPlan")
           : t("register.joinMessageNoPlan")}
       </p>
 

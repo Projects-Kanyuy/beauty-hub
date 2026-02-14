@@ -1,8 +1,11 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { FaSpinner, FaStar } from "react-icons/fa";
 import { toast } from "react-toastify";
-import { addReviewReply, fetchMySalon, fetchSalonReviews } from "../api";
+import { addReviewReply } from "../api";
+import { useActiveSubscription, useMySalon, useSalonReviews } from "../api/swr";
+import AlertBox from "../components/AlertBox";
+import { useAuth } from "../context/AuthContext";
 
 const StarRating = ({ rating }) => (
   <div className="flex items-center">
@@ -17,29 +20,21 @@ const StarRating = ({ rating }) => (
 
 const SalonReviewsPage = () => {
   const { t } = useTranslation();
-  const [reviews, setReviews] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
   const [replyText, setReplyText] = useState({}); // Stores reply text, e.g., { reviewId: 'My reply text' }
-
-  const loadReviews = async () => {
-    try {
-      const { data: salon } = await fetchMySalon();
-      if (salon) {
-        const { data: reviewsData } = await fetchSalonReviews(salon._id);
-        setReviews(reviewsData);
-      }
-    } catch (err) {
-      setError(t("salonreviews.loadFailed"));
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    loadReviews();
-  }, [t]);
+  const { user } = useAuth();
+  const {
+    data: subscriptionData,
+    isLoading: loadingSubscription,
+  } = useActiveSubscription(user?._id);
+  const { data: salon, isLoading: loadingSalon } = useMySalon();
+  const {
+    data: reviews = [],
+    isLoading: loadingReviews,
+    error,
+    mutate: mutateReviews,
+  } = useSalonReviews(salon?._id);
+  const loading = loadingSubscription || loadingSalon || loadingReviews;
+  const hasActiveSubscription = !!subscriptionData?.data;
 
   const handleReplyChange = (reviewId, text) => {
     setReplyText((prev) => ({ ...prev, [reviewId]: text }));
@@ -54,7 +49,7 @@ const SalonReviewsPage = () => {
     try {
       await addReviewReply(reviewId, { replyText: text });
       toast.success(t("salonreviews.replyPosted"));
-      loadReviews();
+      mutateReviews();
       setReplyText((prev) => ({ ...prev, [reviewId]: "" }));
     } catch (err) {
       toast.error(t("salonreviews.replyFailed"));
@@ -68,12 +63,25 @@ const SalonReviewsPage = () => {
         <FaSpinner className="animate-spin text-4xl text-primary-purple" />
       </div>
     );
+
+  if (!hasActiveSubscription)
+    return (
+      <AlertBox
+        title={t("salondashboard.noSubscription")}
+        message={t("salondashboard.subscribeToUnlock")}
+        type="warning"
+        actionLabel={t("salondashboard.choosePlan")}
+        actionLink="/subscriptions"
+      />
+    );
   if (error)
     return (
-      <div className="bg-red-100 text-red-700 p-6 rounded-lg shadow-md">
-        <h2 className="font-bold text-lg">{t("salonreviews.errorTitle")}</h2>
-        <p>{error}</p>
-      </div>
+      <AlertBox
+        title={t("salonreviews.errorTitle")}
+        message={t("salonreviews.loadFailed")}
+        type="error"
+        onRetry={() => window.location.reload()}
+      />
     );
 
   return (

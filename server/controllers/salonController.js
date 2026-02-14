@@ -49,7 +49,7 @@ const getSalons = asyncHandler(async (req, res) => {
  */
 const getSalonById = asyncHandler(async (req, res) => {
   const salon = await Salon.findById(req.params.id);
-  if (salon) res.json192(res.json(salon));
+  if (salon) res.json(salon);
   else {
     res.status(404);
     throw new Error("Salon not found");
@@ -299,6 +299,11 @@ const addSalonService = asyncHandler(async (req, res) => {
     return res.status(404).json({
       message: `salon with id ${req.params.id} not found`,
     });
+  }
+
+  if (salon.owner.toString() !== req.user._id.toString()) {
+    res.status(401);
+    throw new Error("Not authorized");
   }
 
   const service = {

@@ -1,7 +1,5 @@
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-
-
 const DashboardPanel = ({ title, viewAllLink, children, icon: Icon }) => {
   const { t } = useTranslation();
   return (
@@ -16,7 +14,7 @@ const DashboardPanel = ({ title, viewAllLink, children, icon: Icon }) => {
             to={viewAllLink}
             className="text-sm font-semibold text-primary-purple hover:underline"
           >
-            t("dashboardPanel.viewAll") &gt;
+            {t("dashboardPanel.viewAll")} &gt;
           </Link>
         )}
       </div>

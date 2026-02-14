@@ -8,61 +8,54 @@ import { useTranslation } from "react-i18next";
 import { FaCheckCircle, FaQuestionCircle, FaSpinner } from "react-icons/fa";
 import { toast } from "react-toastify";
 import {
-  fetchMySalon,
-  fetchSalonAppointments,
   updateAppointmentStatus,
 } from "../api";
+import { useActiveSubscription, useMySalon, useSalonAppointments } from "../api/swr";
+import AlertBox from "../components/AlertBox";
 import Button from "../components/Button";
+import { useAuth } from "../context/AuthContext";
 
 const SalonAppointmentsPage = () => {
   const { t } = useTranslation();
+  const { user } = useAuth();
   const [events, setEvents] = useState([]);
   const [selectedEvent, setSelectedEvent] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-
-  const loadAppointments = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-
-      const { data: salon } = await fetchMySalon();
-      if (!salon) throw new Error(t("appointments.errorNoSalon"));
-
-      const { data: appointments } = await fetchSalonAppointments(salon._id);
-
-      const formattedEvents = appointments.map((appt) => ({
-        id: appt._id,
-        title: `${appt.customer.name} - ${appt.serviceName}`,
-        start: appt.startTime,
-        end: appt.endTime,
-        extendedProps: { ...appt },
-        backgroundColor:
-          appt.status === "Confirmed"
-            ? "#10B981"
-            : appt.status === "Pending"
-            ? "#F59E0B"
-            : "#EF4444",
-        borderColor:
-          appt.status === "Confirmed"
-            ? "#10B981"
-            : appt.status === "Pending"
-            ? "#F59E0B"
-            : "#EF4444",
-      }));
-
-      setEvents(formattedEvents);
-    } catch (err) {
-      console.error(err);
-      setError(err.response?.data?.message || t("appointments.errorLoad"));
-    } finally {
-      setLoading(false);
-    }
-  };
+  const {
+    data: subscriptionData,
+    isLoading: loadingSubscription,
+  } = useActiveSubscription(user?._id);
+  const { data: salon, isLoading: loadingSalon } = useMySalon();
+  const {
+    data: appointments = [],
+    isLoading: loadingAppointments,
+    error,
+  } = useSalonAppointments(salon?._id);
+  const loading = loadingSubscription || loadingSalon || loadingAppointments;
+  const hasActiveSubscription = !!subscriptionData?.data;
 
   useEffect(() => {
-    loadAppointments();
-  }, []);
+    if (!appointments) return;
+    const formattedEvents = appointments.map((appt) => ({
+      id: appt._id,
+      title: `${appt.customer?.name || appt.clientName} - ${appt.serviceName || "Service"}`,
+      start: appt.startTime || appt.appointmentDateTime,
+      end: appt.endTime || appt.appointmentDateTime,
+      extendedProps: { ...appt },
+      backgroundColor:
+        appt.status === "Confirmed"
+          ? "#10B981"
+          : appt.status === "Pending"
+          ? "#F59E0B"
+          : "#EF4444",
+      borderColor:
+        appt.status === "Confirmed"
+          ? "#10B981"
+          : appt.status === "Pending"
+          ? "#F59E0B"
+          : "#EF4444",
+    }));
+    setEvents(formattedEvents);
+  }, [appointments]);
 
   const handleEventClick = (clickInfo) => {
     setSelectedEvent(clickInfo.event.extendedProps);
@@ -94,12 +87,24 @@ const SalonAppointmentsPage = () => {
         <FaSpinner className="animate-spin text-4xl text-primary-purple" />
       </div>
     );
+  if (!hasActiveSubscription)
+    return (
+      <AlertBox
+        title={t("salondashboard.noSubscription")}
+        message={t("appointments.subscriptionRequired")}
+        type="warning"
+        actionLabel={t("salondashboard.choosePlan")}
+        actionLink="/subscriptions"
+      />
+    );
   if (error)
     return (
-      <div className="bg-red-100 text-red-700 p-6 rounded-lg">
-        <h2 className="font-bold">{t("appointments.error")}</h2>
-        <p>{error}</p>
-      </div>
+      <AlertBox
+        title={t("appointments.error")}
+        message={t("appointments.errorLoad")}
+        type="error"
+        onRetry={() => window.location.reload()}
+      />
     );
 
   return (

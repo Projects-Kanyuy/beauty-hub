@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   FaArrowLeft,
@@ -11,7 +11,8 @@ import {
 } from "react-icons/fa";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
-import { createAppointment, fetchSalonById } from "../api";
+import { createAppointment } from "../api";
+import { useSalon } from "../api/swr";
 import BookingModal from "../components/BookingModal";
 import Button from "../components/Button";
 
@@ -24,27 +25,16 @@ const SalonDetailPage = () => {
   const [salon, setSalon] = useState(location.state?.salon || null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedService, setSelectedService] = useState(null);
-  const [loading, setLoading] = useState(!salon);
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
+  const { data: salonData, isLoading } = useSalon(id);
+
+  const resolvedSalon = useMemo(() => salon || salonData, [salon, salonData]);
 
   useEffect(() => {
-    if (!salon) {
-      const getSalon = async () => {
-        try {
-          setLoading(true);
-          const { data } = await fetchSalonById(id);
-          setSalon(data);
-        } catch (err) {
-          toast.error(t("salondetail.loadFailed"));
-          console.error(err);
-          navigate("/");
-        } finally {
-          setLoading(false);
-        }
-      };
-      getSalon();
+    if (salonData && !salon) {
+      setSalon(salonData);
     }
-  }, [id, salon, navigate, t]);
+  }, [salonData, salon]);
 
   const handleBookClick = (service) => {
     setSelectedService(service);
@@ -66,7 +56,7 @@ const SalonDetailPage = () => {
 
       setIsModalOpen(false);
 
-      const whatsappUrl = `https://wa.me/${salon?.phone?.replace(
+      const whatsappUrl = `https://wa.me/${resolvedSalon?.phone?.replace(
         /[^0-9]/g,
         ""
       )}?text=${bookingData?.chatMessage}`;
@@ -79,11 +69,11 @@ const SalonDetailPage = () => {
     }
   };
 
-  if (loading) {
+  if (isLoading && !resolvedSalon) {
     return <div className="text-center py-20">{t("salondetail.loading")}</div>;
   }
 
-  if (!salon) {
+  if (!resolvedSalon) {
     return (
       <div className="text-center py-20 text-red-600">
         {t("salondetail.loadFailedGoBack")}
@@ -92,8 +82,8 @@ const SalonDetailPage = () => {
   }
 
   const displayImage =
-    salon.photos && salon.photos.length > 0
-      ? salon.photos[currentPhotoIndex]
+    resolvedSalon.photos && resolvedSalon.photos.length > 0
+      ? resolvedSalon.photos[currentPhotoIndex]
       : "https://via.placeholder.com/1200x600.png?text=BeautyHeaven";
 
   return (
@@ -116,13 +106,13 @@ const SalonDetailPage = () => {
       >
         <div className="absolute inset-0 bg-black bg-opacity-30"></div>
 
-        {salon.photos && salon.photos.length > 1 && (
+        {resolvedSalon.photos && resolvedSalon.photos.length > 1 && (
           <div className="absolute inset-0 flex items-center justify-between px-4 opacity-0 group-hover:opacity-100 transition-opacity z-10">
             <button
               onClick={() =>
                 setCurrentPhotoIndex(
                   (prev) =>
-                    (prev - 1 + salon.photos.length) % salon.photos.length
+                    (prev - 1 + resolvedSalon.photos.length) % resolvedSalon.photos.length
                 )
               }
               className="bg-black bg-opacity-50 text-white p-3 rounded-full hover:bg-opacity-70 transition-all"
@@ -131,7 +121,7 @@ const SalonDetailPage = () => {
             </button>
             <button
               onClick={() =>
-                setCurrentPhotoIndex((prev) => (prev + 1) % salon.photos.length)
+                setCurrentPhotoIndex((prev) => (prev + 1) % resolvedSalon.photos.length)
               }
               className="bg-black bg-opacity-50 text-white p-3 rounded-full hover:bg-opacity-70 transition-all"
             >
@@ -141,26 +131,26 @@ const SalonDetailPage = () => {
         )}
 
         <div className="absolute inset-0 flex flex-col justify-end py-6 md:py-8 px-4 md:px-10 lg:px-28 text-white">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4">{salon.name}</h1>
+          <h1 className="text-4xl md:text-5xl font-bold mb-4">{resolvedSalon.name}</h1>
           <div className="flex flex-col md:flex-row md:items-center md:space-x-6 space-y-2 md:space-y-0">
             <div className="flex items-center space-x-2">
               <FaStar className="text-yellow-300" />
               <span className="font-bold text-lg">
-                {salon.averageRating?.toFixed(1) || t("salondetail.new")}
+                {resolvedSalon.averageRating?.toFixed(1) || t("salondetail.new")}
               </span>
               <span className="text-gray-200">
-                ({salon.reviews?.length || 0} {t("salondetail.reviews")})
+                ({resolvedSalon.reviews?.length || 0} {t("salondetail.reviews")})
               </span>
             </div>
             <div className="flex items-center space-x-2">
               <FaMapMarkerAlt />
               <span>
-                {salon.city}, {salon.address}
+                {resolvedSalon.city}, {resolvedSalon.address}
               </span>
             </div>
             <div className="flex items-center space-x-2">
               <FaPhone />
-              <span>{salon.phone}</span>
+              <span>{resolvedSalon.phone}</span>
             </div>
           </div>
         </div>
@@ -174,8 +164,8 @@ const SalonDetailPage = () => {
                 {t("salondetail.services")}
               </h2>
               <ul className="space-y-5">
-                {salon.services && salon.services.length > 0 ? (
-                  salon.services.map((service) => (
+                {resolvedSalon.services && resolvedSalon.services.length > 0 ? (
+                  resolvedSalon.services.map((service) => (
                     <li
                       key={service._id}
                       className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b pb-5 last:border-b-0"
@@ -238,11 +228,11 @@ const SalonDetailPage = () => {
                     <span>{t("salondetail.gallery")}</span>
                   </h3>
                   <div className="grid grid-cols-2 gap-2">
-                    {salon.photos.slice(0, 4).map((photo, idx) => (
+                    {resolvedSalon.photos.slice(0, 4).map((photo, idx) => (
                       <img
                         key={idx}
                         src={photo || "/placeholder.svg"}
-                        alt={`${salon.name} ${t("salondetail.gallery")} ${
+                        alt={`${resolvedSalon.name} ${t("salondetail.gallery")} ${
                           idx + 1
                         }`}
                         className="w-full h-24 object-cover rounded-lg cursor-pointer hover:opacity-80 transition-opacity"
@@ -281,8 +271,8 @@ const SalonDetailPage = () => {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         service={selectedService}
-        salonId={salon._id}
-        salonName={salon.name}
+        salonId={resolvedSalon._id}
+        salonName={resolvedSalon.name}
         onBookingConfirmed={handleConfirmBooking}
       />
     </div>

@@ -62,8 +62,8 @@ const Navbar = ({ isLoggedIn, user, handleLogout }) => {
               <NavItem to="/become-salon-owner">
                 {t("header.addBusiness")}
               </NavItem>
-              <NavItem to="/tips">{t("header.tips")}</NavItem>
-              <NavItem to="/about">{t("header.about")}</NavItem>
+              {/* <NavItem to="/tips">{t("header.tips")}</NavItem>
+              <NavItem to="/about">{t("header.about")}</NavItem>*/}
               <NavItem to="/contact">{t("header.contact")}</NavItem>
             </>
           )}
@@ -72,7 +72,7 @@ const Navbar = ({ isLoggedIn, user, handleLogout }) => {
         {/* Desktop Right Actions */}
         <div className="hidden lg:flex items-center space-x-5">
           <LanguageSwitcher />
-          {isLoggedIn && (
+          {isLoggedIn ? (
             <>
               <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center font-bold text-text-main">
                 {getInitials(user?.name)}
@@ -84,6 +84,21 @@ const Navbar = ({ isLoggedIn, user, handleLogout }) => {
                 {t("header.logout")}
               </button>
             </>
+          ) : (
+            <div className="flex items-center space-x-4">
+              <Link
+                to="/login"
+                className="font-semibold text-text-main hover:text-primary-purple transition-colors"
+              >
+                {t("login.signIn")}
+              </Link>
+              <Link
+                to="/register"
+                className="px-4 py-2 rounded-lg font-semibold text-white bg-primary-purple hover:bg-primary-pink transition-colors"
+              >
+                {t("login.createAccount")}
+              </Link>
+            </div>
           )}
         </div>
 
@@ -138,6 +153,12 @@ const Navbar = ({ isLoggedIn, user, handleLogout }) => {
                   </NavItem>
                   <NavItem to="/contact" onClick={closeDrawer}>
                     {t("header.contact")}
+                  </NavItem>
+                  <NavItem to="/login" onClick={closeDrawer}>
+                    {t("login.signIn")}
+                  </NavItem>
+                  <NavItem to="/register" onClick={closeDrawer}>
+                    {t("login.createAccount")}
                   </NavItem>
                 </>
               )}

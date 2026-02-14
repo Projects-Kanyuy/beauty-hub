@@ -4,13 +4,12 @@ const router = express.Router();
 const {
   getSalons,
   getSalonById,
-  // createSalon,
+  createSalon,
   updateSalon,
   addSalonService,
   updateSalonService,
   deleteSalonService,
   getMySalon,
-  createSalon, // Make sure this is imported
 } = require("../controllers/salonController");
 const { protect } = require("../middleware/authMiddleware");
 const reviewRouter = require("./reviewRoutes");
@@ -24,17 +23,17 @@ const {
 router.route("/").get(getSalons);
 
 // Protected route for an owner to create their profile
-router.route("/").post(protect, requireActiveSubscription, createSalon);
+router.route("/").post(protect, createSalon);
 
 // Specific route for the logged-in owner to get their salon.
 // This MUST come BEFORE the dynamic '/:id' route.
-router.route("/mysalon").get(protect, requireActiveSubscription, getMySalon);
+router.route("/mysalon").get(protect, getMySalon);
 
 // Dynamic route to get a single salon's details by its ID.
 router.route("/:id").get(getSalonById);
 
 // Protected route for an owner to update their OWN profile by its ID.
-router.route("/:id").put(protect,requireActiveSubscription,  updateSalon);
+router.route("/:id").put(protect, requireActiveSubscription, updateSalon);
 
 // --- Service Routes ---
 router.route("/:id/services").post(protect, requireActiveSubscription, addSalonService);

@@ -71,7 +71,7 @@ const createAppointment = asyncHandler(async (req, res) => {
     !clientName ||
     !clientNumber
   ) {
-    res
+    return res
       .status(400)
       .json({ message: "Please provide all required appointment details" });
   }
@@ -86,22 +86,22 @@ const createAppointment = asyncHandler(async (req, res) => {
 
   const service = salon.services.id(serviceId);
 
-  
+  if (!service) {
+    return res.status(404).json({
+      message: `Service with id ${serviceId} not found for given salon with id ${salonId}`,
+    });
+  }
+
   if (homeService && !service.homeService) {
     return res
       .status(400)
       .json({ message: `This service was not specified as a home service` });
   }
 
-  if (!service) {
-    res.status(404).json({
-      message: `Service with id ${serviceId} not found for given salon with id ${salonId}`,
-    });
-  }
-
   const appointment = await Appointment.create({
     clientName,
     clientNumber,
+    customer: req.user._id,
     salon: salonId,
     serviceId: serviceId,
     appointmentDateTime,

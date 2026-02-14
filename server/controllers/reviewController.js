@@ -162,7 +162,8 @@ const getSalonReviews = asyncHandler(async (req, res) => {
  */
 const addReviewReply = asyncHandler(async (req, res) => {
   const { replyText } = req.body;
-  const review = await Review.findById(req.params.id).populate('salon');
+  const reviewId = req.params.reviewId || req.params.id;
+  const review = await Review.findById(reviewId).populate('salon');
 
   if (!review) {
     res.status(404);

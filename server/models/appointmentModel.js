@@ -49,6 +49,11 @@ const appointmentSchema = new mongoose.Schema(
   {
     clientName: String,
     clientNumber: String,
+    customer: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
     salon: {
       type: mongoose.Schema.Types.ObjectId,
       required: true,
@@ -64,8 +69,8 @@ const appointmentSchema = new mongoose.Schema(
       default: false,
     },
     amount: {
-      type: String,
-      require: true,
+      type: Number,
+      required: true,
     },
     currency: {
       type: String,

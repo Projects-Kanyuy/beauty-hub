@@ -2,13 +2,15 @@
 const asyncHandler = require("express-async-handler");
 const User = require("../models/userModel");
 const generateToken = require("../utils/generateToken");
+const crypto = require("crypto");
+const sendVerificationEmail = require("../utils/emailService");
 
 /**
  * @swagger
  * /api/users:
  *   post:
  *     summary: Register a new user
- *     description: Creates a new customer or salon owner account. Returns user data and JWT token.
+ *     description: Creates a new account and sends a verification email.
  *     tags: [Users]
  *     requestBody:
  *       required: true
@@ -20,42 +22,44 @@ const generateToken = require("../utils/generateToken");
  *               - name
  *               - email
  *               - password
- *               - role
  *             properties:
  *               name:
  *                 type: string
- *                 example: "Sarah Johnson"
+ *                 example: Sarah Johnson
  *               email:
  *                 type: string
- *                 format: email
- *                 example: "sarah@example.com"
+ *                 example: sarah@example.com
  *               password:
  *                 type: string
- *                 format: password
- *                 minLength: 6
- *                 example: "mypassword123"
+ *                 example: mypassword123
+ *               phone:
+ *                 type: string
+ *                 example: +2348100000000
  *               role:
  *                 type: string
  *                 enum: [customer, salon_owner]
- *                 example: "customer"
+ *                 example: customer
  *     responses:
  *       201:
- *         description: User registered successfully
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/UserAuthResponse'
+ *         description: Registration successful, email sent for verification
  *       400:
- *         description: User already exists or invalid data
+ *         description: Missing fields or user already exists
  */
+
 const registerUser = asyncHandler(async (req, res) => {
   const { name, email, password, role, phone } = req.body;
 
+  if (!name || !email || !password)
+    return res
+      .status(400)
+      .json({ message: "Name, email & password are required" });
+
   const userExists = await User.findOne({ email });
-  if (userExists) {
-    res.status(400);
-    throw new Error("User already exists");
-  }
+  if (userExists)
+    return res.status(400).json({ message: "User already exists" });
+
+  const verificationToken = crypto.randomBytes(32).toString("hex");
+  const tokenExpiry = Date.now() + 1000 * 60 * 60;
 
   const user = await User.create({
     name,
@@ -63,21 +67,109 @@ const registerUser = asyncHandler(async (req, res) => {
     password,
     phone,
     role: role || "customer",
+    verificationToken,
+    verificationTokenExpires: tokenExpiry,
   });
 
-  if (user) {
-    res.status(201).json({
-      _id: user._id,
-      name: user.name,
-      email: user.email,
-      role: user.role,
-      phone: user.phone,
-      token: generateToken(user._id),
-    });
-  } else {
-    res.status(400);
-    throw new Error("Invalid user data");
-  }
+  const link = `${process.env.FRONTEND_URL}/verify-email/${verificationToken}`;
+  await sendVerificationEmail(user.email, link);
+
+  res.status(201).json({
+    message: "Registration successful. Check email to verify.",
+    _id: user._id,
+    name: user.name,
+    email: user.email,
+    role: user.role,
+    phone: user.phone,
+    token: generateToken(user._id),
+  });
+});
+
+/**
+ * @swagger
+ * /api/verify/{token}:
+ *   get:
+ *     summary: Verify email address
+ *     description: Confirms user email using token sent to their inbox.
+ *     tags: [Users]
+ *     parameters:
+ *       - in: path
+ *         name: token
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Email verification token
+ *     responses:
+ *       200:
+ *         description: Email verified successfully
+ *       400:
+ *         description: Invalid or expired token
+ */
+
+const verifyEmail = asyncHandler(async (req, res) => {
+  const token = req.params.token;
+
+  const user = await User.findOne({
+    verificationToken: token,
+    verificationTokenExpires: { $gt: Date.now() },
+  });
+
+  if (!user)
+    return res.status(400).json({ message: "Invalid or expired token" });
+
+  user.isVerified = true;
+  user.verificationToken = undefined;
+  user.verificationTokenExpires = undefined;
+  await user.save();
+
+  res.json({ message: "Email verified successfully" });
+});
+
+/**
+ * @swagger
+ * /api/verify/resend:
+ *   post:
+ *     summary: Resend email verification link
+ *     description: Generates a fresh token and emails it to the user.
+ *     tags: [Users]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 example: sarah@example.com
+ *     responses:
+ *       200:
+ *         description: Verification email resent
+ *       400:
+ *         description: Email already verified
+ *       404:
+ *         description: User not found
+ */
+
+const resendVerification = asyncHandler(async (req, res) => {
+  const { email } = req.body;
+
+  const user = await User.findOne({ email });
+  if (!user) return res.status(404).json({ message: "User not found" });
+  if (user.isVerified)
+    return res.status(400).json({ message: "Email already verified" });
+
+  const token = crypto.randomBytes(32).toString("hex");
+  user.verificationToken = token;
+  user.verificationTokenExpires = Date.now() + 1000 * 60 * 60;
+  await user.save();
+
+  const link = `${process.env.FRONTEND_URL}/verify-email/${token}`;
+  await sendVerificationEmail(user.email, link);
+
+  res.json({ message: "Verification email resent" });
 });
 
 /**
@@ -195,4 +287,10 @@ const updateUserProfile = asyncHandler(async (req, res) => {
   }
 });
 
-module.exports = { registerUser, authUser, updateUserProfile };
+module.exports = {
+  registerUser,
+  authUser,
+  updateUserProfile,
+  verifyEmail,
+  resendVerification,
+};

@@ -1,5 +1,8 @@
-const asyncHandler = require('express-async-handler');
-
+const asyncHandler = require("express-async-handler");
+const Appointment = require("../models/appointmentModel");
+const Salon = require("../models/salonModel");
+const Review = require("../models/reviewModel");
+const mongoose = require("mongoose");
 /**
  * @swagger
  * /api/analytics/salon:
@@ -92,25 +95,97 @@ const asyncHandler = require('express-async-handler');
  */
 
 const getSalonAnalytics = asyncHandler(async (req, res) => {
-  // In a real app, you would query your database here using req.user.id (salon owner)
-  // For now, we send back mock data that matches the frontend's expectations.
-  const analyticsData = {
-    kpis: { totalEarnings: 350000, newClients: 14, completedAppointments: 45, avgRating: 4.8 },
-    bookingsOverTime: [
-      { month: 'Jul', bookings: 25 },
-      { month: 'Aug', bookings: 30 },
-      { month: 'Sep', bookings: 42 },
-      { month: 'Oct', bookings: 45 },
-    ],
-    servicePopularity: [
-      { name: 'Box Braids', value: 40 },
-      { name: 'Cornrows', value: 25 },
-      { name: 'Treatments', value: 15 },
-      { name: 'Other', value: 20 },
-    ],
-  };
+  const salonOwnerId = req.user.id;
 
-  res.json(analyticsData);
+  // ----------------------
+  // Step 1: Get salon
+  // ----------------------
+  const salon = await Salon.findOne({ owner: salonOwnerId }).populate(
+    "reviews"
+  );
+  if (!salon) return res.status(404).json({ message: "Salon not found" });
+
+  const salonId = salon._id;
+
+  // ----------------------
+  // Step 2: Get all appointments for this salon
+  // ----------------------
+  const appointments = await Appointment.find({ salon: salonId });
+
+  // ----------------------
+  // Step 3: Calculate KPIs
+  // ----------------------
+  const totalEarnings = appointments.reduce(
+    (acc, a) => acc + Number(a.amount),
+    0
+  );
+  const completedAppointments = appointments.filter(
+    (a) => a.status === "Completed"
+  ).length;
+
+  // Count new clients in the last 6 months
+  const sixMonthsAgo = new Date();
+  sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+  const recentAppointments = appointments.filter(
+    (a) => a.appointmentDateTime >= sixMonthsAgo
+  );
+  const newClients = new Set(recentAppointments.map((a) => a.clientName)).size;
+
+  // Average rating from salon.reviews
+  const reviews = await Review.find({ salon: salonId });
+  const ratings = reviews.map((r) => r.rating);
+  const avgRating = ratings.length
+    ? ratings.reduce((a, b) => a + b, 0) / ratings.length
+    : 0;
+
+  // ----------------------
+  // Step 4: Bookings over time (last 6 months)
+  // ----------------------
+  const bookingsOverTimeMap = {};
+  for (let i = 5; i >= 0; i--) {
+    const date = new Date();
+    date.setMonth(date.getMonth() - i);
+    const monthKey = date.toLocaleString("default", { month: "short" });
+    bookingsOverTimeMap[monthKey] = 0;
+  }
+
+  appointments.forEach((a) => {
+    const monthKey = a.appointmentDateTime.toLocaleString("default", {
+      month: "short",
+    });
+    if (monthKey in bookingsOverTimeMap) bookingsOverTimeMap[monthKey]++;
+  });
+
+  const bookingsOverTime = Object.keys(bookingsOverTimeMap).map((month) => ({
+    month,
+    bookings: bookingsOverTimeMap[month],
+  }));
+
+  // ----------------------
+  // Step 5: Service popularity
+  // ----------------------
+  const serviceCountMap = {};
+  appointments.forEach((a) => {
+    const service = salon.services.find(
+      (s) => s._id.toString() === a.serviceId.toString()
+    );
+    const name = service ? service.name : "Unknown Service";
+    serviceCountMap[name] = (serviceCountMap[name] || 0) + 1;
+  });
+
+  const servicePopularity = Object.keys(serviceCountMap).map((name) => ({
+    name,
+    value: serviceCountMap[name],
+  }));
+
+  // ----------------------
+  // Step 6: Respond
+  // ----------------------
+  res.json({
+    kpis: { totalEarnings, newClients, completedAppointments, avgRating },
+    bookingsOverTime,
+    servicePopularity,
+  });
 });
 
 module.exports = { getSalonAnalytics };

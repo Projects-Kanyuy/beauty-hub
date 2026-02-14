@@ -1,15 +1,14 @@
-import React from "react";
-import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import {
   FaCheckCircle,
   FaHeart,
-  FaStar,
+  FaHome,
   FaPlus,
   FaRegBookmark,
-  FaHome,
+  FaStar,
 } from "react-icons/fa";
+import { Link } from "react-router-dom";
 import Button from "./Button";
-import { useTranslation } from "react-i18next";
 
 const StarRating = ({ rating }) => {
   return (
@@ -31,10 +30,24 @@ const SalonCard = ({ salon }) => {
 
   if (!salon) return null;
 
+  // Helper to generate soft random purple shades
+  const getRandomPurple = () => {
+    const colors = [
+      "a855f7", // bright purple
+      "d946ef", // vivid pink
+      "8b5cf6", // electric purple
+      "ec4899", // hot pink
+      "9333ea", // deep purple
+    ];
+    return colors[Math.floor(Math.random() * colors.length)];
+  };
+
   const displayImage =
     salon.photos && salon.photos.length > 0
       ? salon.photos[0]
-      : "https://via.placeholder.com/400x300.png?text=BeautyHeaven";
+      : `https://placehold.co/400x300/${getRandomPurple()}/ffffff?text=${encodeURIComponent(
+          salon.name.slice(0, 2).toUpperCase()
+        )}&font=playfair-display`;
 
   const offersHomeServices =
     salon.services &&
@@ -46,7 +59,7 @@ const SalonCard = ({ salon }) => {
       <div className="relative">
         <img
           className="w-full h-56 object-cover"
-          src={displayImage || "/placeholder.svg"}
+          src={displayImage}
           alt={salon.name}
         />
         <div className="absolute top-3 right-3 bg-white rounded-full p-2 cursor-pointer">

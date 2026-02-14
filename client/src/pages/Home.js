@@ -1,7 +1,6 @@
-import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
-import { fetchSalons } from "../api";
+import { useSalons } from "../api/swr";
 import SalonCard from "../components/SalonCard";
 import SalonSearchBar from "../components/SalonSearchBar";
 
@@ -11,26 +10,11 @@ import Button from "../components/Button";
 
 const HomePage = () => {
   const { t } = useTranslation();
-  const [salons, setSalons] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-
-  useEffect(() => {
-    const getSalons = async () => {
-      try {
-        setLoading(true);
-        const { data } = await fetchSalons();
-        setSalons(data);
-      } catch (err) {
-        console.error("Failed to fetch salons:", err);
-        setError(t("homePage.featuredSalons.errorMessage"));
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    getSalons();
-  }, [t]);
+  const {
+    data: salons = [],
+    isLoading: loading,
+    error,
+  } = useSalons();
 
   return (
     <div className="bg-white">
@@ -136,7 +120,7 @@ const HomePage = () => {
               <h3 className="font-bold text-lg">
                 {t("homePage.featuredSalons.errorTitle")}
               </h3>
-              <p>{error}</p>
+              <p>{t("homePage.featuredSalons.errorMessage")}</p>
             </div>
           ) : salons.length === 0 ? (
             <div className="text-center py-20 bg-gray-50 p-8 rounded-lg shadow-sm">

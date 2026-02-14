@@ -7,5 +7,5 @@ const { protect } = require('../middleware/authMiddleware');
 router.route('/')
   .post(protect, createSalonReview)
   .get(getSalonReviews);
-  router.route('/:id/reply').put(protect, addReviewReply);
+router.route('/:reviewId/reply').put(protect, addReviewReply);
 module.exports = router;

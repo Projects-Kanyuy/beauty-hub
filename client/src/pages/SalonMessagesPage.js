@@ -1,35 +1,24 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { FaPaperPlane, FaSpinner } from "react-icons/fa";
-import { fetchMyMessages } from "../api";
+import { useMessages } from "../api/swr";
 import { useAuth } from "../context/AuthContext";
 
 const SalonMessagesPage = () => {
   const { t } = useTranslation();
   const { user } = useAuth();
-  const [conversations, setConversations] = useState([]);
   const [selectedConversation, setSelectedConversation] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const {
+    data: conversations = [],
+    isLoading: loading,
+    error,
+  } = useMessages();
 
   useEffect(() => {
-    const loadMessages = async () => {
-      try {
-        setLoading(true);
-        const { data } = await fetchMyMessages();
-        setConversations(data);
-        if (data && data.length > 0) {
-          setSelectedConversation(data[0]);
-        }
-      } catch (err) {
-        setError(t("salonmessages.loadFailed"));
-        console.error("Failed to load messages", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    loadMessages();
-  }, [t]);
+    if (conversations && conversations.length > 0) {
+      setSelectedConversation(conversations[0]);
+    }
+  }, [conversations]);
 
   const getOtherParticipant = (convo) => {
     if (!convo || !user) return { name: t("salonmessages.unknown") };
@@ -52,7 +41,7 @@ const SalonMessagesPage = () => {
     return (
       <div className="bg-red-100 text-red-700 p-6 rounded-lg shadow-md">
         <h2 className="font-bold text-lg">{t("salonmessages.errorTitle")}</h2>
-        <p>{error}</p>
+        <p>{t("salonmessages.loadFailed")}</p>
       </div>
     );
 

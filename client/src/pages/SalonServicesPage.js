@@ -1,36 +1,32 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { FaPen, FaSpinner, FaTrash } from "react-icons/fa";
-import { addService, deleteService, fetchMySalon, updateService } from "../api";
+import {
+  addService,
+  deleteService,
+  updateService,
+} from "../api";
+import { useActiveSubscription, useMySalon } from "../api/swr";
+import AlertBox from "../components/AlertBox";
 import Button from "../components/Button";
 import ServiceModal from "../components/ServiceModal";
+import { useAuth } from "../context/AuthContext";
 
 const SalonServicesPage = () => {
   const { t } = useTranslation();
-  const [salon, setSalon] = useState(null);
-  const [services, setServices] = useState([]);
+  const { user } = useAuth();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingService, setEditingService] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-
-  const loadServices = async () => {
-    try {
-      setLoading(true);
-      const { data } = await fetchMySalon();
-      setSalon(data);
-      setServices(data.services || []);
-    } catch (err) {
-      console.error("Failed to load services:", err);
-      setError(err.response?.data?.message || t("salonservices.loadError"));
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    loadServices();
-  }, [t]);
+  const {
+    data: salon,
+    isLoading: loading,
+    error,
+    mutate,
+  } = useMySalon();
+  const { data: subscriptionData, isLoading: loadingSubscription } =
+    useActiveSubscription(user?._id);
+  const services = salon?.services || [];
+  const hasActiveSubscription = !!subscriptionData?.data;
 
   const handleOpenModal = (service = null) => {
     setEditingService(service);
@@ -46,7 +42,7 @@ const SalonServicesPage = () => {
     if (window.confirm(t("salonservices.confirmDelete"))) {
       try {
         await deleteService(salon._id, serviceId);
-        loadServices();
+        mutate();
         alert(t("salonservices.deleteSuccess"));
       } catch (err) {
         console.error("Failed to delete service:", err);
@@ -69,7 +65,7 @@ const SalonServicesPage = () => {
         alert(t("salonservices.addSuccess"));
       }
       handleCloseModal();
-      loadServices();
+      mutate();
     } catch (err) {
       console.error("Failed to save service:", err);
       alert(
@@ -86,18 +82,30 @@ const SalonServicesPage = () => {
       currency: "NGN",
     }).format(price);
 
-  if (loading)
+  if (loading || loadingSubscription)
     return (
       <div className="flex justify-center items-center h-64">
         <FaSpinner className="animate-spin text-4xl text-primary-purple" />
       </div>
     );
+  if (!hasActiveSubscription)
+    return (
+      <AlertBox
+        title={t("salondashboard.noSubscription")}
+        message={t("salondashboard.subscribeToUnlock")}
+        type="warning"
+        actionLabel={t("salondashboard.choosePlan")}
+        actionLink="/subscriptions"
+      />
+    );
   if (error)
     return (
-      <div className="bg-red-100 text-red-700 p-6 rounded-lg">
-        <h2 className="font-bold">{t("salonservices.errorTitle")}</h2>
-        <p>{error}</p>
-      </div>
+      <AlertBox
+        title={t("salonservices.loadError")}
+        message={t("salonservices.loadError")}
+        type="error"
+        onRetry={() => window.location.reload()}
+      />
     );
 
   return (

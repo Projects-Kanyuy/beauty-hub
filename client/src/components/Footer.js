@@ -18,10 +18,20 @@ const Footer = () => {
               {t("footer.description")}
             </p>
             <div className="flex space-x-4">
-              <a href="#" className="text-gray-400 hover:text-white">
+              <a
+                href="https://twitter.com"
+                className="text-gray-400 hover:text-white"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
                 <FaTwitter size={24} />
               </a>
-              <a href="#" className="text-gray-400 hover:text-white">
+              <a
+                href="https://instagram.com"
+                className="text-gray-400 hover:text-white"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
                 <FaInstagram size={24} />
               </a>
             </div>

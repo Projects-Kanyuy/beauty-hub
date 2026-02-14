@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import {
   FaCalendarPlus,
@@ -10,66 +10,49 @@ import {
 } from "react-icons/fa";
 import { Link } from "react-router-dom";
 import {
-  fetchMySalon,
-  fetchSalonAppointments,
-  getActiveSubscription,
-} from "../api";
+  useActiveSubscription,
+  useMySalon,
+  useSalonAppointments,
+} from "../api/swr";
+import AlertBox from "../components/AlertBox";
 import { useAuth } from "../context/AuthContext";
 
 const SalonDashboardPage = () => {
   const { t } = useTranslation();
   const { user } = useAuth();
-  const [salonData, setSalonData] = useState(null);
-  const [appointments, setAppointments] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [hasActiveSubscription, setHasActiveSubscription] = useState(false);
+  const {
+    data: subscriptionData,
+    isLoading: loadingSubscription,
+    error: subscriptionError,
+  } = useActiveSubscription(user?._id);
+  const hasActiveSubscription = !!subscriptionData?.data;
+  const {
+    data: salonData,
+    isLoading: loadingSalon,
+    error: salonError,
+  } = useMySalon();
+  const {
+    data: appointments = [],
+    isLoading: loadingAppointments,
+    error: appointmentsError,
+  } = useSalonAppointments(salonData?._id);
+  const loading = loadingSubscription || loadingSalon || loadingAppointments;
+  const error = subscriptionError || salonError || appointmentsError;
 
-  // Load subscription status
-  useEffect(() => {
-    const loadSubscriptionData = async () => {
-      if (!user) {
-        setLoading(false);
-        return;
-      }
-      try {
-        setLoading(true);
-        setError(null);
-        const { data: subscription } = await getActiveSubscription();
-        setHasActiveSubscription(!!subscription?.data);
-      } catch (err) {
-        console.error("Subscription loading error:", err);
-        setError(err.response?.data?.message || t("salondashboard.errorLoad"));
-      } finally {
-        setLoading(false);
-      }
-    };
-    loadSubscriptionData();
-  }, [user, t]);
-
-  // Load salon and appointment data
-  useEffect(() => {
-    const loadDashboardData = async () => {
-      if (!(user && hasActiveSubscription)) {
-        setLoading(false);
-        return;
-      }
-      try {
-        setLoading(true);
-        setError(null);
-        const { data: salon } = await fetchMySalon();
-        setSalonData(salon);
-        const { data: appts } = await fetchSalonAppointments(salon._id);
-        setAppointments(appts);
-      } catch (err) {
-        console.error("Dashboard loading error:", err);
-        setError(err.response?.data?.message || t("salondashboard.errorLoad"));
-      } finally {
-        setLoading(false);
-      }
-    };
-    loadDashboardData();
-  }, [user, hasActiveSubscription, t]);
+  const showCreateProfile = salonError?.response?.status === 404;
+  const todayAppointments = useMemo(
+    () =>
+      appointments.filter(
+        (a) =>
+          new Date(a.startTime || a.appointmentDateTime).toDateString() ===
+          new Date().toDateString(),
+      ),
+    [appointments],
+  );
+  const pendingRequests = useMemo(
+    () => appointments.filter((a) => a.status === "Pending"),
+    [appointments],
+  );
 
   if (loading)
     return (
@@ -82,8 +65,8 @@ const SalonDashboardPage = () => {
     return (
       <div className="bg-red-50 border border-red-200 text-red-700 p-6 rounded-lg">
         <h2 className="font-bold text-xl">{t("salondashboard.errorTitle")}</h2>
-        <p className="mt-2">{error}</p>
-        {error.includes("not found") && (
+        <p className="mt-2">{t("salondashboard.errorLoad")}</p>
+        {showCreateProfile && (
           <Link
             to="/salon-owner/profile"
             className="mt-4 inline-block bg-primary-purple text-white px-4 py-2 rounded-md font-semibold hover:opacity-90"
@@ -94,112 +77,92 @@ const SalonDashboardPage = () => {
       </div>
     );
 
-  const todayAppointments = appointments.filter(
-    (a) => new Date(a.startTime).toDateString() === new Date().toDateString()
-  );
-  const pendingRequests = appointments.filter((a) => a.status === "Pending");
-
   return (
-    <div>
-      {!hasActiveSubscription && (
-        <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-8 rounded">
-          <div className="flex justify-between items-center">
-            <div>
-              <h3 className="text-lg font-bold text-yellow-800">
-                {t("salondashboard.noSubscription")}
-              </h3>
-              <p className="text-yellow-700 mt-1">
-                {t("salondashboard.subscribeToUnlock")}
-              </p>
-            </div>
-            <Link to="/subscriptions" className="ml-4 flex-shrink-0">
-              <button className="px-4 py-2 bg-primary-purple text-white rounded-lg font-semibold hover:opacity-90 whitespace-nowrap">
-                {t("salondashboard.choosePlan")}
-              </button>
-            </Link>
-          </div>
-        </div>
-      )}
-
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-text-main">
+    <div className="p-6 md:p-10 space-y-10">
+      {/* Premium Welcome Header */}
+      <div className="bg-gradient-to-r from-primary-purple/90 to-purple-600 text-white p-8 rounded-3xl shadow-lg">
+        <h1 className="text-4xl font-semibold">
           {t("salondashboard.welcomeBack", {
             name: salonData?.name || user?.name,
           })}
         </h1>
-        <p className="text-text-muted">{t("salondashboard.summary")}</p>
+        <p className="opacity-90 mt-2 text-lg">{t("salondashboard.summary")}</p>
       </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <div className="bg-white p-6 rounded-lg shadow-sm">
-          <p className="text-sm text-text-muted">
-            {t("salondashboard.todaysBookings")}
-          </p>
-          <p className="text-3xl font-bold text-text-main">
-            {todayAppointments.length}
-          </p>
-        </div>
-        <div className="bg-white p-6 rounded-lg shadow-sm">
-          <p className="text-sm text-text-muted">
-            {t("salondashboard.pendingRequests")}
-          </p>
-          <p className="text-3xl font-bold text-text-main">
-            {pendingRequests.length}
-          </p>
-        </div>
-        <div className="bg-white p-6 rounded-lg shadow-sm">
-          <p className="text-sm text-text-muted">
-            {t("salondashboard.totalEarnings")}
-          </p>
-          <p className="text-3xl font-bold text-gray-400">...</p>
-        </div>
-        <div className="bg-white p-6 rounded-lg shadow-sm">
-          <p className="text-sm text-text-muted">
-            {t("salondashboard.newReviews")}
-          </p>
-          <p className="text-3xl font-bold text-gray-400">...</p>
-        </div>
+      {/* Subscription Alert */}
+      {!hasActiveSubscription && (
+        <AlertBox
+          title={t("salondashboard.noSubscription")}
+          message={t("salondashboard.subscribeToUnlock")}
+          type="warning"
+          actionLabel={t("salondashboard.choosePlan")}
+          actionLink="/subscriptions"
+        />
+      )}
+
+      {/* Stat Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {[
+          {
+            label: t("salondashboard.todaysBookings"),
+            value: todayAppointments.length,
+          },
+          {
+            label: t("salondashboard.pendingRequests"),
+            value: pendingRequests.length,
+          },
+          { label: t("salondashboard.totalEarnings"), value: "$——" },
+          { label: t("salondashboard.newReviews"), value: "—" },
+        ].map((stat, i) => (
+          <div
+            key={i}
+            className="backdrop-blur-lg bg-white/70 hover:bg-white/100 transition-all border border-gray-200/50 rounded-3xl p-6 shadow-sm hover:shadow-xl"
+          >
+            <p className="text-gray-500 mb-2">{stat.label}</p>
+            <p className="text-4xl font-bold text-gray-800">{stat.value}</p>
+          </div>
+        ))}
       </div>
 
-      {/* Appointments */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2 bg-white p-6 rounded-lg shadow-sm">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-bold">
+      {/* Main Grid: Appointments + Actions */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
+        {/* Appointments Card */}
+        <div className="lg:col-span-2 backdrop-blur-xl bg-white/70 rounded-3xl shadow-md p-8 border border-gray-200/40">
+          <div className="flex justify-between mb-6">
+            <h2 className="text-2xl font-semibold">
               {t("salondashboard.todaysAppointments")}
             </h2>
             <Link
               to="/salon-owner/appointments"
-              className="text-sm font-semibold text-primary-purple hover:underline"
+              className="text-primary-purple font-semibold hover:underline"
             >
               {t("salondashboard.viewCalendar")}
             </Link>
           </div>
+
           <div className="space-y-4">
             {todayAppointments.length > 0 ? (
               todayAppointments.map((appt) => (
                 <div
                   key={appt._id}
-                  className="flex items-center p-3 bg-gray-50 rounded-md"
+                  className="flex items-center p-4 bg-gray-50/70 rounded-2xl shadow-sm hover:shadow-md transition"
                 >
-                  <div className="bg-primary-purple text-white font-bold text-sm px-3 py-2 rounded-md">
+                  <div className="bg-primary-purple text-white px-4 py-2 rounded-xl font-bold">
                     {new Date(appt.startTime).toLocaleTimeString([], {
                       hour: "2-digit",
                       minute: "2-digit",
-                      hour12: true,
                     })}
                   </div>
-                  <div className="ml-4 flex-grow">
-                    <p className="font-semibold text-text-main">
+
+                  <div className="ml-4 flex-1">
+                    <p className="font-semibold text-lg">
                       {appt.customer.name}
                     </p>
-                    <p className="text-sm text-text-muted">
-                      {appt.serviceName}
-                    </p>
+                    <p className="text-gray-500 text-sm">{appt.serviceName}</p>
                   </div>
+
                   <span
-                    className={`text-xs font-bold px-2 py-1 rounded-full ${
+                    className={`text-xs px-3 py-1 rounded-full font-semibold ${
                       appt.status === "Confirmed"
                         ? "bg-green-100 text-green-700"
                         : "bg-yellow-100 text-yellow-700"
@@ -210,51 +173,60 @@ const SalonDashboardPage = () => {
                 </div>
               ))
             ) : (
-              <p className="text-text-muted py-8 text-center">
+              <p className="text-gray-500 text-center py-10 text-lg">
                 {t("salondashboard.noAppointments")}
               </p>
             )}
           </div>
         </div>
 
-        {/* Quick Actions & Recent Messages */}
-        <div className="space-y-8">
-          <div className="bg-white p-6 rounded-lg shadow-sm">
-            <h2 className="text-xl font-bold mb-4">
+        {/* Quick Actions / Messages */}
+        <div className="space-y-10">
+          {/* Quick Actions */}
+          <div className="bg-white/70 backdrop-blur-xl rounded-3xl shadow-md p-8 border border-gray-200/40">
+            <h2 className="text-2xl font-semibold mb-6">
               {t("salondashboard.quickActions")}
             </h2>
-            <div className="space-y-3">
-              <Link
-                to="/salon-owner/profile"
-                className="flex items-center space-x-3 p-3 bg-gray-100 rounded-md hover:bg-gray-200"
-              >
-                <FaCalendarPlus className="text-primary-purple" />
-                <span>{t("salondashboard.addBooking")}</span>
-              </Link>
-              <Link
-                to="/salon-owner/messages"
-                className="flex items-center space-x-3 p-3 bg-gray-100 rounded-md hover:bg-gray-200"
-              >
-                <FaRegComments className="text-primary-purple" />
-                <span>{t("salondashboard.replyMessages")}</span>
-              </Link>
-              <Link
-                to="/salon-owner/reviews"
-                className="flex items-center space-x-3 p-3 bg-gray-100 rounded-md hover:bg-gray-200"
-              >
-                <FaRegStar className="text-primary-purple" />
-                <span>{t("salondashboard.respondReviews")}</span>
-              </Link>
+
+            <div className="space-y-4">
+              {[
+                {
+                  icon: FaCalendarPlus,
+                  label: t("salondashboard.addBooking"),
+                  link: "/salon-owner/profile",
+                },
+                {
+                  icon: FaRegComments,
+                  label: t("salondashboard.replyMessages"),
+                  link: "/salon-owner/messages",
+                },
+                {
+                  icon: FaRegStar,
+                  label: t("salondashboard.respondReviews"),
+                  link: "/salon-owner/reviews",
+                },
+              ].map((action, i) => (
+                <Link
+                  key={i}
+                  to={action.link}
+                  className="flex items-center space-x-4 p-4 hover:bg-gray-100 rounded-xl transition font-medium"
+                >
+                  <action.icon className="text-primary-purple text-xl" />
+                  <span className="text-lg">{action.label}</span>
+                </Link>
+              ))}
             </div>
           </div>
 
-          <div className="bg-white p-6 rounded-lg shadow-sm">
-            <h2 className="text-xl font-bold mb-4">
+          {/* Messages */}
+          <div className="bg-white/70 backdrop-blur-xl rounded-3xl shadow-md p-8 border border-gray-200/40">
+            <h2 className="text-2xl font-semibold mb-6">
               {t("salondashboard.recentMessages")}
             </h2>
-            <div className="space-y-3 text-center text-text-muted py-4">
-              <p>{t("salondashboard.noNewMessages")}</p>
-            </div>
+
+            <p className="text-gray-400 text-center py-10 text-lg">
+              {t("salondashboard.noNewMessages")}
+            </p>
           </div>
         </div>
       </div>

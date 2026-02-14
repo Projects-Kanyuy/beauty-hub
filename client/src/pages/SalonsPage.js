@@ -7,19 +7,22 @@ import {
   FaSpinner,
   FaStar,
 } from "react-icons/fa";
-import { fetchSalons } from "../api";
+import { useSalons } from "../api/swr";
 import SalonCard from "../components/SalonCard";
 
 const SalonsPage = () => {
   const { t } = useTranslation();
   const [salons, setSalons] = useState([]);
   const [filteredSalons, setFilteredSalons] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedRating, setSelectedRating] = useState("all");
   const [selectedLocation, setSelectedLocation] = useState("all");
   const [showFilters, setShowFilters] = useState(false);
+  const {
+    data: salonsData = [],
+    isLoading: loading,
+    error,
+  } = useSalons();
 
   const locations =
     salons.length > 0
@@ -32,22 +35,9 @@ const SalonsPage = () => {
       : ["all"];
 
   useEffect(() => {
-    const getSalons = async () => {
-      try {
-        setLoading(true);
-        const { data } = await fetchSalons();
-        setSalons(data);
-        setFilteredSalons(data);
-      } catch (err) {
-        console.error("Failed to fetch salons:", err);
-        setError(t("salons.fetchError"));
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    getSalons();
-  }, []);
+    setSalons(salonsData);
+    setFilteredSalons(salonsData);
+  }, [salonsData]);
 
   useEffect(() => {
     let filtered = salons;
@@ -220,7 +210,7 @@ const SalonsPage = () => {
           ) : error ? (
             <div className="text-center py-20 text-red-600 bg-red-50 p-6 rounded-lg shadow-sm">
               <h3 className="font-bold text-lg">{t("salons.errorTitle")}</h3>
-              <p>{error}</p>
+              <p>{t("salons.fetchError")}</p>
             </div>
           ) : filteredSalons.length === 0 ? (
             <div className="text-center py-20 bg-gray-50 p-8 rounded-lg shadow-sm">

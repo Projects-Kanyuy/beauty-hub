@@ -64,6 +64,10 @@ const reviewSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    reply: {
+      type: String,
+      default: null,
+    },
   },
   {
     timestamps: true,

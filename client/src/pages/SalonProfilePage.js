@@ -3,10 +3,13 @@ import { useTranslation } from "react-i18next";
 import { FaSpinner } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import { createSalon, fetchMySalon, updateMySalon } from "../api";
+import { createSalon, updateMySalon } from "../api";
+import { useActiveSubscription, useMySalon } from "../api/swr";
+import AlertBox from "../components/AlertBox";
 import Button from "../components/Button";
 import PhotoUploader from "../components/PhotoUploader";
 import ProfileSection from "../components/ProfileSection";
+import { useAuth } from "../context/AuthContext";
 
 const blankProfile = {
   name: "",
@@ -44,33 +47,44 @@ const InputField = ({ label, name, value, onChange }) => (
 
 const SalonProfilePage = () => {
   const { t } = useTranslation();
+  const { user } = useAuth();
   const [profile, setProfile] = useState(null);
-  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isSaving, setIsSaving] = useState(false);
   const navigate = useNavigate();
+  const {
+    data: salonData,
+    error: salonError,
+    isLoading: loadingSalon,
+    mutate: mutateSalon,
+  } = useMySalon();
+  const {
+    data: subscriptionData,
+    isLoading: loadingSubscription,
+  } = useActiveSubscription(user?._id);
+  const hasActiveSubscription = !!subscriptionData?.data;
 
   const isEditMode = profile && profile._id;
 
   useEffect(() => {
-    const loadProfile = async () => {
-      try {
-        setLoading(true);
-        const { data } = await fetchMySalon();
-        setProfile(data);
-      } catch (err) {
-        if (err.response && err.response.status === 404) {
-          setProfile(blankProfile);
-        } else {
-          console.error("Failed to load profile:", err);
-          setError(err.response?.data?.message || t("salonprofile.loadFailed"));
-        }
-      } finally {
-        setLoading(false);
+    if (salonData) {
+      setProfile(salonData);
+      setError(null);
+      return;
+    }
+
+    if (salonError) {
+      if (salonError.response?.status === 404) {
+        setProfile(blankProfile);
+        setError(null);
+      } else {
+        console.error("Failed to load profile:", salonError);
+        setError(
+          salonError.response?.data?.message || t("salonprofile.loadFailed")
+        );
       }
-    };
-    loadProfile();
-  }, [t]);
+    }
+  }, [salonData, salonError, t]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -98,9 +112,13 @@ const SalonProfilePage = () => {
           profile
         );
         setProfile(updatedProfile);
+        mutateSalon(updatedProfile, false);
         toast.success(t("salonprofile.updatedSuccess"));
       } else {
-        await createSalon(profile);
+        const { data } = await createSalon(profile);
+        const createdSalon = data?.salon || profile;
+        setProfile(createdSalon);
+        mutateSalon(createdSalon, false);
         toast.success(t("salonprofile.createdSuccess"));
         setTimeout(() => navigate("/salon-owner/dashboard"), 2000);
       }
@@ -112,19 +130,33 @@ const SalonProfilePage = () => {
     }
   };
 
-  if (loading)
+  if (loadingSalon || loadingSubscription)
     return (
       <div className="flex justify-center items-center h-64">
         <FaSpinner className="animate-spin text-4xl text-primary-purple" />
       </div>
     );
+  if (!hasActiveSubscription)
+    return (
+      <AlertBox
+        title={t("salondashboard.noSubscription")}
+        message={t("salonprofile.subscriptionRequired")}
+        type="warning"
+        actionLabel={t("salondashboard.choosePlan")}
+        actionLink="/subscriptions"
+      />
+    );
+
   if (error)
     return (
-      <div className="bg-red-100 text-red-700 p-6 rounded-lg">
-        <h2 className="font-bold">{t("salonprofile.errorTitle")}</h2>
-        <p>{error}</p>
-      </div>
+      <AlertBox
+        title={t("salonprofile.errorTitle")}
+        message={error}
+        type="error"
+        onRetry={() => window.location.reload()}
+      />
     );
+
   if (!profile) return null;
 
   return (
