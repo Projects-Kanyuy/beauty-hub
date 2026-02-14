@@ -454,17 +454,8 @@ const deleteSalonService = asyncHandler(async (req, res) => {
  */
 const getMySalon = asyncHandler(async (req, res) => {
   const salon = await Salon.findOne({ owner: req.user._id });
-
-  if (salon) {
-    res.json(salon);
-  } else {
-    res.status(404);
-    throw new Error(
-      "Salon profile not found for this user. Please create one."
-    );
-  }
+  res.status(200).json(salon || null);
 });
-
 module.exports = {
   getSalons,
   getSalonById,
