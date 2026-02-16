@@ -1,203 +1,86 @@
-import { useState } from "react";
-import { FaTrash, FaUserAlt, FaUsers, FaUserShield } from "react-icons/fa";
-
-const ROLES = ["customer", "salon_owner", "admin"];
-
-const mockUsers = [
-  {
-    id: 1,
-    name: "John Doe",
-    email: "john@example.com",
-    role: "customer",
-    status: "active",
-    lastLogin: "2025-12-22 10:15 AM",
-  },
-  {
-    id: 2,
-    name: "Jane Smith",
-    email: "jane@example.com",
-    role: "salon_owner",
-    status: "active",
-    lastLogin: "2025-12-22 09:30 AM",
-  },
-  {
-    id: 3,
-    name: "Admin User",
-    email: "admin@example.com",
-    role: "admin",
-    status: "blocked",
-    lastLogin: "2025-12-21 11:00 PM",
-  },
-  {
-    id: 4,
-    name: "Mark Johnson",
-    email: "mark@example.com",
-    role: "customer",
-    status: "active",
-    lastLogin: "2025-12-22 08:45 AM",
-  },
-];
-
-const statusStyles = {
-  active: "bg-green-100 text-green-700",
-  blocked: "bg-red-100 text-red-700",
-};
-
-const roleIcons = {
-  customer: FaUserAlt,
-  salon_owner: FaUsers,
-  admin: FaUserShield,
-};
+import React from "react";
+import { useAdminUsers, useSubscriptionPlans } from "../api/swr";
+import { FaUserShield, FaSpinner, FaUnlockAlt, FaBan, FaCheckCircle } from "react-icons/fa";
+import { toast } from "react-toastify";
+import { manualActivate, restrictAccess } from "../api";
 
 const AdminUsers = () => {
-  const [users, setUsers] = useState(mockUsers);
+  const { data: users = [], isLoading, mutate } = useAdminUsers();
+  const { data: plans = [] } = useSubscriptionPlans();
 
-  const toggleStatus = (id) => {
-    setUsers((prev) =>
-      prev.map((user) =>
-        user.id === id && user.role !== "admin"
-          ? { ...user, status: user.status === "active" ? "blocked" : "active" }
-          : user
-      )
-    );
-  };
+  const handleGrantAccess = async (userId) => {
+    const planId = plans?.[0]?._id; 
+    if (!planId) return toast.error("Create a Subscription Plan first!");
 
-  const updateRole = (id, newRole) => {
-    setUsers((prev) =>
-      prev.map((user) => (user.id === id ? { ...user, role: newRole } : user))
-    );
-  };
+    if (!window.confirm("Grant this client immediate access without payment?")) return;
 
-  const deleteUser = (id) => {
-    setUsers((prev) => prev.filter((user) => user.id !== id));
-  };
+    try {
+      await manualActivate({ userId, planId, durationMonths: 1, note: "Admin Override" });
+      toast.success("Client account activated!");
+      mutate(); // This triggers SWR to re-fetch the users with the new 'LIVE' status
+    } catch (err) {
+      toast.error("Activation failed");
+    }
+  }
 
-  // Summary
-  const totalUsers = users.length;
-  const totalAdmins = users.filter((u) => u.role === "admin").length;
-  const totalBlocked = users.filter((u) => u.status === "blocked").length;
+  if (isLoading) return <div className="p-20 text-center"><FaSpinner className="animate-spin text-4xl text-blue-600 mx-auto" /></div>;
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-gray-800">User Management</h1>
-        <p className="text-sm text-gray-500">
-          Overview and management of user accounts, roles, and access.
-        </p>
-      </div>
+    <div className="p-8 space-y-8 bg-[#F5F5F7] min-h-screen">
+      <h1 className="text-4xl font-black tracking-tighter text-[#1D1D1F]">Identity Manager</h1>
 
-      {/* Summary Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        <div className="flex items-center gap-4 p-5 bg-white rounded-xl shadow-sm">
-          <FaUsers className="text-blue-500 text-3xl" />
-          <div>
-            <p className="text-gray-500 text-sm">Total Users</p>
-            <p className="text-lg font-bold text-gray-800">{totalUsers}</p>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-4 p-5 bg-white rounded-xl shadow-sm">
-          <FaUserShield className="text-purple-500 text-3xl" />
-          <div>
-            <p className="text-gray-500 text-sm">Admins</p>
-            <p className="text-lg font-bold text-gray-800">{totalAdmins}</p>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-4 p-5 bg-white rounded-xl shadow-sm">
-          <FaTrash className="text-red-500 text-3xl" />
-          <div>
-            <p className="text-gray-500 text-sm">Blocked Users</p>
-            <p className="text-lg font-bold text-gray-800">{totalBlocked}</p>
-          </div>
-        </div>
-      </div>
-
-      {/* User Table */}
-      <div className="overflow-x-auto bg-white rounded-xl shadow-sm">
-        <table className="min-w-full text-sm divide-y divide-gray-200">
-          <thead className="bg-gray-50 text-gray-600 uppercase text-xs">
+      <div className="bg-white rounded-[3rem] overflow-hidden border border-white shadow-sm">
+        <table className="w-full text-left">
+          <thead className="bg-[#F5F5F7] text-[10px] font-bold uppercase tracking-[0.2em] text-gray-400">
             <tr>
-              <th className="px-4 py-3 text-left">User</th>
-              <th className="px-4 py-3 text-left">Role</th>
-              <th className="px-4 py-3 text-left">Status</th>
-              <th className="px-4 py-3 text-left">Last Login</th>
-              <th className="px-4 py-3 text-right">Actions</th>
+              <th className="p-6">User / Email</th>
+              <th className="p-6">Role</th>
+              <th className="p-6">Access Status</th>
+              <th className="p-6 text-right">Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y">
-            {users.map((user) => {
-              const Icon = roleIcons[user.role];
-              return (
-                <tr key={user.id} className="hover:bg-gray-50">
-                  {/* User */}
-                  <td className="px-4 py-3 flex items-center gap-2">
-                    <Icon className="text-gray-400" />
-                    <div className="flex flex-col">
-                      <span className="font-medium text-gray-800">
-                        {user.name}
+          <tbody className="divide-y divide-gray-50">
+            {users.map((user) => (
+              <tr key={user._id} className="group hover:bg-gray-50/50 transition-all duration-300">
+                <td className="p-6">
+                  <p className="font-bold text-[#1D1D1F]">{user.name}</p>
+                  <p className="text-xs text-gray-400">{user.email}</p>
+                </td>
+                <td className="p-6">
+                  <span className={`text-[10px] font-black uppercase px-3 py-1 rounded-full ${user.role === 'admin' ? 'bg-purple-100 text-purple-700' : 'bg-gray-100 text-gray-600'}`}>
+                    {user.role?.replace('_', ' ')}
+                  </span>
+                </td>
+                <td className="p-6">
+                   <div className="flex items-center gap-2">
+                      {/* Pulsing Green Dot if LIVE, Solid Orange if PENDING */}
+                      <div className={`w-2 h-2 rounded-full ${user.accessStatus === 'LIVE' ? 'bg-green-500 animate-pulse' : 'bg-orange-400'}`} />
+                      <span className={`text-[10px] font-black uppercase tracking-widest ${user.accessStatus === 'LIVE' ? 'text-green-600' : 'text-orange-500'}`}>
+                        {user.accessStatus === 'LIVE' ? 'Access Live' : 'Pending'}
                       </span>
-                      <span className="text-xs text-gray-500">
-                        {user.email}
-                      </span>
-                    </div>
-                  </td>
-
-                  {/* Role */}
-                  <td className="px-4 py-3">
-                    <select
-                      value={user.role}
-                      onChange={(e) => updateRole(user.id, e.target.value)}
-                      disabled={user.role === "admin"}
-                      className="
-                        border rounded-md px-2 py-1 text-sm
-                        disabled:bg-gray-100 disabled:text-gray-400
-                      "
+                   </div>
+                </td>
+                <td className="p-6 text-right">
+                  <div className="flex justify-end gap-2">
+                    {/* Only show Grant Access if they are NOT live */}
+                    {user.accessStatus !== 'LIVE' && user.role !== 'admin' && (
+                      <button 
+                        onClick={() => handleGrantAccess(user._id)} 
+                        className="bg-[#1D1D1F] text-white px-5 py-2 rounded-full font-bold text-[10px] uppercase hover:bg-blue-600 transition-all shadow-md"
+                      >
+                        <FaUnlockAlt className="inline mr-1" size={10} /> Grant Access
+                      </button>
+                    )}
+                    <button 
+                       onClick={() => { restrictAccess(user._id); mutate(); }}
+                       className="text-red-500 font-bold text-[10px] uppercase hover:bg-red-50 px-4 py-2 rounded-full transition-all"
                     >
-                      {ROLES.map((role) => (
-                        <option key={role} value={role}>
-                          {role.replace("_", " ")}
-                        </option>
-                      ))}
-                    </select>
-                  </td>
-
-                  {/* Status */}
-                  <td className="px-4 py-3">
-                    <span
-                      className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${
-                        statusStyles[user.status]
-                      }`}
-                    >
-                      {user.status}
-                    </span>
-                  </td>
-
-                  {/* Last Login */}
-                  <td className="px-4 py-3 text-gray-500">{user.lastLogin}</td>
-
-                  {/* Actions */}
-                  <td className="px-4 py-3 text-right flex justify-end gap-2">
-                    <button
-                      onClick={() => toggleStatus(user.id)}
-                      disabled={user.role === "admin"}
-                      className="px-3 py-1 rounded-md text-xs font-medium border hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed"
-                    >
-                      {user.status === "active" ? "Block" : "Unblock"}
+                      Restrict
                     </button>
-
-                    <button
-                      onClick={() => deleteUser(user.id)}
-                      disabled={user.role === "admin"}
-                      className="px-3 py-1 rounded-md text-xs font-medium text-red-600 border border-red-200 hover:bg-red-50 disabled:opacity-40 disabled:cursor-not-allowed"
-                    >
-                      Delete
-                    </button>
-                  </td>
-                </tr>
-              );
-            })}
+                  </div>
+                </td>
+              </tr>
+            ))}
           </tbody>
         </table>
       </div>

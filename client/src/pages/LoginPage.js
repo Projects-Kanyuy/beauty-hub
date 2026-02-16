@@ -26,10 +26,13 @@ const LoginPage = () => {
       const userData = await login(formData);
       toast.success(t("login.success"));
 
-      if (userData.role === "salon_owner") {
-        navigate("/salon-owner/dashboard");
+      // --- UPDATED REDIRECTION LOGIC ---
+      if (userData.role === "admin") {
+        navigate("/admin/overview"); // Redirect Admins to Control Center
+      } else if (userData.role === "salon_owner") {
+        navigate("/salon-owner/dashboard"); // Redirect Owners to Dashboard
       } else {
-        navigate("/dashboard");
+        navigate("/dashboard"); // Redirect Customers
       }
     } catch (err) {
       toast.error(err.response?.data?.message || t("login.error"));

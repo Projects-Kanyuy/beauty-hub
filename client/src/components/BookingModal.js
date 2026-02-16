@@ -1,7 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { FaTimes, FaMapMarkerAlt, FaHome } from "react-icons/fa";
 import Button from "./Button";
 import { useTranslation } from "react-i18next";
+import { useAuth } from "../context/AuthContext"; // Added to handle logged-in users
 
 const BookingModal = ({
   isOpen,
@@ -12,6 +13,8 @@ const BookingModal = ({
   onBookingConfirmed,
 }) => {
   const { t } = useTranslation();
+  const { user } = useAuth(); // Get user info
+
   const [formData, setFormData] = useState({
     customerName: "",
     customerPhone: "",
@@ -20,6 +23,17 @@ const BookingModal = ({
   });
 
   const [loading, setLoading] = useState(false);
+
+  // --- 1. AUTO-FILL DATA IF USER IS LOGGED IN ---
+  useEffect(() => {
+    if (user && isOpen) {
+      setFormData((prev) => ({
+        ...prev,
+        customerName: user.name || "",
+        customerPhone: user.phone || "",
+      }));
+    }
+  }, [user, isOpen]);
 
   if (!isOpen || !service) return null;
 
@@ -34,32 +48,50 @@ const BookingModal = ({
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // --- 2. CRITICAL SAFETY GUARD ---
+    if (!service || !salonId) {
+      console.error("Missing booking details");
+      return;
+    }
+
     setLoading(true);
 
     try {
+      // --- 3. PREPARE IDS SAFELY ---
+      const sId = service._id || service.id;
+      
+      // --- 4. FORMAT DATE FOR WHATSAPP MESSAGE ---
+      const appointmentDate = new Date(formData.preferredDateTime);
+      const dateString = appointmentDate.toLocaleDateString();
+      const timeString = appointmentDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
       // Prepare booking data
       const bookingData = {
-        salonId,
-        serviceId: service._id,
+        salonId: salonId,
+        serviceId: sId,
         serviceName: service.name,
         servicePrice: service.price,
         customerName: formData.customerName,
         customerPhone: formData.customerPhone,
-        preferredDateTime: new Date(formData.preferredDateTime).toISOString(),
+        preferredDateTime: appointmentDate.toISOString(),
         location: formData.location,
       };
 
+      // Corrected variables for the message
       const chatMessage = `Hello ${salonName}, I want to book an appointment for ${
         service.name
-      } on ${formData.preferredDate} at ${formData.preferredTime} at ${
+      } on ${dateString} at ${timeString} at ${
         formData.location === "home" ? "my home" : "your salon"
-      }.\n Here is my phone number: ${formData.customerPhone}`;
+      }.\n\nMy details:\nName: ${formData.customerName}\nPhone: ${formData.customerPhone}`;
 
       // Call the parent's booking confirmation handler
-      onBookingConfirmed({
-        ...bookingData,
-        chatMessage,
-      });
+      if (onBookingConfirmed) {
+        await onBookingConfirmed({
+          ...bookingData,
+          chatMessage,
+        });
+      }
     } catch (err) {
       console.error("Booking error:", err);
     } finally {
@@ -102,8 +134,7 @@ const BookingModal = ({
             <h3 className="text-lg font-bold">{service.name}</h3>
             <p className="text-sm mt-1">{service.description}</p>
             <p className="text-2xl font-bold mt-3">
-              {service.currency}
-              {service.price}
+              {service.currency || 'XAF'} {service.price}
             </p>
           </div>
 
@@ -183,27 +214,7 @@ const BookingModal = ({
                   <span className="font-semibold">{t("booking.atHome")}</span>
                 </button>
               </div>
-              {formData.location === "home" && (
-                <p className="text-sm text-gray-600 mt-2 bg-yellow-50 p-2 rounded">
-                  {t("booking.homeNote")}
-                </p>
-              )}
             </div>
-
-            {/* Additional Notes */}
-            {/* <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-3">
-                Additional Notes (Optional)
-              </label>
-              <textarea
-                name="notes"
-                placeholder="Any special requests or details for the salon..."
-                value={formData.notes}
-                onChange={handleChange}
-                rows="3"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-purple resize-none"
-              />
-            </div> */}
 
             {/* Submit Section */}
             <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg">

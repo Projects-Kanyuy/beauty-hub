@@ -1,150 +1,54 @@
-import {
-  FaArrowDown,
-  FaArrowUp,
-  FaCalendarAlt,
-  FaDollarSign,
-  FaExclamationTriangle,
-  FaStore,
-  FaUsers,
-} from "react-icons/fa";
+import React from "react";
+import useSWR from "swr";
+import { apiClient } from "../api";
+import { FaUsers, FaStore, FaDollarSign, FaChartLine, FaSpinner, FaClock } from "react-icons/fa";
 
-const kpis = [
-  {
-    title: "Total Users",
-    value: 1245,
-    change: "+4.2%",
-    trend: "up",
-    icon: FaUsers,
-  },
-  {
-    title: "Active Salons",
-    value: 342,
-    change: "+1.1%",
-    trend: "up",
-    icon: FaStore,
-  },
-  {
-    title: "Appointments Today",
-    value: 58,
-    change: "-6.8%",
-    trend: "down",
-    icon: FaCalendarAlt,
-  },
-  {
-    title: "Monthly Revenue",
-    value: "$12,450",
-    change: "+12.5%",
-    trend: "up",
-    icon: FaDollarSign,
-  },
-];
-
-const alerts = [
-  { id: 1, message: "3 salons pending verification" },
-  { id: 2, message: "5 failed payment attempts today" },
-  { id: 3, message: "2 negative reviews flagged" },
-];
-
-const recentActivity = [
-  { id: 1, action: "New user registered", time: "5 min ago" },
-  { id: 2, action: "Salon subscription upgraded", time: "18 min ago" },
-  { id: 3, action: "Appointment cancelled", time: "42 min ago" },
-  { id: 4, action: "Payment completed", time: "1 hr ago" },
-];
+const fetcher = (url) => apiClient.get(url).then(res => res.data);
 
 const AdminOverview = () => {
+  const { data: stats, isLoading } = useSWR("/api/admin/stats", fetcher, { refreshInterval: 5000 });
+
+  if (isLoading) return <div className="p-20 text-center"><FaSpinner className="animate-spin text-4xl text-blue-500 mx-auto" /></div>;
+
+  const kpis = [
+    { title: "Revenue", value: `$${stats?.totalRevenue || 0}`, icon: FaDollarSign, color: "text-green-500", bg: "bg-green-50" },
+    { title: "Users", value: stats?.totalUsers || 0, icon: FaUsers, color: "text-blue-500", bg: "bg-blue-50" },
+    { title: "Salons", value: stats?.totalSalons || 0, icon: FaStore, color: "text-purple-500", bg: "bg-purple-50" },
+    { title: "Growth", value: "0%", icon: FaChartLine, color: "text-orange-500", bg: "bg-orange-50" },
+  ];
+
   return (
-    <div className="space-y-8">
-      {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-gray-800">Platform Overview</h1>
-        <p className="text-sm text-gray-500">
-          Snapshot of system activity and health
-        </p>
-      </div>
+    <div className="p-8 space-y-10 bg-[#F5F5F7] min-h-screen">
+      <h1 className="text-4xl font-black tracking-tighter text-[#1D1D1F]">Command Center</h1>
 
-      {/* KPI Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6">
-        {kpis.map((kpi) => {
-          const TrendIcon = kpi.trend === "up" ? FaArrowUp : FaArrowDown;
-          return (
-            <div
-              key={kpi.title}
-              className="bg-white rounded-xl shadow-sm p-5 border border-gray-100"
-            >
-              <div className="flex justify-between items-start">
-                <div>
-                  <p className="text-sm text-gray-500">{kpi.title}</p>
-                  <p className="text-2xl font-bold text-gray-800 mt-1">
-                    {kpi.value}
-                  </p>
-                </div>
-
-                <div className="p-3 rounded-lg bg-slate-100 text-slate-700">
-                  <kpi.icon size={20} />
-                </div>
-              </div>
-
-              <div
-                className={`mt-4 flex items-center gap-1 text-sm font-medium ${
-                  kpi.trend === "up" ? "text-green-600" : "text-red-600"
-                }`}
-              >
-                <TrendIcon size={12} />
-                {kpi.change} vs last period
-              </div>
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        {kpis.map((kpi, i) => (
+          <div key={i} className="bg-white p-8 rounded-[2.5rem] border border-white shadow-sm flex items-center justify-between">
+            <div>
+              <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1">{kpi.title}</p>
+              <p className="text-3xl font-black">{kpi.value}</p>
             </div>
-          );
-        })}
+            <div className={`p-4 ${kpi.bg} ${kpi.color} rounded-2xl`}>
+              <kpi.icon size={20} />
+            </div>
+          </div>
+        ))}
       </div>
 
-      {/* Charts + Alerts */}
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-        {/* Charts */}
-        <div className="xl:col-span-2 grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="bg-white rounded-xl shadow-sm p-6 h-64 flex items-center justify-center text-gray-400">
-            Revenue (Last 30 Days)
-          </div>
-          <div className="bg-white rounded-xl shadow-sm p-6 h-64 flex items-center justify-center text-gray-400">
-            Appointments Trend
-          </div>
-        </div>
-
-        {/* Alerts */}
-        <div className="bg-white rounded-xl shadow-sm p-6 border border-red-100">
-          <div className="flex items-center gap-2 mb-4 text-red-600 font-semibold">
-            <FaExclamationTriangle />
-            Needs Attention
-          </div>
-
-          <ul className="space-y-3 text-sm text-gray-700">
-            {alerts.map((alert) => (
-              <li key={alert.id} className="flex items-start gap-2">
-                <span className="mt-1 w-2 h-2 rounded-full bg-red-500" />
-                {alert.message}
-              </li>
-            ))}
-          </ul>
-        </div>
-      </div>
-
-      {/* Recent Activity */}
-      <div className="bg-white rounded-xl shadow-sm p-6">
-        <h2 className="text-lg font-semibold text-gray-800 mb-4">
-          Recent Activity
+      <div className="bg-white p-10 rounded-[3.5rem] border border-white shadow-sm">
+        <h2 className="text-xl font-bold mb-8 flex items-center gap-2">
+          <FaClock className="text-blue-500" /> Recent Activity
         </h2>
-
-        <ul className="divide-y text-sm">
-          {recentActivity.map((item) => (
-            <li
-              key={item.id}
-              className="py-3 flex justify-between text-gray-700"
-            >
-              <span>{item.action}</span>
-              <span className="text-gray-400">{item.time}</span>
-            </li>
+        <div className="space-y-4">
+          {stats?.recentActivity?.map((act, i) => (
+            <div key={i} className="flex justify-between items-center p-5 bg-[#F5F5F7] rounded-2xl border border-transparent hover:border-gray-200 transition-all">
+              <span className="font-bold text-gray-700">{act.message}</span>
+              <span className="text-xs font-black text-gray-400 uppercase tracking-tighter">
+                {act.time ? new Date(act.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Just now'}
+              </span>
+            </div>
           ))}
-        </ul>
+        </div>
       </div>
     </div>
   );

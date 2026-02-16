@@ -85,5 +85,38 @@ export const updateSubscriptionPlan = (id, data) =>
   API.put(`/api/subscriptions/types/${id}`, data);
 export const deleteSubscriptionPlan = (id) =>
    API.delete(`/api/subscriptions/types/${id}`);
+// Fetch all user subscriptions for the admin list
+export const getAdminOverview = () => 
+  API.get("/api/admin/overview");
 
-// Add more appointment-related API calls here
+// Manually activate a user
+export const manualActivate = (data) => 
+  API.post("/api/admin/manual-activate", data);
+
+// Suspend a user
+export const restrictAccess = (userId) => 
+  API.put(`/api/admin/restrict-access/${userId}`);
+
+
+export const getAdminStats = () => 
+  API.get("/api/admin/stats"); // New endpoint for KPIs
+
+// --- USER & SALON MGMT ---
+export const getAllUsers = () => 
+  API.get("/api/users/all"); // Admin route for users
+export const updateUserRole = (id, role) => 
+  API.put(`/api/users/${id}/role`, { role });
+export const blockUser = (id) => 
+  API.put(`/api/users/${id}/block`);
+
+// --- PAYMENTS & COUPONS ---
+export const getAllPayments = () => 
+  API.get("/api/payments"); 
+export const getAllCoupons = () => 
+  API.get("/api/subscriptions/coupons");
+export const createCoupon = (data) => 
+  API.post("/api/admin/create-coupon-code", data);
+
+// --- APPOINTMENTS ---
+export const getAllAppointments = () => 
+  API.get("/api/appointments/admin/all");

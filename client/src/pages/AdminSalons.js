@@ -1,168 +1,48 @@
-import { useState } from "react";
-import { FaStore, FaUserAlt } from "react-icons/fa";
-
-const mockSalons = [
-  {
-    id: 1,
-    name: "Glamour Studio",
-    owner: "Jane Smith",
-    email: "jane@glamour.com",
-    status: "active",
-  },
-  {
-    id: 2,
-    name: "Beauty Bliss",
-    owner: "John Doe",
-    email: "john@beautybliss.com",
-    status: "pending",
-  },
-  {
-    id: 3,
-    name: "Elite Salon",
-    owner: "Mary Johnson",
-    email: "mary@elite.com",
-    status: "blocked",
-  },
-  {
-    id: 4,
-    name: "Chic Cuts",
-    owner: "Alice Brown",
-    email: "alice@chiccuts.com",
-    status: "active",
-  },
-];
-
-const statusStyles = {
-  active: "bg-green-100 text-green-700",
-  blocked: "bg-red-100 text-red-700",
-  pending: "bg-yellow-100 text-yellow-700",
-};
+import React from "react";
+import { useAdminSalons } from "../api/swr";
+import { FaStore, FaSpinner, FaCheckCircle, FaTrash } from "react-icons/fa";
 
 const AdminSalons = () => {
-  const [salons, setSalons] = useState(mockSalons);
+  const { data: salons = [], isLoading } = useAdminSalons();
 
-  const toggleStatus = (id) => {
-    setSalons((prev) =>
-      prev.map((salon) =>
-        salon.id === id
-          ? {
-              ...salon,
-              status:
-                salon.status === "active"
-                  ? "blocked"
-                  : salon.status === "blocked"
-                  ? "active"
-                  : salon.status, // pending stays same
-            }
-          : salon
-      )
-    );
-  };
-
-  const deleteSalon = (id) => {
-    setSalons((prev) => prev.filter((salon) => salon.id !== id));
-  };
-
-  // Summary
-  const totalSalons = salons.length;
-  const activeSalons = salons.filter((s) => s.status === "active").length;
-  const blockedSalons = salons.filter((s) => s.status === "blocked").length;
-  const pendingSalons = salons.filter((s) => s.status === "pending").length;
+  if (isLoading) return <div className="p-20 text-center"><FaSpinner className="animate-spin mx-auto text-4xl text-blue-600" /></div>;
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-gray-800">Salon Management</h1>
-        <p className="text-sm text-gray-500">
-          Overview of all registered salons and their status.
-        </p>
-      </div>
-
-      {/* Summary Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div className="flex items-center gap-4 p-5 bg-white rounded-xl shadow-sm">
-          <FaStore className="text-blue-500 text-3xl" />
-          <div>
-            <p className="text-gray-500 text-sm">Total Salons</p>
-            <p className="text-lg font-bold text-gray-800">{totalSalons}</p>
-          </div>
-        </div>
-        <div className="flex items-center gap-4 p-5 bg-white rounded-xl shadow-sm">
-          <span className="bg-green-500/20 text-green-700 p-2 rounded-full">
-            ●
-          </span>
-          <div>
-            <p className="text-gray-500 text-sm">Active</p>
-            <p className="text-lg font-bold text-gray-800">{activeSalons}</p>
-          </div>
-        </div>
-        <div className="flex items-center gap-4 p-5 bg-white rounded-xl shadow-sm">
-          <span className="bg-yellow-500/20 text-yellow-700 p-2 rounded-full">
-            ●
-          </span>
-          <div>
-            <p className="text-gray-500 text-sm">Pending</p>
-            <p className="text-lg font-bold text-gray-800">{pendingSalons}</p>
-          </div>
-        </div>
-        <div className="flex items-center gap-4 p-5 bg-white rounded-xl shadow-sm">
-          <span className="bg-red-500/20 text-red-700 p-2 rounded-full">●</span>
-          <div>
-            <p className="text-gray-500 text-sm">Blocked</p>
-            <p className="text-lg font-bold text-gray-800">{blockedSalons}</p>
-          </div>
+    <div className="p-8 space-y-8">
+      <h1 className="text-4xl font-black tracking-tighter">Salon Fleet</h1>
+      
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <div className="bg-white p-8 rounded-[2.5rem] shadow-sm border border-white">
+          <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-2">Total Salons</p>
+          <p className="text-4xl font-black">{salons.length}</p>
         </div>
       </div>
 
-      {/* Table */}
-      <div className="overflow-x-auto bg-white rounded-xl shadow-sm">
-        <table className="min-w-full divide-y divide-gray-200 text-sm">
-          <thead className="bg-gray-50 text-gray-600 uppercase text-xs">
+      <div className="bg-white rounded-[3rem] overflow-hidden border border-white shadow-sm">
+        <table className="w-full text-left">
+          <thead className="bg-[#F5F5F7] text-[10px] uppercase font-bold tracking-widest text-gray-400">
             <tr>
-              <th className="px-4 py-3 text-left">Salon Name</th>
-              <th className="px-4 py-3 text-left">Owner</th>
-              <th className="px-4 py-3 text-left">Email</th>
-              <th className="px-4 py-3 text-left">Status</th>
-              <th className="px-4 py-3 text-right">Actions</th>
+              <th className="p-6">Salon Name</th>
+              <th className="p-6">Owner</th>
+              <th className="p-6">City</th>
+              <th className="p-6 text-right">Verification</th>
             </tr>
           </thead>
-
-          <tbody className="divide-y">
-            {salons.map((salon) => (
-              <tr key={salon.id} className="hover:bg-gray-50">
-                <td className="px-4 py-3 font-medium text-gray-800">
-                  {salon.name}
+          <tbody className="divide-y divide-gray-50">
+            {salons.map(salon => (
+              <tr key={salon._id} className="hover:bg-gray-50 transition-colors">
+                <td className="p-6 font-bold">{salon.name}</td>
+                <td className="p-6">
+                  <p className="text-sm">{salon.owner?.name}</p>
+                  <p className="text-xs text-gray-400">{salon.owner?.email}</p>
                 </td>
-                <td className="px-4 py-3 flex items-center gap-2">
-                  <FaUserAlt className="text-gray-400" />
-                  {salon.owner}
-                </td>
-                <td className="px-4 py-3 text-gray-500">{salon.email}</td>
-                <td className="px-4 py-3">
-                  <span
-                    className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${
-                      statusStyles[salon.status]
-                    }`}
-                  >
-                    {salon.status}
+                <td className="p-6 text-gray-500">{salon.city}</td>
+                <td className="p-6 text-right">
+                  <span className={`px-4 py-1 rounded-full text-[10px] font-black uppercase ${
+                    salon.isVerified ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700'
+                  }`}>
+                    {salon.isVerified ? 'Verified' : 'Pending'}
                   </span>
-                </td>
-                <td className="px-4 py-3 text-right flex justify-end gap-2">
-                  {salon.status !== "pending" && (
-                    <button
-                      onClick={() => toggleStatus(salon.id)}
-                      className="px-3 py-1 rounded-md text-xs font-medium border hover:bg-gray-100"
-                    >
-                      {salon.status === "active" ? "Block" : "Unblock"}
-                    </button>
-                  )}
-                  <button
-                    onClick={() => deleteSalon(salon.id)}
-                    className="px-3 py-1 rounded-md text-xs font-medium text-red-600 border border-red-200 hover:bg-red-50"
-                  >
-                    Delete
-                  </button>
                 </td>
               </tr>
             ))}
@@ -172,5 +52,4 @@ const AdminSalons = () => {
     </div>
   );
 };
-
 export default AdminSalons;

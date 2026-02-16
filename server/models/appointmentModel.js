@@ -74,7 +74,7 @@ const appointmentSchema = new mongoose.Schema(
     },
     currency: {
       type: String,
-      enum: ["USD", "XAF"],
+      enum: ["XAF", "XOF", "NGN", "GHS", "USD", "KES", "TZS", "UGX", "ZMW", "INR"],
       default: "XAF",
     },
     status: {

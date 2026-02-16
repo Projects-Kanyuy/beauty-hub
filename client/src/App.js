@@ -1,4 +1,3 @@
-// src/App.js
 import { useEffect, useState } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
@@ -7,7 +6,7 @@ import { SWRConfig } from "swr";
 import { getActiveSubscription } from "./api";
 import { useAuth } from "./context/AuthContext";
 
-// --- Layouts & Protected Routes ---
+// Layouts & Protected Routes
 import Footer from "./components/Footer";
 import Navbar from "./components/Navbar";
 import ScrollToTop from "./components/ScrollToTop";
@@ -16,7 +15,7 @@ import CustomerProtectedRoute from "./components/routing/CustomerProtectedRoute"
 import SalonOwnerProtectedRoute from "./components/routing/SalonOwnerProtectedRoute";
 import AdminProtectedRoute from "./components/routing/AdminProtectedRoute";
 
-// --- Pages ---
+// Pages
 import AdminLayout from "./components/AdminLayout";
 import FloatingActions from "./components/FloatingActions";
 import AboutPage from "./pages/AboutPage";
@@ -52,7 +51,6 @@ import SalonSettingsPage from "./pages/SalonSettingsPage";
 import SalonsPage from "./pages/SalonsPage";
 import Subscriptions from "./pages/Subscriptions";
 
-// Layout for the main public/customer site
 const MainLayout = ({ children }) => {
   const { user, logout } = useAuth();
   return (
@@ -67,192 +65,77 @@ const MainLayout = ({ children }) => {
 function App() {
   const { user, loading } = useAuth();
   const [activePlan, setActivePlan] = useState(null);
-  // const location = useLocation();
 
   useEffect(() => {
     if (!user || user?.role !== "salon_owner") return;
 
     const getPlan = async () => {
-      const plan = await getActiveSubscription(user?._id);
-      console.log({ plan });
-      setActivePlan(plan);
+      try {
+        const plan = await getActiveSubscription(user?._id);
+        setActivePlan(plan);
+      } catch (err) {
+        console.error("No active plan found");
+      }
     };
     getPlan();
   }, [user]);
 
-  // Show a loading screen while context is checking for a stored user
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        Loading...
-      </div>
-    );
+    return <div className="min-h-screen flex items-center justify-center font-bold text-primary-purple animate-pulse">Loading System Architecture...</div>;
   }
 
   return (
-    <SWRConfig
-      value={{
-        revalidateOnFocus: true,
-        dedupingInterval: 15000,
-        errorRetryCount: 2,
-      }}
-    >
+    <SWRConfig value={{ revalidateOnFocus: true, dedupingInterval: 15000, errorRetryCount: 2 }}>
       <div className="font-sans">
         <ScrollToTop />
-        <ToastContainer
-          position="top-right"
-          autoClose={3000}
-          hideProgressBar={false}
-        />
+        <ToastContainer position="top-right" autoClose={3000} />
 
         <Routes>
-          {/* === PUBLIC ROUTES === */}
+          {/* === ROOT REDIRECTION LOGIC === */}
           <Route
             path="/"
             element={
               !user ? (
-                <MainLayout>
-                  <HomePage />
-                </MainLayout>
+                <MainLayout><HomePage /></MainLayout>
               ) : (
                 <Navigate
                   to={
-                    user.role === "salon_owner" && activePlan
+                    user.role === "admin"
+                      ? "/admin/overview" // NEW: Redirect logged-in Admin
+                      : user.role === "salon_owner" && activePlan
                       ? "/salon-owner/dashboard"
-                      : "/subscriptions"
+                      : user.role === "salon_owner" && !activePlan
+                      ? "/subscriptions"
+                      : "/dashboard" // Regular Customers
                   }
                   replace
                 />
               )
             }
           />
-          <Route
-            path="/become-salon-owner"
-            element={
-              <MainLayout>
-                <BecomeSalonOwnerPage />
-              </MainLayout>
-            }
-          />
-          <Route
-            path="/subscriptions"
-            element={
-              <MainLayout>
-                <Subscriptions />
-              </MainLayout>
-            }
-          />
-          <Route
-            path="/tips"
-            element={
-              <MainLayout>
-                <BeautyTipsPage />
-              </MainLayout>
-            }
-          />
-          <Route
-            path="/about"
-            element={
-              <MainLayout>
-                <AboutPage />
-              </MainLayout>
-            }
-          />
-          <Route
-            path="/contact"
-            element={
-              <MainLayout>
-                <ContactPage />
-              </MainLayout>
-            }
-          />
-          <Route
-            path="/salons"
-            element={
-              <MainLayout>
-                <SalonsPage />
-              </MainLayout>
-            }
-          />
-          <Route
-            path="/salon/:id"
-            element={
-              <MainLayout>
-                <SalonDetailPage />
-              </MainLayout>
-            }
-          />
-          <Route
-            path="/payment"
-            element={
-              <MainLayout>
-                <PaymentPage />
-              </MainLayout>
-            }
-          />
 
-          {/* === AUTH ROUTES (For logged-out users only) === */}
-          <Route
-            path="/login"
-            element={
-              <MainLayout>
-                <LoginPage />
-              </MainLayout>
-            }
-          />
-          <Route
-            path="/register"
-            element={
-              <MainLayout>
-                <RegisterPage />
-              </MainLayout>
-            }
-          />
+          <Route path="/become-salon-owner" element={<MainLayout><BecomeSalonOwnerPage /></MainLayout>} />
+          <Route path="/subscriptions" element={<MainLayout><Subscriptions /></MainLayout>} />
+          <Route path="/tips" element={<MainLayout><BeautyTipsPage /></MainLayout>} />
+          <Route path="/about" element={<MainLayout><AboutPage /></MainLayout>} />
+          <Route path="/contact" element={<MainLayout><ContactPage /></MainLayout>} />
+          <Route path="/salons" element={<MainLayout><SalonsPage /></MainLayout>} />
+          <Route path="/salon/:id" element={<MainLayout><SalonDetailPage /></MainLayout>} />
+          <Route path="/payment" element={<MainLayout><PaymentPage /></MainLayout>} />
+
+          <Route path="/login" element={<MainLayout><LoginPage /></MainLayout>} />
+          <Route path="/register" element={<MainLayout><RegisterPage /></MainLayout>} />
 
           {/* === CUSTOMER PROTECTED ROUTES === */}
           <Route element={<CustomerProtectedRoute />}>
-            <Route
-              path="/dashboard"
-              element={
-                <MainLayout>
-                  <DashboardPage />
-                </MainLayout>
-              }
-            />
-            <Route
-              path="/settings"
-              element={
-                <MainLayout>
-                  <CustomerSettingsPage />
-                </MainLayout>
-              }
-            />
-            <Route
-              path="/favorites"
-              element={
-                <MainLayout>
-                  <FavoritesPage />
-                </MainLayout>
-              }
-            />
-            <Route
-              path="/compare"
-              element={
-                <MainLayout>
-                  <ComparePage />
-                </MainLayout>
-              }
-            />
-            <Route
-              path="/near-me"
-              element={
-                <MainLayout>
-                  <NearMePage />
-                </MainLayout>
-              }
-            />
+            <Route path="/dashboard" element={<MainLayout><DashboardPage /></MainLayout>} />
+            <Route path="/settings" element={<MainLayout><CustomerSettingsPage /></MainLayout>} />
+            <Route path="/favorites" element={<MainLayout><FavoritesPage /></MainLayout>} />
+            <Route path="/compare" element={<MainLayout><ComparePage /></MainLayout>} />
+            <Route path="/near-me" element={<MainLayout><NearMePage /></MainLayout>} />
           </Route>
 
+          {/* === ADMIN PROTECTED ROUTES === */}
           <Route element={<AdminProtectedRoute />}>
             <Route path="/admin" element={<AdminLayout />}>
               <Route path="overview" element={<AdminOverview />} />
@@ -268,29 +151,22 @@ function App() {
 
           {/* === SALON OWNER PROTECTED ROUTES === */}
           <Route element={<SalonOwnerProtectedRoute />}>
-            <Route
-              path="/salon-owner/*"
-              element={
-                <SalonOwnerLayout>
-                  <Routes>
-                    <Route path="dashboard" element={<SalonDashboardPage />} />
-                    <Route
-                      path="appointments"
-                      element={<SalonAppointmentsPage />}
-                    />
-                    <Route path="profile" element={<SalonProfilePage />} />
-                    <Route path="services" element={<SalonServicesPage />} />
-                    <Route path="messages" element={<SalonMessagesPage />} />
-                    <Route path="reviews" element={<SalonReviewsPage />} />
-                    <Route path="analytics" element={<SalonAnalyticsPage />} />
-                    <Route path="settings" element={<SalonSettingsPage />} />
-                  </Routes>
-                </SalonOwnerLayout>
-              }
-            />
+            <Route path="/salon-owner/*" element={
+              <SalonOwnerLayout>
+                <Routes>
+                  <Route path="dashboard" element={<SalonDashboardPage />} />
+                  <Route path="appointments" element={<SalonAppointmentsPage />} />
+                  <Route path="profile" element={<SalonProfilePage />} />
+                  <Route path="services" element={<SalonServicesPage />} />
+                  <Route path="messages" element={<SalonMessagesPage />} />
+                  <Route path="reviews" element={<SalonReviewsPage />} />
+                  <Route path="analytics" element={<SalonAnalyticsPage />} />
+                  <Route path="settings" element={<SalonSettingsPage />} />
+                </Routes>
+              </SalonOwnerLayout>
+            } />
           </Route>
 
-          {/* Fallback Route */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
         <FloatingActions />

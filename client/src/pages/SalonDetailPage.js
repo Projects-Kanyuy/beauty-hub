@@ -43,6 +43,7 @@ const SalonDetailPage = () => {
 
   const handleConfirmBooking = async (bookingData) => {
     try {
+      // 1. CALL API TO CREATE APPOINTMENT (Ghost or Registered)
       await createAppointment({
         salonId: bookingData.salonId,
         serviceId: bookingData.serviceId,
@@ -53,19 +54,23 @@ const SalonDetailPage = () => {
       });
 
       toast.success(t("salondetail.bookingSuccess"));
-
       setIsModalOpen(false);
 
-      const whatsappUrl = `https://wa.me/${resolvedSalon?.phone?.replace(
-        /[^0-9]/g,
-        ""
-      )}?text=${bookingData?.chatMessage}`;
+      // 2. WHATSAPP REDIRECTION
+      // Format phone number (remove any non-numeric characters)
+      const rawPhone = resolvedSalon?.phone || "";
+      const formattedPhone = rawPhone.replace(/[^0-9]/g, "");
+      
+      // Use encodeURIComponent to handle special characters in the message safely
+      const message = encodeURIComponent(bookingData?.chatMessage || "");
+      const whatsappUrl = `https://wa.me/${formattedPhone}?text=${message}`;
+      
       window.open(whatsappUrl, "_blank");
     } catch (err) {
       toast.error(
         err.response?.data?.message || t("salondetail.bookingFailed")
       );
-      console.error(err);
+      console.error("Booking Confirm Error:", err);
     }
   };
 
@@ -175,7 +180,7 @@ const SalonDetailPage = () => {
                           <h3 className="font-semibold text-lg">
                             {service.name}
                           </h3>
-                          {service.homeServiceAvailable && (
+                          {service.homeService && (
                             <span className="inline-flex items-center space-x-1 bg-green-100 text-green-800 text-xs font-semibold px-3 py-1 rounded-full w-fit">
                               <FaHome size={12} />
                               <span>{t("salondetail.homeService")}</span>
@@ -188,7 +193,7 @@ const SalonDetailPage = () => {
                       </div>
                       <div className="flex items-center space-x-4 w-full sm:w-auto">
                         <span className="font-bold text-lg text-primary-purple">
-                          {service.currency}
+                          {resolvedSalon.currency}
                           {service.price}
                         </span>
                         <Button
@@ -214,14 +219,14 @@ const SalonDetailPage = () => {
                 {t("salondetail.aboutSalon")}
               </h2>
               <p className="text-text-muted leading-relaxed">
-                {salon.description || t("salondetail.aboutSalonPlaceholder")}
+                {resolvedSalon.description || t("salondetail.aboutSalonPlaceholder")}
               </p>
             </div>
           </div>
 
           <div className="lg:col-span-1">
             <div className="bg-white p-6 rounded-lg shadow-md sticky top-4 space-y-6">
-              {salon.photos && salon.photos.length > 0 && (
+              {resolvedSalon.photos && resolvedSalon.photos.length > 0 && (
                 <div>
                   <h3 className="text-lg font-bold mb-3 flex items-center space-x-2">
                     <FaImages />
@@ -271,8 +276,8 @@ const SalonDetailPage = () => {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         service={selectedService}
-        salonId={resolvedSalon._id}
-        salonName={resolvedSalon.name}
+        salonId={resolvedSalon?._id || resolvedSalon?.id}
+        salonName={resolvedSalon?.name}
         onBookingConfirmed={handleConfirmBooking}
       />
     </div>

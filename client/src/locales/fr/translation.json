@@ -47,16 +47,17 @@
     "title": "Réserver un rendez-vous",
     "yourInfo": "Vos informations",
     "fullName": "Nom complet *",
-    "phoneNumber": "Numéro de téléphone *",
+    "phone": "Numéro de téléphone *",
     "preferredDateTime": "Date et heure souhaitées",
-    "serviceLocation": "Lieu du service",
+    "location": "Lieu du service",
     "atSalon": "Au salon",
     "atHome": "À domicile",
-    "homeServiceNote": "Note : Les services à domicile peuvent inclure des frais supplémentaires. Le salon confirmera les détails dans le chat.",
+    "homeNote": "Note : Les services à domicile peuvent inclure des frais supplémentaires. Le salon confirmera les détails dans le chat.",
     "afterBooking": "Après votre réservation, vous pourrez discuter directement avec le salon pour confirmer les détails et discuter de toute demande spéciale.",
     "cancel": "Annuler",
     "loading": "Réservation...",
-    "request": "Demander une réservation"
+    "submit": "Demander une réservation",
+    "dateTime": "Date et heure du rendez-vous"
   },
   "dashboardPanel": {
     "viewAll": "Voir tout >"
@@ -67,6 +68,16 @@
   "photoUploader": {
     "addPhoto": "Ajouter une photo",
     "galleryAlt": "Galerie du salon"
+  },
+  "serviceModal": {
+    "addService": "Ajouter un nouveau service",
+    "editService": "Modifier le service",
+    "serviceName": "Nom du service",
+    "description": "Description",
+    "price": "Prix",
+    "duration": "Durée (ex: 1h 30m)",
+    "cancel": "Annuler",
+    "save": "Enregistrer le service"
   },
   "salonCard": {
     "homeServices": "Service à domicile",
@@ -111,7 +122,7 @@
     "heroTitle": "À propos de BeautyHeaven",
     "heroSubtitle": "Connecter les professionnels de la beauté et les clients à travers l'Afrique avec confiance et technologie.",
     "missionTitle": "Notre Mission",
-    "missionText1": "Notre mission est de responsabiliser les entrepreneurs de la beauté en fournissant une plateforme robuste pour mettre en valeur leurs talents, gérer leur activité et se connecter à un public plus large. Nous visons à simplifier le processus pour que les clients découvrent, réservent et évaluent les services de beauté, garantissant une expérience fluide et fiable pour tous.",
+    "missionText1": "Notre mission est de responsabiliser les entrepreneurs de la beauté en fournissant une plateforme robuste pour mettre en valeur leurs talents, gérer leur activité et se connecter à un public plus la rge. Nous visons à simplifier le processus pour que les clients découvrent, réservent et évaluent les services de beauté, garantissant une expérience fluide et fiable pour tous.",
     "missionText2": "Nous croyons au pouvoir de la communauté et nous nous efforçons de construire un écosystème de soutien où les professionnels de la beauté peuvent prospérer et où les clients peuvent trouver le partenaire parfait pour leurs besoins.",
     "empowerment": {
       "title": "Autonomisation",
@@ -353,7 +364,6 @@
     "noSubscription": "Aucun abonnement actif",
     "subscribeToUnlock": "Abonnez-vous pour débloquer toutes les fonctionnalités de BeautyHub.",
     "choosePlan": "Choisir un forfait",
-
     "welcomeBack": "Bon retour, {{name}} !",
     "summary": "Voici un résumé de l'activité de votre salon aujourd'hui.",
     "todaysBookings": "Réservations d'aujourd'hui",

@@ -1,4 +1,3 @@
-// server/models/salonModel.js
 const mongoose = require("mongoose");
 
 /**
@@ -22,6 +21,10 @@ const mongoose = require("mongoose");
  *           type: string
  *         phone:
  *           type: string
+ *         currency:
+ *           type: string
+ *           description: The base currency for this salon's services (e.g., XAF, USD)
+ *           example: XAF
  *         photos:
  *           type: array
  *           items:
@@ -41,6 +44,8 @@ const mongoose = require("mongoose");
  *                 type: string
  *               price:
  *                 type: number
+ *               currency:
+ *                 type: string
  *               duration:
  *                 type: string
  *         averageRating:
@@ -52,17 +57,18 @@ const mongoose = require("mongoose");
  *           items:
  *             type: string
  */
-// We define the schema for a service as a sub-document
+
 const serviceSchema = new mongoose.Schema({
   name: { type: String, required: true },
   description: { type: String },
   price: { type: Number, required: true },
   currency: {
     type: String,
-    enum: ["USD", "XAF"],
+    // We keep this flexible so a specific service could theoretically 
+    // differ, but it will default to the Salon's currency.
     default: "XAF",
   },
-  duration: { type: Number }, // in minutes
+  duration: { type: String }, // Switched to string to allow "1h 30m" format
   homeService: {
     type: Boolean,
     default: false,
@@ -76,9 +82,9 @@ const serviceSchema = new mongoose.Schema({
 const salonSchema = new mongoose.Schema(
   {
     owner: {
-      type: mongoose.Schema.Types.ObjectId, // A special type for referencing another document
+      type: mongoose.Schema.Types.ObjectId,
       required: true,
-      ref: "User", // This tells Mongoose the ObjectId refers to a document in the 'User' collection
+      ref: "User",
     },
     name: {
       type: String,
@@ -88,10 +94,17 @@ const salonSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    // --- ADDED THIS FIELD ---
+    currency: {
+      type: String,
+      default: "XAF",
+      // List of supported currencies from your provided spreadsheet
+      enum: ["XAF", "XOF", "NGN", "GHS", "USD", "KES", "TZS", "UGX", "ZMW", "INR"],
+    },
     address: { type: String, required: true },
     city: { type: String, required: true },
     phone: { type: String, required: true },
-    photos: [{ type: String }], // An array of image URLs
+    photos: [{ type: String }],
     openingHours: {
       monday: String,
       tuesday: String,
@@ -101,7 +114,7 @@ const salonSchema = new mongoose.Schema(
       saturday: String,
       sunday: String,
     },
-    services: [serviceSchema], // An array of services, each following the serviceSchema
+    services: [serviceSchema],
     reviews: [
       {
         type: mongoose.Schema.Types.ObjectId,
