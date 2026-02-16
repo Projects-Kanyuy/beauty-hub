@@ -1,6 +1,6 @@
 import React from "react";
 import { useAdminUsers, useSubscriptionPlans } from "../api/swr";
-import { FaUserShield, FaSpinner, FaUnlockAlt, FaBan, FaCheckCircle } from "react-icons/fa";
+import { FaSpinner, FaUnlockAlt} from "react-icons/fa";
 import { toast } from "react-toastify";
 import { manualActivate, restrictAccess } from "../api";
 

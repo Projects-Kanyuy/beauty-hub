@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { apiClient, createCoupon, getAllCoupons } from "../api";
+import { apiClient, createCoupon,  } from "../api";
 import useSWR from "swr";
 import { toast } from "react-toastify";
 

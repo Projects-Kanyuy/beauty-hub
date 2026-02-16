@@ -1,6 +1,6 @@
 import React from "react";
 import { useAdminSalons } from "../api/swr";
-import { FaStore, FaSpinner, FaCheckCircle, FaTrash } from "react-icons/fa";
+import { FaSpinner } from "react-icons/fa";
 
 const AdminSalons = () => {
   const { data: salons = [], isLoading } = useAdminSalons();
