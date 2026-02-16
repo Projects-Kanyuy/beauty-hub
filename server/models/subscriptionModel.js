@@ -27,13 +27,16 @@ const subscriptionSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ["Created", "Active", "Expired", "Cancelled"],
+      enum: ["Created", "Active", "Expired", "Cancelled","Suspended"],
       default: "Created",
     },
     paymentRef: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Payment",
     },
+    isManualOverride: { type: Boolean, default: false },
+    activatedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+    overrideNote: { type: String },
   },
   { timestamps: true }
 );

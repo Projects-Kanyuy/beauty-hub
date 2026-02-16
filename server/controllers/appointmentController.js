@@ -1,58 +1,12 @@
-// server/controllers/appointmentController.js
 const asyncHandler = require("express-async-handler");
 const Appointment = require("../models/appointmentModel");
 const Salon = require("../models/salonModel");
+const User = require("../models/userModel");
 
 /**
- * @swagger
- * /api/appointments:
- *   post:
- *     summary: Create a new appointment (Customer only)
- *     description: Allows an authenticated customer to book a new appointment at a salon.
- *     tags: [Appointments]
- *     security:
- *       - bearerAuth: []
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - salonId
- *               - serviceName
- *               - servicePrice
- *               - startTime
- *               - endTime
- *             properties:
- *               salonId:
- *                 type: string
- *                 description: ID of the salon
- *               serviceName:
- *                 type: string
- *                 example: "Box Braids + Install"
- *               servicePrice:
- *                 type: number
- *                 example: 25000
- *               startTime:
- *                 type: string
- *                 format: date-time
- *                 example: "2025-12-01T10:00:00Z"
- *               endTime:
- *                 type: string
- *                 format: date-time
- *                 example: "2025-12-01T13:00:00Z"
- *     responses:
- *       201:
- *         description: Appointment created successfully
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Appointment'
- *       400:
- *         description: Missing required fields
- *       401:
- *         description: Not authenticated
+ * @desc    Create a new appointment (Guest or Registered)
+ * @route   POST /api/appointments
+ * @access  Public (Optional Auth)
  */
 const createAppointment = asyncHandler(async (req, res) => {
   const {
@@ -64,89 +18,83 @@ const createAppointment = asyncHandler(async (req, res) => {
     homeService,
   } = req.body;
 
-  if (
-    !salonId ||
-    !serviceId ||
-    !appointmentDateTime ||
-    !clientName ||
-    !clientNumber
-  ) {
-    return res
-      .status(400)
-      .json({ message: "Please provide all required appointment details" });
+  // Basic Validation
+  if (!salonId || !serviceId || !appointmentDateTime || !clientName || !clientNumber) {
+    res.status(400);
+    throw new Error("Please provide all required appointment details");
   }
 
+  // Verify Salon and Service
   const salon = await Salon.findById(salonId);
-
   if (!salon) {
-    return res
-      .status(404)
-      .json({ message: `Salon with id ${salonId} not found` });
+    res.status(404);
+    throw new Error("Salon not found");
   }
 
   const service = salon.services.id(serviceId);
-
   if (!service) {
-    return res.status(404).json({
-      message: `Service with id ${serviceId} not found for given salon with id ${salonId}`,
-    });
+    res.status(404);
+    throw new Error("Service not found");
   }
 
-  if (homeService && !service.homeService) {
-    return res
-      .status(400)
-      .json({ message: `This service was not specified as a home service` });
+  // --- GHOST ACCOUNT LOGIC ---
+  let customerId;
+
+  if (req.user) {
+    // Case A: User is logged in
+    customerId = req.user._id;
+  } else {
+    // Case B: Guest User
+    // 1. Check if a user with this phone number already exists
+    let user = await User.findOne({ phone: clientNumber });
+
+    if (!user) {
+      // 2. Create a "Ghost" user if they don't exist
+      // We generate a placeholder email since it's usually required/unique in schemas
+      const tempEmail = `${clientNumber}@guest.beautyheaven.site`;
+      const tempPassword = Math.random().toString(36).slice(-10);
+
+      user = await User.create({
+        name: clientName,
+        phone: clientNumber,
+        email: tempEmail,
+        password: tempPassword,
+        role: "customer",
+        isVerified: true, // We trust them because they provided a phone for the salon
+      });
+    }
+    customerId = user._id;
   }
 
+  // Calculate Amount
+  const amount = homeService 
+    ? service.price + (service.homeServiceFee || 0) 
+    : service.price;
+
+  // Create Appointment
   const appointment = await Appointment.create({
     clientName,
     clientNumber,
-    customer: req.user._id,
+    customer: customerId,
     salon: salonId,
     serviceId: serviceId,
+    serviceName: service.name,
     appointmentDateTime,
-    amount: homeService
-      ? service.price + service.homeServiceFee
-      : service.price,
-    currency: service.currency,
-    homeService,
+    amount,
+    currency: service.currency || salon.currency || "XAF",
+    homeService: homeService || false,
     status: "Pending",
   });
 
   res.status(201).json({
+    success: true,
+    message: "Booking requested successfully",
     data: appointment,
   });
 });
 
 /**
- * @swagger
- * /api/appointments/salon/{salonId}:
- *   get:
- *     summary: Get all appointments for a specific salon (Salon Owner only)
- *     description: Returns all appointments belonging to the salon. Only the salon owner can access this.
- *     tags: [Appointments]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: salonId
- *         required: true
- *         schema:
- *           type: string
- *         description: Salon ID
- *     responses:
- *       200:
- *         description: List of appointments with customer details
- *         content:
- *           application/json:
- *             schema:
- *               type: array
- *               items:
- *                 $ref: '#/components/schemas/Appointment'
- *       401:
- *         description: Not authorized (not the salon owner)
- *       404:
- *         description: Salon not found
+ * @desc    Get all appointments for a specific salon (Owner only)
  */
 const getSalonAppointments = asyncHandler(async (req, res) => {
   const salon = await Salon.findById(req.params.salonId);
@@ -156,89 +104,29 @@ const getSalonAppointments = asyncHandler(async (req, res) => {
     throw new Error("Not authorized to view these appointments");
   }
 
-  const appointments = await Appointment.find({
-    salon: req.params.salonId,
-  });
+  const appointments = await Appointment.find({ salon: req.params.salonId })
+    .populate("customer", "name phone email")
+    .sort("-appointmentDateTime");
 
   res.json(appointments);
 });
 
 /**
- * @swagger
- * /api/appointments/myappointments:
- *   get:
- *     summary: Get current customer's appointments
- *     description: Returns all appointments made by the authenticated customer.
- *     tags: [Appointments]
- *     security:
- *       - bearerAuth: []
- *     responses:
- *       200:
- *         description: List of customer's appointments with salon details
- *         content:
- *           application/json:
- *             schema:
- *               type: array
- *               items:
- *                 $ref: '#/components/schemas/Appointment'
- *       401:
- *         description: Not authenticated
+ * @desc    Get current customer's appointments
  */
 const getMyApointments = asyncHandler(async (req, res) => {
-  const appointments = await Appointment.find({
-    customer: req.user._id,
-  }).populate("salon", "name address");
+  const appointments = await Appointment.find({ customer: req.user._id })
+    .populate("salon", "name address phone")
+    .sort("-appointmentDateTime");
   res.json(appointments);
 });
 
 /**
- * @swagger
- * /api/appointments/{id}/status:
- *   put:
- *     summary: Update appointment status (Salon Owner only)
- *     description: Allows salon owner to confirm, cancel, or mark an appointment as completed.
- *     tags: [Appointments]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *         description: Appointment ID
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - status
- *             properties:
- *               status:
- *                 type: string
- *                 enum: [Confirmed, Cancelled, Completed]
- *                 example: Confirmed
- *     responses:
- *       200:
- *         description: Appointment status updated successfully
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Appointment'
- *       400:
- *         description: Invalid status value
- *       401:
- *         description: Not authorized (not the salon owner)
- *       404:
- *         description: Appointment not found
+ * @desc    Update status (Owner only)
  */
 const updateAppointmentStatus = asyncHandler(async (req, res) => {
   const { status } = req.body;
-  const appointment = await Appointment.findById(req.params.id).populate(
-    "salon"
-  );
+  const appointment = await Appointment.findById(req.params.id).populate("salon");
 
   if (!appointment) {
     res.status(404);
@@ -247,17 +135,11 @@ const updateAppointmentStatus = asyncHandler(async (req, res) => {
 
   if (appointment.salon.owner.toString() !== req.user._id.toString()) {
     res.status(401);
-    throw new Error("Not authorized to update this appointment");
-  }
-
-  if (!["Confirmed", "Cancelled", "Completed"].includes(status)) {
-    res.status(400);
-    throw new Error("Invalid status");
+    throw new Error("Not authorized");
   }
 
   appointment.status = status;
   const updatedAppointment = await appointment.save();
-
   res.json(updatedAppointment);
 });
 

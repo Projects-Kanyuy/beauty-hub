@@ -47,16 +47,17 @@
     "title": "Book Appointment",
     "yourInfo": "Your Information",
     "fullName": "Full Name *",
-    "phoneNumber": "Phone Number *",
+    "phone": "Phone Number *",
     "preferredDateTime": "Preferred Date & Time",
-    "serviceLocation": "Service Location",
+    "location": "Service Location",
     "atSalon": "At Salon",
     "atHome": "At Home",
-    "homeServiceNote": "Note: Home services may include additional fees. The salon will confirm details in the chat.",
+    "homeNote": "Note: Home services may include additional fees. The salon will confirm details in the chat.",
     "afterBooking": "After you book, you'll be able to chat directly with the salon to confirm details and discuss any special requests.",
     "cancel": "Cancel",
     "loading": "Booking...",
-    "request": "Request to Book"
+    "submit": "Request to Book",
+    "dateTime": "Appointment Date & Time"
   },
   "dashboardPanel": {
     "viewAll": "View All >"
@@ -67,6 +68,16 @@
   "photoUploader": {
     "addPhoto": "Add Photo",
     "galleryAlt": "Salon gallery"
+  },
+  "serviceModal": {
+    "addService": "Add New Service",
+    "editService": "Edit Service",
+    "serviceName": "Service Name",
+    "description": "Description",
+    "price": "Price",
+    "duration": "Duration (e.g. 1h 30m)",
+    "cancel": "Cancel",
+    "save": "Save Service"
   },
   "salonCard": {
     "homeServices": "Home Services",
@@ -353,7 +364,6 @@
     "noSubscription": "No active subscription",
     "subscribeToUnlock": "Subscribe to unlock all features of BeautyHub.",
     "choosePlan": "Choose Plan",
-
     "welcomeBack": "Welcome back, {{name}}!",
     "summary": "Here's a summary of your salon's activity today.",
     "todaysBookings": "Today's Bookings",

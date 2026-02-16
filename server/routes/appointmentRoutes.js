@@ -7,11 +7,11 @@ const {
   getMyApointments,
   updateAppointmentStatus,
 } = require('../controllers/appointmentController');
-const { protect } = require('../middleware/authMiddleware');
+const { protect, optionalProtect } = require('../middleware/authMiddleware');
 const { requireActiveSubscription } = require('../middleware/subscriptionMiddleware');
 
 // Route for a customer to create a new appointment
-router.route('/').post(protect, createAppointment);
+router.route("/").post(optionalProtect, createAppointment);
 
 // Route for a customer to view their own appointments
 router.route('/myappointments').get(protect, getMyApointments);

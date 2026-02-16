@@ -146,7 +146,7 @@ const getSalonById = asyncHandler(async (req, res) => {
 //  *         description: Unauthorized – missing or invalid JWT token
 //  */
 const createSalon = asyncHandler(async (req, res) => {
-  const { name, description, address, city, phone, openingHours, photos } =
+  const { name, description, address, city, phone, openingHours, photos, currency } =
     req.body;
 
   const ownerId = req.user._id;
@@ -167,6 +167,7 @@ const createSalon = asyncHandler(async (req, res) => {
     city,
     phone,
     openingHours,
+     currency: currency || "XAF",
     photos,
     isVerified: true, // Paid users get instant verification
   });
@@ -234,6 +235,7 @@ const updateSalon = asyncHandler(async (req, res) => {
   salon.address = req.body.address || salon.address;
   salon.city = req.body.city || salon.city;
   salon.phone = req.body.phone || salon.phone;
+  salon.currency = req.body.currency || salon.currency;
   salon.openingHours = req.body.openingHours || salon.openingHours;
   salon.photos = req.body.photos || salon.photos;
 

@@ -41,6 +41,21 @@ const admin = (req, res, next) => {
     throw new Error('Not authorized as an admin');
   }
 };
+const optionalProtect = asyncHandler(async (req, res, next) => {
+  let token;
+  if (req.headers.authorization && req.headers.authorization.startsWith("Bearer")) {
+    try {
+      token = req.headers.authorization.split(" ")[1];
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      req.user = await User.findById(decoded.id).select("-password");
+    } catch (error) {
+      // If token is invalid, we just don't set req.user and continue
+      console.error("Invalid token in optional auth");
+    }
+  }
+  // Even if there's no token, we call next() to allow the guest booking
+  next();
+});
 
 // Export BOTH
-module.exports = { protect, admin };
+module.exports = { protect, admin, optionalProtect };

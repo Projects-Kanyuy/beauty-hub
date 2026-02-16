@@ -34,3 +34,9 @@ export const useActiveSubscription = (userId) =>
     userId ? `/api/subscriptions/${userId}/get-active-subscription` : null,
     fetcher
   );
+export const useAdminStats = () => useSWR("/api/admin/stats", fetcher);
+export const useAdminSalons = () => useSWR("/api/admin/salons", fetcher);
+export const useAdminUsers = () => useSWR("/api/admin/users", fetcher);
+export const useAdminAppointments = () => useSWR("/api/admin/appointments", fetcher);
+export const useAdminOverview = () => useSWR("/api/admin/overview", fetcher);
+export const useAdminSubscriptions = () => useSWR("/api/admin/overview", fetcher);

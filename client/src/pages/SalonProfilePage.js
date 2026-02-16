@@ -1,270 +1,110 @@
-import { useEffect, useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { FaSpinner } from "react-icons/fa";
-import { useNavigate } from "react-router-dom";
-import { toast } from "react-toastify";
+import { FaSpinner, FaMapMarkerAlt, FaGlobe } from "react-icons/fa";
+import { useMySalon } from "../api/swr";
 import { createSalon, updateMySalon } from "../api";
-import { useActiveSubscription, useMySalon } from "../api/swr";
-import AlertBox from "../components/AlertBox";
+import { toast } from "react-toastify";
 import Button from "../components/Button";
-import PhotoUploader from "../components/PhotoUploader";
-import ProfileSection from "../components/ProfileSection";
-import { useAuth } from "../context/AuthContext";
-
-const blankProfile = {
-  name: "",
-  description: "",
-  phone: "",
-  email: "",
-  address: "",
-  city: "",
-  photos: [],
-  openingHours: {
-    monday: "09:00 AM - 07:00 PM",
-    tuesday: "09:00 AM - 07:00 PM",
-    wednesday: "09:00 AM - 07:00 PM",
-    thursday: "09:00 AM - 07:00 PM",
-    friday: "09:00 AM - 07:00 PM",
-    saturday: "10:00 AM - 06:00 PM",
-    sunday: "Closed",
-  },
-};
-
-const InputField = ({ label, name, value, onChange }) => (
-  <div>
-    <label className="block text-sm font-semibold text-text-main mb-1">
-      {label}
-    </label>
-    <input
-      type="text"
-      name={name}
-      value={value}
-      onChange={onChange}
-      className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-purple"
-    />
-  </div>
-);
 
 const SalonProfilePage = () => {
   const { t } = useTranslation();
-  const { user } = useAuth();
-  const [profile, setProfile] = useState(null);
-  const [error, setError] = useState(null);
-  const [isSaving, setIsSaving] = useState(false);
-  const navigate = useNavigate();
-  const {
-    data: salonData,
-    error: salonError,
-    isLoading: loadingSalon,
-    mutate: mutateSalon,
-  } = useMySalon();
-  const {
-    data: subscriptionData,
-    isLoading: loadingSubscription,
-  } = useActiveSubscription(user?._id);
-  const hasActiveSubscription = !!subscriptionData?.data;
+  const { data: salon, isLoading, mutate } = useMySalon();
+  const [loading, setLoading] = useState(false);
 
-  const isEditMode = profile && profile._id;
+  const [formData, setFormData] = useState({
+    name: "",
+    description: "",
+    address: "",
+    city: "",
+    phone: "",
+    currency: "XAF", // Default
+  });
 
   useEffect(() => {
-    if (salonData) {
-      setProfile(salonData);
-      setError(null);
-      return;
+    if (salon) {
+      setFormData({
+        name: salon.name || "",
+        description: salon.description || "",
+        address: salon.address || "",
+        city: salon.city || "",
+        phone: salon.phone || "",
+        currency: salon.currency || "XAF",
+      });
     }
-
-    if (salonError) {
-      if (salonError.response?.status === 404) {
-        setProfile(blankProfile);
-        setError(null);
-      } else {
-        console.error("Failed to load profile:", salonError);
-        setError(
-          salonError.response?.data?.message || t("salonprofile.loadFailed")
-        );
-      }
-    }
-  }, [salonData, salonError, t]);
+  }, [salon]);
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
-    setProfile((prev) => ({ ...prev, [name]: value }));
+    setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handlePhotosChange = (updatedPhotos) => {
-    setProfile((prev) => ({ ...prev, photos: updatedPhotos }));
-  };
-
-  const handleHoursChange = (day, value) => {
-    setProfile((prev) => ({
-      ...prev,
-      openingHours: { ...prev.openingHours, [day]: value },
-    }));
-  };
-
-  const handleSave = async () => {
-    if (!profile) return;
-    setIsSaving(true);
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
     try {
-      if (isEditMode) {
-        const { data: updatedProfile } = await updateMySalon(
-          profile._id,
-          profile
-        );
-        setProfile(updatedProfile);
-        mutateSalon(updatedProfile, false);
-        toast.success(t("salonprofile.updatedSuccess"));
+      if (salon) {
+        await updateMySalon(salon._id, formData);
+        toast.success("Profile Updated!");
       } else {
-        const { data } = await createSalon(profile);
-        const createdSalon = data?.salon || profile;
-        setProfile(createdSalon);
-        mutateSalon(createdSalon, false);
-        toast.success(t("salonprofile.createdSuccess"));
-        setTimeout(() => navigate("/salon-owner/dashboard"), 2000);
+        await createSalon(formData);
+        toast.success("Salon Profile Created!");
       }
+      mutate();
     } catch (err) {
-      console.error("Failed to save profile:", err);
-      toast.error(err.response?.data?.message || t("salonprofile.saveError"));
+      toast.error("Error saving profile");
     } finally {
-      setIsSaving(false);
+      setLoading(false);
     }
   };
 
-  if (loadingSalon || loadingSubscription)
-    return (
-      <div className="flex justify-center items-center h-64">
-        <FaSpinner className="animate-spin text-4xl text-primary-purple" />
-      </div>
-    );
-  if (!hasActiveSubscription)
-    return (
-      <AlertBox
-        title={t("salondashboard.noSubscription")}
-        message={t("salonprofile.subscriptionRequired")}
-        type="warning"
-        actionLabel={t("salondashboard.choosePlan")}
-        actionLink="/subscriptions"
-      />
-    );
-
-  if (error)
-    return (
-      <AlertBox
-        title={t("salonprofile.errorTitle")}
-        message={error}
-        type="error"
-        onRetry={() => window.location.reload()}
-      />
-    );
-
-  if (!profile) return null;
+  if (isLoading) return <div className="flex justify-center p-20"><FaSpinner className="animate-spin text-4xl text-primary-purple" /></div>;
 
   return (
-    <div className="space-y-8">
-      <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold text-text-main">
-          {isEditMode
-            ? t("salonprofile.editTitle")
-            : t("salonprofile.createTitle")}
-        </h1>
-        <Button variant="gradient" onClick={handleSave} disabled={isSaving}>
-          {isSaving
-            ? t("salonprofile.saving")
-            : isEditMode
-            ? t("salonprofile.saveChanges")
-            : t("salonprofile.createProfile")}
-        </Button>
-      </div>
+    <div className="p-6 md:p-12 max-w-4xl mx-auto">
+      <header className="mb-10">
+        <h1 className="text-4xl font-black tracking-tighter text-gray-900">My Salon Profile</h1>
+        <p className="text-gray-500 mt-2">Setup your business identity and local currency.</p>
+      </header>
 
-      <ProfileSection
-        title={t("salonprofile.basicInfoTitle")}
-        description={t("salonprofile.basicInfoDesc")}
-      >
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <InputField
-            label={t("salonprofile.salonName")}
-            name="name"
-            value={profile.name}
-            onChange={handleChange}
-          />
-          <InputField
-            label={t("salonprofile.phone")}
-            name="phone"
-            value={profile.phone}
-            onChange={handleChange}
-          />
-          <InputField
-            label={t("salonprofile.email")}
-            name="email"
-            value={profile.email}
-            onChange={handleChange}
-          />
-          <div className="md:col-span-2">
-            <label className="block text-sm font-semibold text-text-main mb-1">
-              {t("salonprofile.description")}
-            </label>
-            <textarea
-              name="description"
-              value={profile.description}
-              onChange={handleChange}
-              rows="4"
-              className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-purple"
-            />
+      <form onSubmit={handleSubmit} className="space-y-8">
+        <div className="bg-white rounded-[2.5rem] p-8 md:p-12 border border-white shadow-sm space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-2">
+              <label className="text-xs font-black uppercase tracking-widest text-gray-400 ml-2">Salon Name</label>
+              <input name="name" value={formData.name} onChange={handleChange} required className="w-full p-4 bg-gray-50 rounded-2xl border-none outline-none" />
+            </div>
+            {/* --- NEW CURRENCY SELECTOR --- */}
+            <div className="space-y-2">
+              <label className="text-xs font-black uppercase tracking-widest text-gray-400 ml-2">Local Currency</label>
+              <select name="currency" value={formData.currency} onChange={handleChange} className="w-full p-4 bg-gray-50 rounded-2xl border-none outline-none font-bold">
+                <option value="XAF">Cameroon/Gabon (XAF)</option>
+                <option value="NGN">Nigeria (NGN)</option>
+                <option value="GHS">Ghana (GHS)</option>
+                <option value="USD">International (USD)</option>
+              </select>
+            </div>
+          </div>
+          <div className="space-y-2">
+            <label className="text-xs font-black uppercase tracking-widest text-gray-400 ml-2">Business Phone</label>
+            <input name="phone" value={formData.phone} onChange={handleChange} required className="w-full p-4 bg-gray-50 rounded-2xl border-none outline-none" />
+          </div>
+          <div className="space-y-2">
+            <label className="text-xs font-black uppercase tracking-widest text-gray-400 ml-2">Description</label>
+            <textarea name="description" value={formData.description} onChange={handleChange} rows={3} className="w-full p-4 bg-gray-50 rounded-2xl border-none outline-none" />
           </div>
         </div>
-      </ProfileSection>
 
-      <ProfileSection
-        title={t("salonprofile.photoGalleryTitle")}
-        description={t("salonprofile.photoGalleryDesc")}
-      >
-        <PhotoUploader
-          photos={profile.photos || []}
-          onPhotosChange={handlePhotosChange}
-        />
-      </ProfileSection>
-
-      <ProfileSection
-        title={t("salonprofile.locationTitle")}
-        description={t("salonprofile.locationDesc")}
-      >
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <InputField
-            label={t("salonprofile.address")}
-            name="address"
-            value={profile.address}
-            onChange={handleChange}
-          />
-          <InputField
-            label={t("salonprofile.city")}
-            name="city"
-            value={profile.city}
-            onChange={handleChange}
-          />
+        <div className="bg-white rounded-[2.5rem] p-8 md:p-12 border border-white shadow-sm">
+          <h3 className="text-xl font-bold flex items-center gap-2 mb-6"><FaMapMarkerAlt className="text-blue-500" /> Location</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <input name="address" placeholder="Address" value={formData.address} onChange={handleChange} required className="w-full p-4 bg-gray-50 rounded-2xl border-none outline-none" />
+            <input name="city" placeholder="City" value={formData.city} onChange={handleChange} required className="w-full p-4 bg-gray-50 rounded-2xl border-none outline-none" />
+          </div>
         </div>
-      </ProfileSection>
 
-      <ProfileSection
-        title={t("salonprofile.openingHoursTitle")}
-        description={t("salonprofile.openingHoursDesc")}
-      >
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {profile.openingHours &&
-            Object.entries(profile.openingHours).map(([day, value]) => (
-              <div key={day}>
-                <label className="block text-sm font-semibold capitalize text-text-main mb-1">
-                  {day}
-                </label>
-                <input
-                  type="text"
-                  value={value}
-                  onChange={(e) => handleHoursChange(day, e.target.value)}
-                  className="w-full p-2 border border-gray-300 rounded-md"
-                />
-              </div>
-            ))}
-        </div>
-      </ProfileSection>
+        <Button type="submit" disabled={loading} variant="gradient" className="w-full !py-5 text-xl rounded-full shadow-lg">
+          {loading ? <FaSpinner className="animate-spin" /> : "Save Profile"}
+        </Button>
+      </form>
     </div>
   );
 };

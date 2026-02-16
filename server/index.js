@@ -12,6 +12,7 @@ const appointmentRoutes = require("./routes/appointmentRoutes");
 const analyticsRoutes = require("./routes/analyticsRoutes");
 const messageRoutes = require("./routes/messageRoutes");
 const paymentRoutes = require("./routes/paymentRoutes.js");
+const adminRoutes = require("./routes/adminRoutes");
 const { notFound, errorHandler } = require("./middleware/errorMiddleware");
 
 // Swagger dependencies
@@ -51,7 +52,7 @@ app.use("/api/appointments", appointmentRoutes);
 app.use("/api/analytics", analyticsRoutes);
 app.use("/api/messages", messageRoutes);
 app.use("/api/payments", paymentRoutes);
-
+app.use("/api/admin", adminRoutes);
 app.use(notFound);
 app.use(errorHandler);
 
