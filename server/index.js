@@ -1,6 +1,7 @@
 // server/index.js
 const express = require("express");
 const dotenv = require("dotenv");
+const path = require("path");
 const cors = require("cors");
 const connectDB = require("./config/db");
 
@@ -19,7 +20,8 @@ const { notFound, errorHandler } = require("./middleware/errorMiddleware");
 const swaggerSpec = require("./config/swagger"); // ← our spec
 const swaggerUi = require("swagger-ui-express");
 
-dotenv.config();
+dotenv.config({ path: path.resolve(__dirname, ".env"), quiet: true });
+dotenv.config({ path: path.resolve(__dirname, "../.env"), quiet: true });
 connectDB();
 
 const app = express();
