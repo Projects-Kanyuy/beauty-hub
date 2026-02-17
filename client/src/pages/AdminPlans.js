@@ -1,9 +1,9 @@
 // src/pages/AdminPlans.js
-import { useMemo, useState } from "react";
-import { FaEdit, FaPlus, FaSave, FaTrash, FaSpinner } from "react-icons/fa";
+import { useState } from "react";
+import { FaEdit, FaSpinner } from "react-icons/fa";
 import { toast } from "react-toastify";
 import { useSWRConfig } from "swr";
-import { createSubscriptionPlan, deleteSubscriptionPlan, updateSubscriptionPlan } from "../api";
+import { createSubscriptionPlan, updateSubscriptionPlan } from "../api";
 import { useSubscriptionPlans } from "../api/swr";
 
 const AdminPlans = () => {

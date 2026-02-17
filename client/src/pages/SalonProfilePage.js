@@ -1,13 +1,11 @@
 import React, { useState, useEffect } from "react";
-import { useTranslation } from "react-i18next";
-import { FaSpinner, FaMapMarkerAlt, FaGlobe } from "react-icons/fa";
+import { FaSpinner, FaMapMarkerAlt } from "react-icons/fa";
 import { useMySalon } from "../api/swr";
 import { createSalon, updateMySalon } from "../api";
 import { toast } from "react-toastify";
 import Button from "../components/Button";
 
 const SalonProfilePage = () => {
-  const { t } = useTranslation();
   const { data: salon, isLoading, mutate } = useMySalon();
   const [loading, setLoading] = useState(false);
 
@@ -17,7 +15,7 @@ const SalonProfilePage = () => {
     address: "",
     city: "",
     phone: "",
-    currency: "XAF", // Default
+    currency: "XAF",
   });
 
   useEffect(() => {
@@ -60,8 +58,8 @@ const SalonProfilePage = () => {
 
   return (
     <div className="p-6 md:p-12 max-w-4xl mx-auto">
-      <header className="mb-10">
-        <h1 className="text-4xl font-black tracking-tighter text-gray-900">My Salon Profile</h1>
+      <header className="mb-10 text-center lg:text-left">
+        <h1 className="text-4xl font-black tracking-tighter text-gray-900">{salon ? "Edit Salon" : "Create Salon"}</h1>
         <p className="text-gray-500 mt-2">Setup your business identity and local currency.</p>
       </header>
 
@@ -70,39 +68,38 @@ const SalonProfilePage = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
               <label className="text-xs font-black uppercase tracking-widest text-gray-400 ml-2">Salon Name</label>
-              <input name="name" value={formData.name} onChange={handleChange} required className="w-full p-4 bg-gray-50 rounded-2xl border-none outline-none" />
+              <input name="name" value={formData.name} onChange={handleChange} required className="w-full p-4 bg-gray-50 rounded-2xl border-none outline-none focus:ring-2 focus:ring-primary-purple" />
             </div>
-            {/* --- NEW CURRENCY SELECTOR --- */}
             <div className="space-y-2">
-              <label className="text-xs font-black uppercase tracking-widest text-gray-400 ml-2">Local Currency</label>
-              <select name="currency" value={formData.currency} onChange={handleChange} className="w-full p-4 bg-gray-50 rounded-2xl border-none outline-none font-bold">
-                <option value="XAF">Cameroon/Gabon (XAF)</option>
-                <option value="NGN">Nigeria (NGN)</option>
-                <option value="GHS">Ghana (GHS)</option>
-                <option value="USD">International (USD)</option>
+              <label className="text-xs font-black uppercase tracking-widest text-gray-400 ml-2">Business Currency</label>
+              <select name="currency" value={formData.currency} onChange={handleChange} className="w-full p-4 bg-gray-50 rounded-2xl border-none outline-none focus:ring-2 focus:ring-primary-purple font-bold">
+                <option value="XAF">XAF (CFA Franc)</option>
+                <option value="NGN">NGN (Naira)</option>
+                <option value="GHS">GHS (Cedi)</option>
+                <option value="USD">USD (Dollar)</option>
               </select>
             </div>
           </div>
           <div className="space-y-2">
-            <label className="text-xs font-black uppercase tracking-widest text-gray-400 ml-2">Business Phone</label>
-            <input name="phone" value={formData.phone} onChange={handleChange} required className="w-full p-4 bg-gray-50 rounded-2xl border-none outline-none" />
+            <label className="text-xs font-black uppercase tracking-widest text-gray-400 ml-2">Phone</label>
+            <input name="phone" value={formData.phone} onChange={handleChange} required className="w-full p-4 bg-gray-50 rounded-2xl border-none outline-none focus:ring-2 focus:ring-primary-purple" />
           </div>
           <div className="space-y-2">
             <label className="text-xs font-black uppercase tracking-widest text-gray-400 ml-2">Description</label>
-            <textarea name="description" value={formData.description} onChange={handleChange} rows={3} className="w-full p-4 bg-gray-50 rounded-2xl border-none outline-none" />
+            <textarea name="description" value={formData.description} onChange={handleChange} rows={3} className="w-full p-4 bg-gray-50 rounded-2xl border-none outline-none focus:ring-2 focus:ring-primary-purple" />
           </div>
         </div>
 
         <div className="bg-white rounded-[2.5rem] p-8 md:p-12 border border-white shadow-sm">
           <h3 className="text-xl font-bold flex items-center gap-2 mb-6"><FaMapMarkerAlt className="text-blue-500" /> Location</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <input name="address" placeholder="Address" value={formData.address} onChange={handleChange} required className="w-full p-4 bg-gray-50 rounded-2xl border-none outline-none" />
-            <input name="city" placeholder="City" value={formData.city} onChange={handleChange} required className="w-full p-4 bg-gray-50 rounded-2xl border-none outline-none" />
+            <input name="address" placeholder="Address" value={formData.address} onChange={handleChange} required className="w-full p-4 bg-gray-50 rounded-2xl border-none outline-none focus:ring-2 focus:ring-primary-purple" />
+            <input name="city" placeholder="City" value={formData.city} onChange={handleChange} required className="w-full p-4 bg-gray-50 rounded-2xl border-none outline-none focus:ring-2 focus:ring-primary-purple" />
           </div>
         </div>
 
         <Button type="submit" disabled={loading} variant="gradient" className="w-full !py-5 text-xl rounded-full shadow-lg">
-          {loading ? <FaSpinner className="animate-spin" /> : "Save Profile"}
+          {loading ? <FaSpinner className="animate-spin" /> : salon ? "Save Changes" : "Create Profile"}
         </Button>
       </form>
     </div>

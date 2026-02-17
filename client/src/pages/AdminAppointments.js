@@ -1,6 +1,6 @@
 import React from "react";
 import { useAdminAppointments } from "../api/swr";
-import { FaCalendarCheck, FaSpinner } from "react-icons/fa";
+import { FaSpinner } from "react-icons/fa";
 
 const AdminAppointments = () => {
   const { data: appointments = [], isLoading } = useAdminAppointments();
