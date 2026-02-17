@@ -253,7 +253,7 @@ const PaymentPage = () => {
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[1000] p-6">
           <div className="bg-white p-10 rounded-[3rem] text-center max-w-sm w-full">
             <FaCheckCircle className="text-6xl text-green-500 mx-auto mb-6" />
-            <h2 className="text-2xl font-bold mb-2">Success!</h2>
+            <h2 className="text-2xl font-bold mb-2">Success</h2>
             <Button variant="gradient" onClick={() => navigate("/salon-owner/dashboard")} className="w-full mt-6">Dashboard</Button>
           </div>
         </div>
