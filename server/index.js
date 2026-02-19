@@ -23,7 +23,10 @@ dotenv.config();
 connectDB();
 
 const app = express();
-app.use(cors());
+app.use(cors({
+  origin: ["https://www.mybeautyheaven.site", "http://localhost:3000"],
+  credentials: true
+}));
 app.use(express.json());
 
 // === Swagger Documentation Routes ===
