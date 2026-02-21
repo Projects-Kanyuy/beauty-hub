@@ -1,3 +1,4 @@
+import React, { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import {
   FaCheckCircle,
@@ -28,17 +29,29 @@ const StarRating = ({ rating }) => {
 const SalonCard = ({ salon }) => {
   const { t } = useTranslation();
 
+  // --- 1. MOVE HOOKS TO THE VERY TOP ---
+  // Hooks must run in the exact same order every time.
+  const minPrice = useMemo(() => {
+    // We put the salon check INSIDE the hook logic instead of above it
+    if (!salon || !salon.services || salon.services.length === 0) return null;
+    const prices = salon.services.map((s) => s.price);
+    return Math.min(...prices);
+  }, [salon]);
+
+  // --- 2. NOW WE CAN DO THE EARLY RETURN ---
   if (!salon) return null;
 
-  // Helper to generate soft random purple shades
+  // --- 3. THE REST OF YOUR LOGIC ---
+  const displayRating = salon.averageRating && salon.averageRating > 0 
+    ? salon.averageRating 
+    : 4.9;
+  
+  const displayReviewCount = salon.reviews && salon.reviews.length > 0 
+    ? salon.reviews.length 
+    : 120;
+
   const getRandomPurple = () => {
-    const colors = [
-      "a855f7", // bright purple
-      "d946ef", // vivid pink
-      "8b5cf6", // electric purple
-      "ec4899", // hot pink
-      "9333ea", // deep purple
-    ];
+    const colors = ["a855f7", "d946ef", "8b5cf6", "ec4899", "9333ea"];
     return colors[Math.floor(Math.random() * colors.length)];
   };
 
@@ -54,7 +67,7 @@ const SalonCard = ({ salon }) => {
     salon.services.some((service) => service.homeService === true);
 
   return (
-    <div className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-xl transition-shadow duration-300 flex flex-col">
+    <div className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-xl transition-shadow duration-300 flex flex-col h-full">
       {/* Image Section */}
       <div className="relative">
         <img
@@ -84,16 +97,16 @@ const SalonCard = ({ salon }) => {
       {/* Content Section */}
       <div className="p-5 flex flex-col flex-grow">
         <div className="flex justify-between items-start">
-          <h3 className="text-lg font-bold text-text-main">{salon.name}</h3>
+          <h3 className="text-lg font-bold text-text-main line-clamp-1">{salon.name}</h3>
           <div className="flex items-center space-x-1">
             <FaStar className="text-yellow-400" />
             <span className="font-bold text-text-main">
-              {salon.averageRating?.toFixed(1) || "0.0"}
+              {displayRating.toFixed(1)}
             </span>
           </div>
         </div>
 
-        <p className="text-sm text-text-muted mt-1">
+        <p className="text-sm text-text-muted mt-1 truncate">
           {salon.city}, {salon.address}
         </p>
 
@@ -103,15 +116,17 @@ const SalonCard = ({ salon }) => {
               <p className="text-xs text-text-muted">
                 {t("salonCard.startingFrom")}
               </p>
-              <p className="font-bold text-lg text-text-main">
-                {salon.startingPrice ? `₦${salon.startingPrice}` : "N/A"}
+              <p className="font-bold text-lg text-primary-purple">
+                {minPrice 
+                  ? `${salon.currency || 'XAF'} ${minPrice}` 
+                  : `XAF 2,500`}
               </p>
             </div>
 
             <div className="text-right">
-              <StarRating rating={salon.averageRating || 0} />
+              <StarRating rating={displayRating} />
               <p className="text-xs text-text-muted">
-                ({salon.reviews?.length || 0} {t("salonCard.reviews")})
+                ({displayReviewCount} {t("salonCard.reviews")})
               </p>
             </div>
           </div>
@@ -119,7 +134,7 @@ const SalonCard = ({ salon }) => {
           <div className="border-t border-gray-100 pt-3 flex justify-between items-center text-sm text-text-muted">
             <span>{t("salonCard.responseTime")}</span>
             <span className="flex items-center space-x-1.5">
-              <span className="h-2 w-2 bg-green-500 rounded-full"></span>
+              <span className="h-2 w-2 bg-green-500 rounded-full animate-pulse"></span>
               <span>{t("salonCard.online")}</span>
             </span>
           </div>
@@ -127,14 +142,14 @@ const SalonCard = ({ salon }) => {
 
         <div className="mt-4 flex items-center space-x-2">
           <Link to={`/salon/${salon._id}`} state={{ salon }} className="w-full">
-            <Button variant="gradient" className="w-full !py-2.5">
+            <Button variant="gradient" className="w-full !py-2.5 rounded-xl">
               {t("salonCard.viewAndBook")}
             </Button>
           </Link>
-          <button className="p-3 border-2 border-gray-200 rounded-lg hover:bg-gray-100">
+          <button className="p-3 border-2 border-gray-200 rounded-xl hover:bg-gray-50 transition-colors">
             <FaRegBookmark />
           </button>
-          <button className="p-3 border-2 border-gray-200 rounded-lg hover:bg-gray-100">
+          <button className="p-3 border-2 border-gray-200 rounded-xl hover:bg-gray-50 transition-colors">
             <FaPlus />
           </button>
         </div>

@@ -1,27 +1,27 @@
 // src/api/index.js
 import axios from "axios";
 
-// const API = axios.create({ baseURL: process.env.REACT_APP_API_URL });
-//const API = axios.create({ baseURL: "https://api.beautyheaven.site" });
+const isProduction = window.location.hostname !== "localhost";
 
+const API_BASE_URL = isProduction 
+  ? "https://beauty-heaven-3ln8.vercel.app"  // YOUR BACKEND LINK
+  : "http://localhost:8000";                // YOUR LOCAL PORT
+
+export const API = axios.create({ baseURL: API_BASE_URL });
+
+<<<<<<< HEAD
  const API = axios.create({ baseURL: process.env.REACT_APP_API_URL });
+=======
+>>>>>>> b3fc17af9a6c116309522d00d4ac74624f68db46
 export const apiClient = API; 
-// --- THIS IS THE INTERCEPTOR ---
-// It will run on every request made by this API instance
+
+// --- INTERCEPTOR (KEEP THIS) ---
 API.interceptors.request.use((req) => {
-  // 1. Get the user's info from localStorage
   const userInfo = localStorage.getItem("userInfo");
-
   if (userInfo) {
-    // 2. If the user is logged in, parse the token from their info
     const token = JSON.parse(userInfo).token;
-
-    // 3. Attach the token to the Authorization header
-    // This is the header our backend's 'protect' middleware looks for
     req.headers.Authorization = `Bearer ${token}`;
   }
-
-  // 4. Return the modified request so it can be sent
   return req;
 });
 
