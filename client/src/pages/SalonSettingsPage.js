@@ -134,7 +134,7 @@ const SalonSettingsPage = () => {
               name="password"
               value={formData.password}
               onChange={handleChange}
-              placeholder={t("settings.passwordPlaceholder")}
+              placeholder={t("salonsettings.passwordPlaceholder")}
               className="w-full p-2 border rounded-md"
             />
           </div>

@@ -145,39 +145,39 @@ const getSalonById = asyncHandler(async (req, res) => {
 //  *       401:
 //  *         description: Unauthorized – missing or invalid JWT token
 //  */
+/**
+ * @desc    Create salon profile 
+ * @route   POST /api/salons
+ * @access  Private (Owner or Admin)
+ */
+// @desc    Create Salon Profile
 const createSalon = asyncHandler(async (req, res) => {
-  const { name, description, address, city, phone, openingHours, photos, currency } =
-    req.body;
+  const { name, description, address, city, phone, openingHours, photos, currency, ownerId } = req.body;
 
-  const ownerId = req.user._id;
+  const isAdmin = req.user.role === "admin";
+  const targetOwnerId = isAdmin && ownerId ? ownerId : req.user._id;
 
-  // 1. Prevent duplicate salon
-  const existingSalon = await Salon.findOne({ owner: ownerId });
+  const existingSalon = await Salon.findOne({ owner: targetOwnerId });
   if (existingSalon) {
     res.status(400);
-    throw new Error("You already have a salon profile");
+    throw new Error("This user already has a salon profile");
   }
 
-  // 4. Create the salon
   const salon = await Salon.create({
-    owner: ownerId,
+    owner: targetOwnerId,
     name,
     description,
     address,
     city,
     phone,
     openingHours,
-     currency: currency || "XAF",
-    photos,
-    isVerified: true, // Paid users get instant verification
+    currency: currency || "XAF", 
+    photos: photos || [], // SAVES CLOUDINARY LINKS
+    isVerified: true,           
   });
 
-  res.status(201).json({
-    message: "Salon created successfully! Your subscription is active.",
-    salon,
-  });
+  res.status(201).json(salon);
 });
-
 /**
  * @swagger
  * /api/salons/{id}:
@@ -217,32 +217,35 @@ const createSalon = asyncHandler(async (req, res) => {
  *       404:
  *         description: Salon not found
  */
+
 const updateSalon = asyncHandler(async (req, res) => {
   const salon = await Salon.findById(req.params.id);
-
   if (!salon) {
     res.status(404);
     throw new Error("Salon not found");
   }
 
-  if (salon.owner.toString() !== req.user._id.toString()) {
+  if (salon.owner.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
     res.status(401);
-    throw new Error("Not authorized to update this salon");
+    throw new Error("Not authorized");
   }
 
+  // Update text fields
   salon.name = req.body.name || salon.name;
   salon.description = req.body.description || salon.description;
   salon.address = req.body.address || salon.address;
   salon.city = req.body.city || salon.city;
   salon.phone = req.body.phone || salon.phone;
   salon.currency = req.body.currency || salon.currency;
-  salon.openingHours = req.body.openingHours || salon.openingHours;
-  salon.photos = req.body.photos || salon.photos;
+  
+  // Update Photos (Overwrite old array with new one from frontend)
+  if (req.body.photos) {
+    salon.photos = req.body.photos;
+  }
 
   const updatedSalon = await salon.save();
   res.json(updatedSalon);
 });
-
 /**
  * @swagger
  * /api/salons/{id}/services:
@@ -286,13 +289,13 @@ const updateSalon = asyncHandler(async (req, res) => {
 
 // just adding this log to force deployment
 const addSalonService = asyncHandler(async (req, res) => {
-  const { name, description, price, currency, homeService, duration, homeServiceFee } =
+  const { name, description, price, currency, homeService, duration, homeServiceFee, photos } =
     req.body;
 
-  if (!name || !description || !price || !currency) {
+  if (!name || !description || !price || !currency || !photos) {
     return res.status(400).json({
       message:
-        "missing required field, check that name, description, price and currency have been provided",
+        "missing required field, check that name, description, price, photos and currency have been provided",
     });
   }
   const salon = await Salon.findById(req.params.id);
@@ -315,7 +318,8 @@ const addSalonService = asyncHandler(async (req, res) => {
     currency,
     duration,
     homeService,
-    homeServiceFee
+    homeServiceFee,
+    photos: photos || []
   };
 
   await Salon.findByIdAndUpdate(req.params.id, {
@@ -383,6 +387,7 @@ const updateSalonService = asyncHandler(async (req, res) => {
   service.description = req.body.description || service.description;
   service.price = req.body.price || service.price;
   service.duration = req.body.duration || service.duration;
+  service.photos = req.body.photos || service.photos;
 
   await salon.save();
   res.json({ message: "Service updated" });
