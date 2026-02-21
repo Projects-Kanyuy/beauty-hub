@@ -9,10 +9,6 @@ const API_BASE_URL = isProduction
 
 export const API = axios.create({ baseURL: API_BASE_URL });
 
-<<<<<<< HEAD
- const API = axios.create({ baseURL: process.env.REACT_APP_API_URL });
-=======
->>>>>>> b3fc17af9a6c116309522d00d4ac74624f68db46
 export const apiClient = API; 
 
 // --- INTERCEPTOR (KEEP THIS) ---
