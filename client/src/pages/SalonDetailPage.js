@@ -22,7 +22,7 @@ const SalonDetailPage = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedService, setSelectedService] = useState(null);
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
-  const [zoomImage, setZoomImage] = useState(null); 
+ 
 
   const [reviewForm, setReviewForm] = useState({ rating: 5, comment: "", guestName: "" });
   const [submittingReview, setSubmittingReview] = useState(false);
