@@ -48,9 +48,15 @@ const getSalons = asyncHandler(async (req, res) => {
  *         description: Salon not found
  */
 const getSalonById = asyncHandler(async (req, res) => {
-  const salon = await Salon.findById(req.params.id);
-  if (salon) res.json(salon);
-  else {
+  const salon = await Salon.findById(req.params.id)
+    .populate({
+      path: "reviews",
+      populate: { path: "user", select: "name" } // Populates the user name inside the review
+    });
+
+  if (salon) {
+    res.json(salon);
+  } else {
     res.status(404);
     throw new Error("Salon not found");
   }

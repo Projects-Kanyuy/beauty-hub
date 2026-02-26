@@ -1,11 +1,10 @@
-// server/routes/reviewRoutes.js
-const express = require('express');
-const router = express.Router({ mergeParams: true }); // Important: mergeParams allows us to get :id from the salon router
-const { createSalonReview,getSalonReviews, addReviewReply } = require('../controllers/reviewController');
-const { protect } = require('../middleware/authMiddleware');
+const express = require("express");
+const router = express.Router({ mergeParams: true }); // Important to get salon ID
+const { optionalProtect } = require("../middleware/authMiddleware");
+const { addReview, getSalonReviews } = require("../controllers/reviewController");
 
-router.route('/')
-  .post(protect, createSalonReview)
-  .get(getSalonReviews);
-router.route('/:reviewId/reply').put(protect, addReviewReply);
+router.route("/")
+  .get(getSalonReviews)
+  .post(optionalProtect, addReview);
+
 module.exports = router;

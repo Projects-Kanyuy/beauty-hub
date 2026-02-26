@@ -116,3 +116,7 @@ export const createCoupon = (data) =>
 // --- APPOINTMENTS ---
 export const getAllAppointments = () => 
   API.get("/api/appointments/admin/all");
+export const addReview = (salonId, reviewData) => 
+  API.post(`/api/salons/${salonId}/reviews`, reviewData);
+export const fetchReviews = (salonId) => 
+  API.get(`/api/salons/${salonId}/reviews`);
