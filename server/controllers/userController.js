@@ -5,6 +5,9 @@ const generateToken = require("../utils/generateToken");
 const crypto = require("crypto");
 const sendVerificationEmail = require("../utils/emailService");
 
+const getFrontendBaseUrl = () =>
+  (process.env.FRONTEND_URL || process.env.CLIENT_URL || "http://localhost:3000").trim();
+
 /**
  * @swagger
  * /api/users:
@@ -71,7 +74,7 @@ const registerUser = asyncHandler(async (req, res) => {
     verificationTokenExpires: tokenExpiry,
   });
 
-  const link = `${process.env.FRONTEND_URL}/verify-email/${verificationToken}`;
+  const link = `${getFrontendBaseUrl()}/verify-email/${verificationToken}`;
   await sendVerificationEmail(user.email, link);
 
   res.status(201).json({
@@ -166,7 +169,7 @@ const resendVerification = asyncHandler(async (req, res) => {
   user.verificationTokenExpires = Date.now() + 1000 * 60 * 60;
   await user.save();
 
-  const link = `${process.env.FRONTEND_URL}/verify-email/${token}`;
+  const link = `${getFrontendBaseUrl()}/verify-email/${token}`;
   await sendVerificationEmail(user.email, link);
 
   res.json({ message: "Verification email resent" });

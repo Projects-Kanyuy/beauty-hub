@@ -1,6 +1,7 @@
 // server/index.js
 const express = require("express");
 const dotenv = require("dotenv");
+const path = require("path");
 const cors = require("cors");
 const connectDB = require("./config/db");
 
@@ -19,8 +20,8 @@ const { notFound, errorHandler } = require("./middleware/errorMiddleware");
 const swaggerSpec = require("./config/swagger"); // ← our spec
 const swaggerUi = require("swagger-ui-express");
 
-dotenv.config();
-connectDB();
+dotenv.config({ path: path.resolve(__dirname, ".env"), quiet: true });
+dotenv.config({ path: path.resolve(__dirname, "../.env"), quiet: true });
 
 const app = express();
 app.use(cors({
@@ -59,8 +60,35 @@ app.use("/api/admin", adminRoutes);
 app.use(notFound);
 app.use(errorHandler);
 
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-  console.log(`Swagger UI → http://localhost:${PORT}/api-docs`);
-});
+let dbInitPromise = null;
+const ensureDbReady = async () => {
+  if (!dbInitPromise) {
+    dbInitPromise = connectDB().catch((error) => {
+      dbInitPromise = null;
+      throw error;
+    });
+  }
+
+  return dbInitPromise;
+};
+
+if (require.main === module) {
+  const PORT = process.env.PORT || 5000;
+
+  ensureDbReady()
+    .then(() => {
+      app.listen(PORT, () => {
+        console.log(`Server running on port ${PORT}`);
+        console.log(`Swagger UI → http://localhost:${PORT}/api-docs`);
+      });
+    })
+    .catch((error) => {
+      console.error(`Startup error: ${error.message}`);
+      process.exit(1);
+    });
+}
+
+module.exports = async (req, res) => {
+  await ensureDbReady();
+  return app(req, res);
+};
