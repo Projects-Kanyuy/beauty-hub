@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Navigate, Route, Routes } from "react-router-dom";
+import { Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { SWRConfig } from "swr";
@@ -51,6 +51,7 @@ import SalonSettingsPage from "./pages/SalonSettingsPage";
 import SalonsPage from "./pages/SalonsPage";
 import Subscriptions from "./pages/Subscriptions";
 import LandingPage from "./pages/LandingPage";
+import ReactPixel from "react-facebook-pixel";
 
 const MainLayout = ({ children }) => {
   const { user, logout } = useAuth();
@@ -66,6 +67,26 @@ const MainLayout = ({ children }) => {
 function App() {
   const { user, loading } = useAuth();
   const [activePlan, setActivePlan] = useState(null);
+  const location = useLocation();
+  //pixel tracking for facebook ads
+useEffect(() => {
+    const pixelId = '922516253909095'; 
+    const isInitialized = window.fbq && window.fbq.instance;
+
+    if (!isInitialized) {
+      ReactPixel.init(pixelId, { 
+        autoConfig: true, 
+        debug: false 
+      });
+    }
+    
+    // Always track the page view
+    ReactPixel.pageView();
+  }, []); 
+
+  useEffect(() => {
+    ReactPixel.pageView();
+  }, [location.pathname]);
 
   useEffect(() => {
     if (!user || user?.role !== "salon_owner") return;

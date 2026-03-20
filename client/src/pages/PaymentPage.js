@@ -20,6 +20,9 @@ import {
 } from "../api";
 import Button from "../components/Button";
 
+// Import the Facebook Pixel library
+import ReactPixel from "react-facebook-pixel";
+
 const SUPPORTED_REGIONS = [
   { name: "Benin", code: "BJ", currency: "XOF" },
   { name: "Burkina Faso", code: "BF", currency: "XOF" },
@@ -51,7 +54,7 @@ const PaymentPage = () => {
 
   const [plan, setPlan] = useState(null);
   const [fetching, setFetching] = useState(true);
-  const [error, setError] = useState(null); // Fixed Syntax
+  const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
 
   const [selectedRegion, setSelectedRegion] = useState(SUPPORTED_REGIONS[0]);
@@ -64,7 +67,7 @@ const PaymentPage = () => {
   const [paymentUrl, setPaymentUrl] = useState("");
 
   const [couponCode, setCouponCode] = useState("");
-  const [redeemingCoupon, setRedeemingCoupon] = useState(false); // Fixed Syntax
+  const [redeemingCoupon, setRedeemingCoupon] = useState(false);
 
   // 1. Fetch Plan Details
   useEffect(() => {
@@ -85,7 +88,7 @@ const PaymentPage = () => {
       }
     };
     getPlanDetails();
-  }, [planId, t]); // Added t and removed setError (setter functions are stable)
+  }, [planId, t]);
 
   // 2. Fetch Rate
   useEffect(() => {
@@ -132,8 +135,27 @@ const PaymentPage = () => {
     return () => clearInterval(interval);
   }, [isPaymentInitiated, paymentId, paymentStatus]);
 
+  // --- NEW: FACEBOOK PIXEL PURCHASE TRACKING ---
+  useEffect(() => {
+    if (paymentStatus === "Completed") {
+      ReactPixel.track('Purchase', {
+        value: plan?.amount || 5.00,
+        currency: 'USD',
+        content_name: plan?.planName
+      });
+    }
+  }, [paymentStatus, plan]);
+
   const handlePayment = async (e) => {
     e.preventDefault();
+
+    // --- NEW: FACEBOOK PIXEL INITIATE CHECKOUT TRACKING ---
+    ReactPixel.track('InitiateCheckout', {
+      content_name: plan?.planName,
+      value: plan?.amount,
+      currency: 'USD'
+    });
+
     setLoading(true);
     try {
       if (couponCode.trim().toUpperCase().startsWith("FREE")) {
@@ -251,10 +273,13 @@ const PaymentPage = () => {
       {/* Success Modal */}
       {paymentStatus === "Completed" && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[1000] p-6">
-          <div className="bg-white p-10 rounded-[3rem] text-center max-w-sm w-full">
-            <FaCheckCircle className="text-6xl text-green-500 mx-auto mb-6" />
-            <h2 className="text-2xl font-bold mb-2">Success</h2>
-            <Button variant="gradient" onClick={() => navigate("/salon-owner/dashboard")} className="w-full mt-6">Dashboard</Button>
+          <div className="bg-white p-10 rounded-[3rem] text-center max-w-sm w-full shadow-2xl">
+            <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6 text-green-600 text-3xl">
+              <FaCheckCircle />
+            </div>
+            <h2 className="text-2xl font-black text-black">Payment Success!</h2>
+            <p className="text-gray-500 mt-2 mb-8 font-medium">Your subscription is now active.</p>
+            <Button variant="gradient" onClick={() => navigate("/salon-owner/dashboard")} className="w-full !py-4 rounded-full">Go to Dashboard</Button>
           </div>
         </div>
       )}

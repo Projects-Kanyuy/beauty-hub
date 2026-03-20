@@ -3,11 +3,25 @@
 import React from "react";
 import { motion } from "framer-motion";
 import { FaArrowRight, FaStar} from "react-icons/fa";
+import ReactPixel from "react-facebook-pixel";
 import { useNavigate } from "react-router-dom";
 import Button from "../components/Button";
 
 const LandingPage = () => {
   const navigate = useNavigate();
+
+  const handleCTAClick = () => {
+  // 1. Send the event to Facebook
+  ReactPixel.track('InitiateCheckout', {
+    content_name: 'Salon Owner Subscription',
+    content_category: 'Business Services',
+    value: 5.00,
+    currency: 'USD'
+  });
+
+  // 2. Perform the navigation
+  navigate("/become-salon-owner");
+};
 
   return (
     <div className="bg-[#F5F5F7] min-h-screen overflow-x-hidden font-sans antialiased text-[#1D1D1F]">
@@ -53,7 +67,7 @@ const LandingPage = () => {
             <div className="w-full md:w-2/3 p-2 md:p-4">
               <Button 
                 variant="gradient" 
-                onClick={() => navigate("/become-salon-owner")}
+                onClick={handleCTAClick}
                 className="w-full !py-6 md:!py-10 rounded-[2rem] md:rounded-[3rem] text-xl md:text-2xl font-black shadow-xl flex items-center justify-center gap-4 active:scale-[0.98] transition-all"
               >
                 Create Your Profile Now <FaArrowRight className="text-lg" />
