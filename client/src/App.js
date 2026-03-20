@@ -50,6 +50,7 @@ import SalonServicesPage from "./pages/SalonServicesPage";
 import SalonSettingsPage from "./pages/SalonSettingsPage";
 import SalonsPage from "./pages/SalonsPage";
 import Subscriptions from "./pages/Subscriptions";
+import LandingPage from "./pages/LandingPage";
 
 const MainLayout = ({ children }) => {
   const { user, logout } = useAuth();
@@ -122,6 +123,7 @@ function App() {
           <Route path="/salons" element={<MainLayout><SalonsPage /></MainLayout>} />
           <Route path="/salon/:id" element={<MainLayout><SalonDetailPage /></MainLayout>} />
           <Route path="/payment" element={<MainLayout><PaymentPage /></MainLayout>} />
+          <Route path="/landing" element={<MainLayout><LandingPage /></MainLayout>} />
 
           <Route path="/login" element={<MainLayout><LoginPage /></MainLayout>} />
           <Route path="/register" element={<MainLayout><RegisterPage /></MainLayout>} />
