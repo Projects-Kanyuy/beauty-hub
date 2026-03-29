@@ -25,7 +25,7 @@ dotenv.config({ path: path.resolve(__dirname, "../.env"), quiet: true });
 
 const app = express();
 app.use(cors({
-  origin: ["https://www.mybeautyheaven.site", "http://localhost:3000"],
+  origin: ["https://www.mybeautyheaven.site", "http://localhost:3000", "https://mybeautyheaven.site"],
   credentials: true
 }));
 app.use(express.json());

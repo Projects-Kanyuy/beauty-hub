@@ -5,7 +5,7 @@ const Salon = require("../models/salonModel");
 const Appointment = require("../models/appointmentModel");
 const Payment = require("../models/paymentModel");
 const SubscriptionType = require("../models/subscriptionTypeModel");
-
+const sendEmail = require('../utils/emailService');
 /**
  * @desc    Get Real System Stats for Overview Page
  */
@@ -143,7 +143,6 @@ const restrictUserAccess = asyncHandler(async (req, res) => {
     data: subscription,
   });
 });
-
 module.exports = {
   getSystemStats,
   getAllUsers,

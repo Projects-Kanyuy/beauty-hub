@@ -1,182 +1,202 @@
+// File: client/src/pages/LandingPage.jsx
 "use client";
 
 import React from "react";
 import { motion } from "framer-motion";
-import { FaArrowRight, FaStar} from "react-icons/fa";
-import ReactPixel from "react-facebook-pixel";
-import { useNavigate } from "react-router-dom";
-import Button from "../components/Button";
+import { FaWhatsapp, FaArrowRight, FaCheckCircle } from "react-icons/fa";
+import { Link } from "react-router-dom";
+import Footer from '../components/Footer';
 
+// This is the complete, new landing page component.
 const LandingPage = () => {
-  const navigate = useNavigate();
 
-  const handleCTAClick = () => {
-  // 1. Send the event to Facebook
-  ReactPixel.track('InitiateCheckout', {
-    content_name: 'Salon Owner Subscription',
-    content_category: 'Business Services',
-    value: 5.00,
-    currency: 'USD'
-  });
-
-  // 2. Perform the navigation
-  navigate("/become-salon-owner");
-};
+  const SectionTitle = ({ children }) => (
+    <h2 className="text-3xl md:text-5xl font-bold tracking-tight text-center">
+      {children}
+    </h2>
+  );
+  
+  const SectionSubtitle = ({ children }) => (
+     <p className="text-lg text-gray-600 max-w-2xl mx-auto text-center mt-4">
+      {children}
+    </p>
+  );
 
   return (
-    <div className="bg-[#F5F5F7] min-h-screen overflow-x-hidden font-sans antialiased text-[#1D1D1F]">
-      
-      {/* 1. HERO SECTION - RESPONSIVE SCALING */}
-      <section className="relative pt-20 md:pt-32 pb-16 px-4 md:px-6">
-        <div className="max-w-6xl mx-auto text-center">
+    <div className="bg-white min-h-screen font-sans text-gray-800">
+
+      {/* SECTION 1: HERO */}
+      <section className="relative pt-24 pb-16 px-6 bg-gray-50 overflow-hidden">
+        <div className="max-w-4xl mx-auto text-center">
           <motion.div 
-            initial={{ opacity: 0, y: 30 }} 
+            initial={{ opacity: 0, y: 20 }} 
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
+            transition={{ duration: 0.7 }}
           >
-            {/* Fluid Heading: text-4xl on mobile, text-8xl on desktop */}
-            <h1 className="text-4xl sm:text-6xl md:text-7xl lg:text-[100px] font-black tracking-[-0.04em] leading-[1.1] md:leading-[0.9] mb-6 md:mb-10">
-              Turn Your Beauty <br /> 
-              <span className="bg-gradient-to-r from-primary-purple to-pink-500 bg-clip-text text-transparent">
-                Skills Into a Business.
-              </span>
+            <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tighter leading-tight mb-6">
+              Get More Beauty Clients Without Paying for a Shop
             </h1>
-            <p className="text-lg md:text-2xl text-gray-500 font-medium max-w-3xl mx-auto leading-snug mb-10 md:mb-16 px-4">
-              Skip the salon rent. Connect with premium clients who want VIP beauty services at home.
+            <p className="text-lg md:text-xl text-gray-600 max-w-3xl mx-auto mb-10">
+              List your beauty business online and start receiving bookings directly on WhatsApp from people in your area.
             </p>
-          </motion.div>
-
-          {/* --- THE UNIFIED HERO CARD (Mobile Optimized) --- */}
-          <motion.div 
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.2 }}
-            className="relative max-w-4xl mx-auto bg-white rounded-[2.5rem] md:rounded-[4rem] p-3 md:p-4 shadow-[0_40px_100px_rgba(0,0,0,0.04)] border border-white flex flex-col md:flex-row items-center gap-3 md:gap-4 group"
-          >
-            {/* Price Side */}
-            <div className="bg-[#F5F5F7] w-full md:w-1/3 rounded-[2rem] md:rounded-[3rem] p-8 md:p-10 text-center md:text-left border border-gray-100 transition-colors group-hover:bg-white">
-              <span className="text-[10px] font-black uppercase tracking-widest text-primary-purple mb-2 block">Launch Offer</span>
-              <div className="flex items-baseline justify-center md:justify-start gap-1">
-                <span className="text-5xl md:text-6xl font-black">$5</span>
-                <span className="text-gray-400 font-bold text-lg">/mo</span>
-              </div>
-              <p className="text-xs text-gray-400 font-bold mt-2 line-through">$25 Monthly</p>
-            </div>
-
-            {/* CTA Side */}
-            <div className="w-full md:w-2/3 p-2 md:p-4">
-              <Button 
-                variant="gradient" 
-                onClick={handleCTAClick}
-                className="w-full !py-6 md:!py-10 rounded-[2rem] md:rounded-[3rem] text-xl md:text-2xl font-black shadow-xl flex items-center justify-center gap-4 active:scale-[0.98] transition-all"
-              >
-                Create Your Profile Now <FaArrowRight className="text-lg" />
-              </Button>
-            </div>
+            <Link to="/register">
+              <button className="bg-purple-600 hover:bg-purple-700 text-white font-bold py-4 px-8 rounded-lg text-lg transition-transform hover:scale-105 shadow-lg">
+                Register Now & Start Getting Clients
+              </button>
+            </Link>
           </motion.div>
         </div>
       </section>
 
-      {/* 2. THE PROBLEM SECTION - FLEXIBLE GRID */}
-      <section className="py-20 md:py-32 px-4 md:px-6 max-w-7xl mx-auto">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 md:gap-16 items-center">
-          <div className="lg:col-span-5 space-y-8 md:space-y-10 order-2 lg:order-1">
-            <h2 className="text-4xl md:text-5xl font-black tracking-tighter leading-tight">Starting a Business <br className="hidden md:block" /> Shouldn't Be Expensive.</h2>
-            <div className="space-y-4 md:space-y-6">
-              {[
-                { t: "No Salon Rent", d: "Keep 100% of your earnings every month." },
-                { t: "Built-in Marketing", d: "Visibility to thousands of beauty seekers." },
-                { t: "Direct Booking", d: "WhatsApp integrated scheduling and chat." }
-              ].map((item, i) => (
-                <div key={i} className="flex gap-4 p-5 md:p-6 bg-white rounded-3xl border border-white shadow-sm hover:shadow-md transition-all">
-                  <div className="h-2 w-2 rounded-full bg-primary-purple mt-2.5 flex-shrink-0" />
-                  <div>
-                    <h4 className="font-bold text-lg">{item.t}</h4>
-                    <p className="text-gray-400 text-sm leading-relaxed">{item.d}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
+      {/* SECTION 2: VIDEO */}
+      <section className="py-20 px-6">
+  <div className="max-w-5xl mx-auto">
+    {/* The video container maintains the aspect ratio and rounded corners */}
+    <div className="aspect-video w-full bg-black rounded-2xl shadow-xl overflow-hidden">
+      <video
+        className="w-full h-full object-cover"
+        src="/videos/ad-video.mp4" // Path to your video in the public folder
+        autoPlay // The video will start playing automatically
+        loop     // The video will loop continuously
+        muted    // IMPORTANT: Videos must be muted to autoplay in most browsers
+        playsInline // Ensures video plays inline on iOS devices
+        controls
+      >
+        Your browser does not support the video tag.
+      </video>
+    </div>
+  </div>
+</section>
 
-          <div className="lg:col-span-7 h-[350px] md:h-[600px] rounded-[2.5rem] md:rounded-[4rem] overflow-hidden shadow-2xl relative order-1 lg:order-2">
-             <img 
-               src="https://images.unsplash.com/photo-1522337660859-02fbefca4702?q=80&w=1200" 
-               alt="Beauty Artist at work" 
-               className="w-full h-full object-cover"
-             />
-             <div className="absolute inset-0 bg-gradient-to-t from-primary-purple/30 to-transparent" />
-          </div>
-        </div>
-      </section>
-
-      {/* 3. CATEGORIES - VIVID GALLERY */}
-      <section className="py-20 md:py-32 px-4 md:px-6 max-w-7xl mx-auto">
-        <div className="mb-12 md:mb-16">
-            <h2 className="text-4xl md:text-5xl font-black tracking-tighter">What You Can List.</h2>
-            <p className="text-gray-400 font-bold mt-2 uppercase text-[10px] tracking-[0.2em]">Promote Expertise. Build Trust.</p>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-10">
-          {[
-            { name: "Hair Styling", img: "https://images.unsplash.com/photo-1595476108010-b4d1f102b1b1?q=80&w=500", tag: "Master Braider" },
-            { name: "Bridal Makeup", img: "https://images.unsplash.com/photo-1619183492791-31353e87701e?q=80&w=1000", tag: "Luxury Finish" }, // Chocolate skin bride color photo
-            { name: "Nail Artistry", img: "https://images.unsplash.com/photo-1604654894610-df4906821603?q=80&w=500", tag: "Premium Sets" }
-          ].map((cat, i) => (
-            <div key={i} className="group relative h-[400px] md:h-[550px] rounded-[2.5rem] md:rounded-[3.5rem] overflow-hidden shadow-xl border border-white transition-all duration-700 hover:shadow-2xl">
-              <img src={cat.img} className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105" alt={cat.name} />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-transparent" />
-              <div className="absolute bottom-8 md:bottom-12 left-8 md:left-12 text-white">
-                 <span className="text-[9px] font-black uppercase tracking-widest bg-white text-primary-purple px-3 py-1 rounded-full mb-3 inline-block">{cat.tag}</span>
-                 <h3 className="text-3xl md:text-4xl font-black tracking-tighter">{cat.name}</h3>
+      {/* SECTION 3: BENEFITS */}
+      <section className="py-20 px-6 bg-gray-50">
+        <div className="max-w-4xl mx-auto">
+          <SectionTitle>Why Join Beauty Heaven Directory?</SectionTitle>
+          <div className="mt-12 grid grid-cols-1 md:grid-cols-2 gap-8">
+            {[
+              "Get clients in your area",
+              "No need to pay expensive shop rent",
+              "Offer home services easily",
+              "Get direct bookings through WhatsApp",
+              "Grow your business faster"
+            ].map((benefit, i) => (
+              <div key={i} className="flex items-start space-x-4">
+                <FaCheckCircle className="text-purple-500 text-2xl mt-1 flex-shrink-0" />
+                <p className="text-lg text-gray-700">{benefit}</p>
               </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* SECTION 4: HOW IT WORKS */}
+      <section className="py-20 px-6">
+        <div className="max-w-6xl mx-auto">
+          <SectionTitle>How It Works</SectionTitle>
+          <div className="mt-16 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 text-center relative">
+            {/* Dashed line connecting steps on larger screens */}
+            <div className="hidden lg:block absolute top-1/2 left-0 w-full h-0.5 border-t-2 border-dashed border-gray-300 transform -translate-y-1/2"></div>
+            
+            {[
+              { num: 1, text: "Register your beauty business" },
+              { num: 2, text: "We list and promote your services in your area" },
+              { num: 3, text: "Clients find you and contact you on WhatsApp" },
+              { num: 4, text: "You get booked and paid" }
+            ].map((step) => (
+              <div key={step.num} className="relative z-10 flex flex-col items-center">
+                <div className="w-16 h-16 bg-purple-600 text-white rounded-full flex items-center justify-center font-bold text-2xl mb-4 border-4 border-white shadow-md">{step.num}</div>
+                <p className="font-semibold text-gray-700">{step.text}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+      
+      {/* SECTION 5 & 6: OFFER & URGENCY */}
+      <section className="py-20 px-6 bg-purple-700 text-white">
+        <div className="max-w-4xl mx-auto text-center">
+          <h2 className="text-3xl md:text-5xl font-bold tracking-tight">Start Getting Clients Today</h2>
+          <p className="text-lg text-purple-200 mt-4 max-w-2xl mx-auto">
+            Join Beauty Heaven Directory and make your business visible online. This limited-time offer is for new members only. The earlier you join, the faster you start getting clients.
+          </p>
+          <div className="mt-10 bg-white text-gray-800 rounded-xl p-8 max-w-md mx-auto shadow-2xl">
+            <p className="text-lg font-medium line-through text-gray-400">Subscription fee: $30 per month</p>
+            <p className="text-5xl font-extrabold text-purple-600 my-2">$5</p>
+            <p className="text-xl font-bold">For Your First Month</p>
+          </div>
+        </div>
+      </section>
+      
+      {/* SECTION 7: REGISTRATION FORM */}
+      <section className="py-20 px-6">
+        <div className="max-w-2xl mx-auto">
+          <SectionTitle>Register Your Business</SectionTitle>
+          <form className="mt-12 space-y-6 bg-white p-8 rounded-xl shadow-lg border border-gray-100">
+            <div>
+              <label htmlFor="fullName" className="block text-sm font-medium text-gray-700">Full Name</label>
+              <input type="text" id="fullName" className="mt-1 block w-full px-4 py-3 border border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500" />
             </div>
-          ))}
+            <div>
+              <label htmlFor="businessName" className="block text-sm font-medium text-gray-700">Business Name</label>
+              <input type="text" id="businessName" className="mt-1 block w-full px-4 py-3 border border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500" />
+            </div>
+            <div>
+              <label htmlFor="whatsapp" className="block text-sm font-medium text-gray-700">WhatsApp Number</label>
+              <input type="tel" id="whatsapp" className="mt-1 block w-full px-4 py-3 border border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500" />
+            </div>
+             <div>
+              <label htmlFor="serviceType" className="block text-sm font-medium text-gray-700">Service Type</label>
+              <select id="serviceType" className="mt-1 block w-full px-4 py-3 border border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 bg-white">
+                  <option>Hair</option>
+                  <option>Nails</option>
+                  <option>Spa</option>
+                  <option>Makeup</option>
+                  <option>Other</option>
+              </select>
+            </div>
+            <div>
+              <label htmlFor="location" className="block text-sm font-medium text-gray-700">Location (Area/City)</label>
+              <input type="text" id="location" className="mt-1 block w-full px-4 py-3 border border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500" />
+            </div>
+            <div>
+             <Link to="/register">
+                    <button className="bg-purple-600 hover:bg-purple-700 text-white font-bold py-4 px-8 rounded-lg text-lg transition-transform hover:scale-105 shadow-lg">
+                        Register Now & start getting clients
+                    </button>
+                </Link>
+            </div>
+          </form>
         </div>
       </section>
 
-      {/* 4. FINAL OFFER - RESPONSIVE BANNER */}
-      <section className="py-20 md:py-32 px-4 md:px-6">
-        <div className="max-w-6xl mx-auto bg-[#1D1D1F] rounded-[3rem] md:rounded-[5rem] p-10 md:p-24 text-center text-white relative overflow-hidden shadow-2xl">
-          <div className="relative z-10 space-y-10 md:space-y-12">
-             <div className="inline-block p-4 bg-white/5 backdrop-blur-md rounded-2xl border border-white/10">
-                <FaStar className="text-yellow-400 text-xl" />
-             </div>
-             <h2 className="text-4xl sm:text-5xl md:text-8xl font-black tracking-tighter leading-[1.1]">Special <br className="md:hidden" /> Launch Offer.</h2>
-             <p className="text-gray-400 text-lg md:text-xl max-w-2xl mx-auto font-medium px-4">
-                Build your client base for the price of a coffee. One full month of Pro features for just:
-             </p>
-             
-             <div className="flex flex-col items-center">
-                <div className="bg-white/5 backdrop-blur-3xl border border-white/10 p-10 md:p-12 rounded-[3rem] md:rounded-[4rem] shadow-inner relative px-16 md:px-24">
-                  <p className="text-7xl md:text-[120px] font-black text-primary-purple leading-none tracking-tighter">$5</p>
-                  <p className="text-sm md:text-lg font-bold text-gray-500 mt-4 md:mt-6 uppercase tracking-widest">First 30 Days</p>
-                  <div className="absolute -top-4 -right-4 md:-top-6 md:-right-6 bg-white text-black font-black px-4 py-2 md:p-4 rounded-full text-[10px] md:text-xs rotate-12 shadow-xl border-4 border-[#1D1D1F]">SAVE 80%</div>
-                </div>
-             </div>
-
-             <div className="pt-6 md:pt-10">
-                <Button 
-                  variant="gradient" 
-                  onClick={() => navigate("/become-salon-owner")}
-                  className="w-full md:w-auto !py-6 md:!py-8 px-12 md:px-20 rounded-full text-xl md:text-3xl font-black shadow-2xl hover:scale-105 transition-all"
-                >
-                  Join for $5 Today
-                </Button>
-             </div>
-          </div>
-          
-          <div className="absolute inset-0 flex items-center justify-center opacity-[0.02] select-none pointer-events-none">
-             <span className="text-[50vw] font-black">PRO</span>
-          </div>
+      {/* SECTION 8 & 9: TRUST & FINAL CTA */}
+       <section className="py-20 px-6 bg-gray-50">
+        <div className="max-w-4xl mx-auto text-center">
+            <SectionTitle>Built for Beauty Professionals</SectionTitle>
+            <p className="text-lg text-gray-600 max-w-3xl mx-auto mt-6">
+                We help hairstylists, nail technicians, makeup artists, and spa professionals grow their business by connecting them with real clients in their area. Don’t stay invisible. Let clients find you.
+            </p>
+             <div className="mt-10">
+                <Link to="/register">
+                    <button className="bg-purple-600 hover:bg-purple-700 text-white font-bold py-4 px-8 rounded-lg text-lg transition-transform hover:scale-105 shadow-lg">
+                        Register Now
+                    </button>
+                </Link>
+            </div>
         </div>
       </section>
+      
+      {/* Floating WhatsApp Button */}
+      <a 
+        href="https://wa.me/+237679267153" // <-- IMPORTANT: Replace with your number
+        target="_blank" 
+        rel="noopener noreferrer"
+        className="fixed bottom-6 right-6 bg-green-500 text-white p-4 rounded-full shadow-lg flex items-center justify-center hover:bg-green-600 transition-transform hover:scale-110 z-50"
+      >
+        <FaWhatsapp size={30} />
+      </a>
 
-      <footer className="py-20 text-center text-gray-400 px-6">
-         <p className="text-[10px] md:text-xs font-bold uppercase tracking-[0.3em] leading-relaxed">
-            BeautyHeaven © 2024 — Engineering The Future of Local Beauty
-         </p>
-      </footer>
+      <Footer />
     </div>
   );
 };
