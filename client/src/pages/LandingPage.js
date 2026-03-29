@@ -3,7 +3,7 @@
 
 import React from "react";
 import { motion } from "framer-motion";
-import { FaWhatsapp, FaArrowRight, FaCheckCircle } from "react-icons/fa";
+import { FaWhatsapp, FaCheckCircle } from "react-icons/fa";
 import { Link } from "react-router-dom";
 import Footer from '../components/Footer';
 
@@ -16,11 +16,6 @@ const LandingPage = () => {
     </h2>
   );
   
-  const SectionSubtitle = ({ children }) => (
-     <p className="text-lg text-gray-600 max-w-2xl mx-auto text-center mt-4">
-      {children}
-    </p>
-  );
 
   return (
     <div className="bg-white min-h-screen font-sans text-gray-800">
