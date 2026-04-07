@@ -28,7 +28,7 @@ const subscribe = asyncHandler(async (req, res) => {
 
   try {
     // 1. Fetch Plan
-    const plan = await SubscriptionType.findById(planId).session(session);
+   const plan = await SubscriptionType.findOne({ slug: planId }).session(session);
     if (!plan) throw new Error("Subscription plan not found");
 
     // 2. Login to Swychr
@@ -44,7 +44,7 @@ const subscribe = asyncHandler(async (req, res) => {
     const [createdSubscription] = await Subscription.create(
       [{
         user: user._id,
-        plan: planId,
+        plan: plan._id,
         durationMonths: plan.durationMonths,
       }],
       { session }
@@ -295,7 +295,7 @@ const redeemCouponCode = asyncHandler(async (req, res) => {
 const getConvertedPrice = asyncHandler(async (req, res) => {
   const { planId, countryCode } = req.params;
 
-  const plan = await SubscriptionType.findById(planId);
+   const plan = await SubscriptionType.findOne({ slug: planId });
   if (!plan) return res.status(404).json({ message: "Plan not found" });
 
   const token = await login();
