@@ -101,7 +101,7 @@ useEffect(() => {
       }
     };
     getPlan();
-  }, [user]);
+  }, [user?._id]);
 
   if (loading) {
     return <div className="min-h-screen flex items-center justify-center font-bold text-primary-purple animate-pulse">Loading System Architecture...</div>;
@@ -188,6 +188,8 @@ useEffect(() => {
                   <Route path="reviews" element={<SalonReviewsPage />} />
                   <Route path="analytics" element={<SalonAnalyticsPage />} />
                   <Route path="settings" element={<SalonSettingsPage />} />
+                   <Route path="billing" element={<Subscriptions />} /> 
+                   <Route path="pay" element={<PaymentPage />} /> 
                 </Routes>
               </SalonOwnerLayout>
             } />
