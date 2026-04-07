@@ -288,6 +288,30 @@ const redeemCouponCode = asyncHandler(async (req, res) => {
     });
   }
 });
+/**
+ * @desc    Get converted price for a plan based on country
+ * @route   GET /api/subscriptions/price/:planId/:countryCode
+ */
+const getConvertedPrice = asyncHandler(async (req, res) => {
+  const { planId, countryCode } = req.params;
+
+  const plan = await SubscriptionType.findById(planId);
+  if (!plan) return res.status(404).json({ message: "Plan not found" });
+
+  const token = await login();
+  const rate = await getFiatRate(token, countryCode, 1); // Get rate for $1
+  
+  const finalAmount = Math.ceil(plan.amount * rate);
+
+  res.json({
+    success: true,
+    data: {
+      usdAmount: plan.amount,
+      localAmount: finalAmount,
+      rate: rate
+    }
+  });
+});
 
 module.exports = {
   subscribe,
@@ -295,4 +319,5 @@ module.exports = {
   getActiveSubscription,
   createCouponCode,
   redeemCouponCode,
+  getConvertedPrice
 };

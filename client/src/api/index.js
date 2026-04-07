@@ -73,8 +73,8 @@ export const getPaymentStatus = (paymentId) =>
 
 export const redeemCouponCode = (body) =>
   API.post("/api/subscriptions/redeem-coupon-code", body);
-export const getSwychrRate = (currency) => 
-  API.get(`/api/subscriptions/get-rate/${currency}`);
+export const getPlanPrice = (planId, countryCode) => 
+  API.get(`/api/subscriptions/price/${planId}/${countryCode}`);
 export const createSubscriptionPlan = (data) => 
   API.post("/api/subscriptions/types", data);
 export const updateSubscriptionPlan = (id, data) => 

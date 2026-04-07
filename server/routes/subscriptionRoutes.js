@@ -8,6 +8,7 @@ const {
   getActiveSubscription,
   createCouponCode,
   redeemCouponCode,
+  getConvertedPrice
 } = require("../controllers/subscriptionController");
 
 router
@@ -23,5 +24,6 @@ router.route("/redeem-coupon-code").post(protect, redeemCouponCode);
 
 // only admin can create a coupon code
 router.route("/create-coupon-code").post(protect, admin, createCouponCode);
+router.get("/price/:planId/:countryCode", protect, getConvertedPrice);
 
 module.exports = router;

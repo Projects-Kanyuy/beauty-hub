@@ -16,7 +16,7 @@ import {
   getSubscriptionPlanById,
   redeemCouponCode,
   subscribe,
-  getSwychrRate,
+  getPlanPrice,
 } from "../api";
 import Button from "../components/Button";
 
@@ -91,26 +91,37 @@ const PaymentPage = () => {
   }, [planId, t]);
 
   // 2. Fetch Rate
-  useEffect(() => {
-    const fetchRate = async () => {
-      if (selectedRegion.currency === "USD") {
-        setExchangeRate(1);
-        return;
+ useEffect(() => {
+  const fetchPrice = async () => {
+    if (!plan) return;
+
+    // If International (US), rate is always 1
+    if (selectedRegion.code === "US") {
+      setExchangeRate(1);
+      return;
+    }
+
+    try {
+      setFetchingRate(true);
+      // Call the new backend route
+      const response = await getPlanPrice(planId, selectedRegion.code);
+      
+      if (response.data && response.data.success) {
+        // We use the rate returned by the backend (plan.amount * rate)
+        setExchangeRate(response.data.data.rate);
       }
-      try {
-        setFetchingRate(true);
-        const response = await getSwychrRate(selectedRegion.code);
-        if (response.data && response.data.success) {
-          setExchangeRate(response.data.rate);
-        }
-      } catch (err) {
-        setExchangeRate(615);
-      } finally {
-        setFetchingRate(false);
-      }
-    };
-    if (plan) fetchRate();
-  }, [selectedRegion, plan]);
+    } catch (err) {
+      console.error("Failed to fetch live rate, using fallback");
+      // Hardcoded fallbacks if API is down
+      const fallbacks = { "NG": 1600, "CM": 615, "BF": 615, "KE": 130 };
+      setExchangeRate(fallbacks[selectedRegion.code] || 615);
+    } finally {
+      setFetchingRate(false);
+    }
+  };
+
+  fetchPrice();
+}, [selectedRegion, plan, planId]);
 
   // 3. Poll Status
   useEffect(() => {
