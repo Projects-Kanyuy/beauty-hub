@@ -17,6 +17,7 @@ import {
   redeemCouponCode,
   subscribe,
   getPlanPrice,
+  getPlanBySlug
 } from "../api";
 import Button from "../components/Button";
 
@@ -71,24 +72,31 @@ const PaymentPage = () => {
 
   // 1. Fetch Plan Details
   useEffect(() => {
-    const getPlanDetails = async () => {
-      if (!planId) {
-        setError("No plan selected");
-        setFetching(false);
-        return;
-      }
-      try {
-        setFetching(true);
-        const { data } = await getSubscriptionPlanById(planId);
-        setPlan(data?.data);
-      } catch (err) {
-        setError(t("payment.errorLoadingPlan"));
-      } finally {
-        setFetching(false);
-      }
-    };
-    getPlanDetails();
-  }, [planId, t]);
+  const getPlanDetails = async () => {
+    // 1. Get the clean slug from the URL (?plan=pro-plan)
+    const planSlug = searchParams.get("plan");
+
+    if (!planSlug) {
+      setError("No plan selected");
+      setFetching(false);
+      return;
+    }
+
+    try {
+      setFetching(true);
+      // 2. Use the new API helper to fetch by Slug instead of ID
+      const { data } = await getPlanBySlug(planSlug); 
+      setPlan(data?.data);
+    } catch (err) {
+      console.error("Error fetching plan:", err);
+      setError(t("payment.errorLoadingPlan"));
+    } finally {
+      setFetching(false);
+    }
+  };
+
+  getPlanDetails();
+}, [location.search, t]); // Listens for URL changes
 
   // 2. Fetch Rate
  useEffect(() => {

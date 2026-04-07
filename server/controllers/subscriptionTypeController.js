@@ -165,6 +165,15 @@ const deleteSubscriptionType = asyncHandler(async (req, res) => {
 
   res.json({ message: "Subscription plan deleted successfully" });
 });
+const getPlanBySlug = asyncHandler(async (req, res) => {
+  const plan = await SubscriptionType.findOne({ slug: req.params.slug });
+  
+  if (!plan) {
+    return res.status(404).json({ message: "Plan not found" });
+  }
+  
+  res.json({ success: true, data: plan });
+});
 
 module.exports = {
   getSubscriptionTypes,
@@ -172,4 +181,5 @@ module.exports = {
   updateSubscriptionType,
   deleteSubscriptionType, // ← Added
   getSubscriptionTypeById,
+  getPlanBySlug
 };

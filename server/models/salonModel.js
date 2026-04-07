@@ -4,26 +4,18 @@ const serviceSchema = new mongoose.Schema({
   name: { type: String, required: true },
   description: { type: String },
   price: { type: Number, required: true },
-  currency: {
-    type: String,
-    default: "XAF",
-  },
+  currency: { type: String, default: "XAF" },
   duration: { type: String }, 
-  photos: { type: [String], default: [] }, // --- NEW FIELD FOR SERVICE IMAGES ---
-  homeService: {
-    type: Boolean,
-    default: false,
-  },
-  homeServiceFee: {
-    type: Number,
-    default: 0,
-  },
+  photos: { type: [String], default: [] },
+  homeService: { type: Boolean, default: false },
+  homeServiceFee: { type: Number, default: 0 },
 });
 
 const salonSchema = new mongoose.Schema(
   {
     owner: { type: mongoose.Schema.Types.ObjectId, required: true, ref: "User" },
     name: { type: String, required: true },
+    slug: { type: String, unique: true }, // Clean URL field
     description: { type: String, required: true },
     currency: {
       type: String,
@@ -45,5 +37,16 @@ const salonSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
+
+// --- AUTO-GENERATE SLUG BEFORE SAVING ---
+salonSchema.pre("save", function (next) {
+  if (this.isModified("name")) {
+    this.slug = this.name
+      .toLowerCase()
+      .replace(/[^\w ]+/g, "") // Remove special characters
+      .replace(/ +/g, "-");    // Replace spaces with dashes
+  }
+  next();
+});
 
 module.exports = mongoose.model("Salon", salonSchema);

@@ -9,6 +9,7 @@ const {
   updateSubscriptionType,
   deleteSubscriptionType,
   getSubscriptionTypeById,
+  getPlanBySlug
 } = require("../controllers/subscriptionTypeController");
 
 // Public
@@ -18,7 +19,9 @@ router.get("/:id", getSubscriptionTypeById);
 
 // Admin only
 router.post("/", protect, admin, createSubscriptionType);
+router.get("/slug/:slug", getPlanBySlug);
 router.put("/:id", protect, admin, updateSubscriptionType);
 router.delete("/:id", protect, admin, deleteSubscriptionType);
+
 
 module.exports = router;

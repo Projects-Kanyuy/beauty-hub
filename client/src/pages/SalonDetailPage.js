@@ -5,34 +5,44 @@ import {
 } from "react-icons/fa";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
-import { createAppointment, addReview } from "../api";
-import { useSalon } from "../api/swr";
+import { createAppointment, addReview, getSalonBySlug } from "../api"; // Added getSalonBySlug
 import { useAuth } from "../context/AuthContext";
 import BookingModal from "../components/BookingModal";
 import Button from "../components/Button";
 
 const SalonDetailPage = () => {
   const { t } = useTranslation();
-  const { id } = useParams();
+  const { id: slug } = useParams(); // 'id' in the route is now our 'slug'
   const { user } = useAuth(); 
   const location = useLocation();
   const navigate = useNavigate();
 
-  const [salon, setSalon] = useState(location.state?.salon || null);
+  const [salon, setSalon] = useState(null);
+  const [fetching, setFetching] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedService, setSelectedService] = useState(null);
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
- 
 
   const [reviewForm, setReviewForm] = useState({ rating: 5, comment: "", guestName: "" });
   const [submittingReview, setSubmittingReview] = useState(false);
-  
-  const { data: salonData, isLoading, mutate } = useSalon(id);
-  const resolvedSalon = useMemo(() => salonData || salon, [salon, salonData]);
+
+  // 1. Fetch Salon Details by SLUG
+  const fetchSalonData = async () => {
+    try {
+      setFetching(true);
+      const { data } = await getSalonBySlug(slug);
+      setSalon(data.data);
+    } catch (err) {
+      console.error("Load Error:", err);
+      toast.error("Could not load salon details");
+    } finally {
+      setFetching(false);
+    }
+  };
 
   useEffect(() => {
-    if (salonData && !salon) setSalon(salonData);
-  }, [salonData, salon]);
+    fetchSalonData();
+  }, [slug]);
 
   const handleBookClick = (service) => {
     setSelectedService(service); 
@@ -41,12 +51,13 @@ const SalonDetailPage = () => {
 
   const handleReviewSubmit = async (e) => {
     e.preventDefault();
+    if (!salon?._id) return;
     setSubmittingReview(true);
     try {
-      await addReview(resolvedSalon._id, reviewForm);
+      await addReview(salon._id, reviewForm);
       toast.success("Review posted!");
       setReviewForm({ rating: 5, comment: "", guestName: "" });
-      mutate(); 
+      fetchSalonData(); // Refresh data to show new review
     } catch (err) {
       toast.error(err.response?.data?.message || "Failed to post review");
     } finally {
@@ -57,7 +68,7 @@ const SalonDetailPage = () => {
   const handleConfirmBooking = async (bookingData) => {
     try {
       await createAppointment({
-        salonId: bookingData.salonId,
+        salonId: salon._id,
         serviceId: bookingData.serviceId,
         appointmentDateTime: bookingData.preferredDateTime,
         clientName: bookingData.customerName,
@@ -66,139 +77,148 @@ const SalonDetailPage = () => {
       });
       toast.success(t("salondetail.bookingSuccess"));
       setIsModalOpen(false);
-      const phone = resolvedSalon?.phone?.replace(/[^0-9]/g, "");
-      const whatsappUrl = `https://wa.me/${phone}?text=${encodeURIComponent(bookingData?.chatMessage)}`;
+      
+      const phoneClean = salon?.phone?.replace(/[^0-9]/g, "");
+      const whatsappUrl = `https://wa.me/${phoneClean}?text=${encodeURIComponent(bookingData?.chatMessage)}`;
       window.open(whatsappUrl, "_blank");
     } catch (err) {
       toast.error(err.response?.data?.message || t("salondetail.bookingFailed"));
     }
   };
 
-  if (isLoading && !resolvedSalon) return <div className="text-center py-20"><FaSpinner className="animate-spin text-primary-purple text-4xl" /></div>;
-  if (!resolvedSalon) return <div className="text-center py-20 text-red-600">{t("salondetail.loadFailedGoBack")}</div>;
+  if (fetching) return <div className="flex justify-center items-center h-screen"><FaSpinner className="animate-spin text-primary-purple text-5xl" /></div>;
+  if (!salon) return <div className="text-center py-20 text-red-600 font-bold">{t("salondetail.loadFailedGoBack")}</div>;
 
-  const displayImage = resolvedSalon.photos?.length > 0
-      ? resolvedSalon.photos[currentPhotoIndex]
+  const displayImage = salon.photos?.length > 0
+      ? salon.photos[currentPhotoIndex]
       : "https://via.placeholder.com/1200x600.png?text=BeautyHeaven";
 
   return (
     <div className="bg-gray-50 min-h-screen pb-20">
-      <div className="bg-white border-b border-gray-200 sticky top-0 z-30">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <button onClick={() => navigate(-1)} className="flex items-center space-x-2 text-primary-purple font-medium">
+      <div className="bg-white border-b border-gray-200 sticky top-0 z-30 shadow-sm">
+        <div className="container mx-auto px-6 py-4">
+          <button onClick={() => navigate(-1)} className="flex items-center space-x-2 text-primary-purple font-bold hover:opacity-70 transition">
             <FaArrowLeft size={16} /> <span>{t("salondetail.back")}</span>
           </button>
         </div>
       </div>
 
-      <div className="relative h-80 md:h-[400px] bg-cover bg-center group" style={{ backgroundImage: `url(${displayImage})` }}>
-        <div className="absolute inset-0 bg-black bg-opacity-40"></div>
-        <div className="absolute inset-0 flex flex-col justify-end py-10 px-10 lg:px-28 text-white">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4 tracking-tighter">{resolvedSalon.name}</h1>
-          <div className="flex flex-wrap gap-6 text-sm">
-            <div className="flex items-center space-x-2 bg-white/20 backdrop-blur-md px-3 py-1 rounded-full">
-              <FaStar className="text-yellow-300" /> 
-              <span className="font-bold">{resolvedSalon.averageRating?.toFixed(1) || "New"}</span>
-              <span className="opacity-80">({resolvedSalon.reviews?.length || 0} {t("salondetail.reviews")})</span>
+      {/* Hero Banner */}
+      <div className="relative h-96 bg-cover bg-center" style={{ backgroundImage: `url(${displayImage})` }}>
+        <div className="absolute inset-0 bg-black/50"></div>
+        <div className="absolute inset-0 flex flex-col justify-end py-12 px-6 lg:px-24 text-white">
+          <h1 className="text-4xl md:text-6xl font-black mb-4 tracking-tighter">{salon.name}</h1>
+          <div className="flex flex-wrap gap-4 text-sm font-bold">
+            <div className="flex items-center space-x-2 bg-white/20 backdrop-blur-xl px-4 py-2 rounded-full border border-white/20">
+              <FaStar className="text-yellow-400" /> 
+              <span>{salon.averageRating?.toFixed(1) || "New"}</span>
+              <span className="opacity-70">({salon.reviews?.length || 0} {t("salondetail.reviews")})</span>
             </div>
-            <div className="flex items-center space-x-2"><FaMapMarkerAlt /> <span>{resolvedSalon.city}, {resolvedSalon.address}</span></div>
-            <div className="flex items-center space-x-2"><FaPhone /> <span>{resolvedSalon.phone}</span></div>
+            <div className="flex items-center space-x-2 bg-black/20 backdrop-blur-xl px-4 py-2 rounded-full border border-white/10">
+                <FaMapMarkerAlt /> <span>{salon.city}, {salon.address}</span>
+            </div>
           </div>
         </div>
       </div>
 
-      <div className="container mx-auto px-4 md:px-8 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
-          <div className="lg:col-span-2 space-y-8">
-            <div className="bg-white p-8 rounded-3xl shadow-sm border border-gray-100">
-              <h2 className="text-2xl font-bold mb-6">{t("salondetail.services")}</h2>
-              <ul className="space-y-8">
-                {resolvedSalon.services?.map((service) => (
-                  <li key={service._id} className="border-b border-gray-50 pb-8 last:border-b-0">
-                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4">
+      <div className="container mx-auto px-6 lg:px-24 py-12">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
+          {/* Main Content */}
+          <div className="lg:col-span-2 space-y-12">
+            
+            {/* Services Card */}
+            <div className="bg-white p-8 md:p-10 rounded-[2.5rem] shadow-sm border border-gray-100">
+              <h2 className="text-3xl font-black mb-8 tracking-tight">{t("salondetail.services")}</h2>
+              <div className="space-y-8">
+                {salon.services?.map((service) => (
+                  <div key={service._id} className="group border-b border-gray-100 pb-8 last:border-0">
+                    <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
                       <div className="flex-1">
-                        <h3 className="font-bold text-xl">{service.name}</h3>
-                        <p className="text-sm text-gray-500 mt-1">{service.description}</p>
+                        <h3 className="font-bold text-2xl text-gray-900 group-hover:text-primary-purple transition-colors">{service.name}</h3>
+                        <p className="text-gray-500 mt-2 leading-relaxed">{service.description}</p>
                       </div>
-                      <div className="flex items-center space-x-6">
-                        <span className="font-bold text-xl text-primary-purple">{resolvedSalon.currency} {service.price}</span>
-                        <Button variant="gradient" className="!py-2 !px-8 rounded-full" onClick={() => handleBookClick(service)}>
+                      <div className="flex items-center gap-6">
+                        <div className="text-right">
+                            <p className="text-sm font-bold text-gray-400 uppercase tracking-widest">Starting at</p>
+                            <p className="font-black text-2xl text-primary-purple">{salon.currency} {service.price}</p>
+                        </div>
+                        <Button variant="gradient" className="!py-3 !px-10 rounded-full text-lg shadow-lg active:scale-95" onClick={() => handleBookClick(service)}>
                           {t("salondetail.book")}
                         </Button>
                       </div>
                     </div>
-                    {service.photos?.length > 0 && (
-                      <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
-                        {service.photos.map((img, i) => (
-                          <img key={i} src={img} className="w-20 h-20 rounded-xl object-cover border border-gray-100 shadow-sm" alt="Service" />
-                        ))}
-                      </div>
-                    )}
-                  </li>
+                  </div>
                 ))}
-              </ul>
+              </div>
             </div>
 
-            <div className="bg-white p-8 rounded-3xl shadow-sm border border-gray-100">
-              <h2 className="text-2xl font-bold mb-6">Client Reviews</h2>
-              <div className="space-y-6 mb-10">
-                {resolvedSalon.reviews?.length > 0 ? resolvedSalon.reviews.map((rev, i) => (
-                  <div key={i} className="p-6 bg-gray-50 rounded-2xl relative">
-                    <div className="flex text-orange-400 mb-2">
-                      {/* FIX: Ensure stars show based on rev.rating */}
+            {/* Reviews Section */}
+            <div className="bg-white p-8 md:p-10 rounded-[2.5rem] shadow-sm border border-gray-100">
+              <h2 className="text-3xl font-black mb-8 tracking-tight">Client Feedback</h2>
+              <div className="space-y-6 mb-12">
+                {salon.reviews?.length > 0 ? salon.reviews.map((rev, i) => (
+                  <div key={i} className="p-8 bg-gray-50 rounded-3xl border border-gray-100">
+                    <div className="flex gap-1 text-orange-400 mb-3">
                       {[...Array(5)].map((_, j) => (
-                        <FaStar key={j} size={10} className={j < rev.rating ? "text-orange-400" : "text-gray-200"} />
+                        <FaStar key={j} size={14} className={j < rev.rating ? "fill-current" : "text-gray-200"} />
                       ))}
                     </div>
-                    {/* FIX: Ensure comment is shown */}
-                    <p className="text-gray-600 mb-2">"{rev.comment}"</p>
-                    {/* FIX: Priority given to registered user name, then guest name */}
-                    <p className="font-bold text-gray-800 text-sm">— {rev.user?.name || rev.guestName || "Client"}</p>
+                    <p className="text-gray-700 text-lg italic leading-relaxed">"{rev.comment}"</p>
+                    <div className="mt-4 flex items-center gap-3">
+                        <div className="w-8 h-8 bg-primary-purple/10 rounded-full flex items-center justify-center text-primary-purple font-bold text-xs uppercase">
+                            {(rev.user?.name || rev.guestName || "C")[0]}
+                        </div>
+                        <p className="font-black text-gray-900 text-sm uppercase tracking-wider">— {rev.user?.name || rev.guestName || "Verified Client"}</p>
+                    </div>
                   </div>
-                )) : <p className="text-gray-400 italic">No reviews yet. Be the first!</p>}
+                )) : <p className="text-gray-400 text-center py-10 font-medium">No reviews yet. Be the first!</p>}
               </div>
 
-              <div className="border-t pt-8">
-                <h3 className="font-bold text-lg mb-4">Leave a Review</h3>
-                <form onSubmit={handleReviewSubmit} className="space-y-4">
+              {/* Review Form */}
+              <div className="bg-primary-purple/5 p-8 rounded-3xl border border-primary-purple/10">
+                <h3 className="font-black text-xl mb-6">Leave a Review</h3>
+                <form onSubmit={handleReviewSubmit} className="space-y-6">
                   {!user && (
                     <input 
                       type="text"
                       placeholder="Your Name"
                       value={reviewForm.guestName}
                       onChange={(e) => setReviewForm({...reviewForm, guestName: e.target.value})}
-                      className="w-full p-4 bg-gray-50 rounded-2xl border-none outline-none focus:ring-2 focus:ring-primary-purple font-bold"
+                      className="w-full p-4 bg-white rounded-2xl border-none outline-none focus:ring-2 focus:ring-primary-purple font-bold shadow-sm"
                       required
                     />
                   )}
-                  <div className="flex gap-2 text-2xl text-yellow-400">
+                  <div className="flex gap-2 text-3xl">
                     {[1, 2, 3, 4, 5].map((s) => (
-                      <button key={s} type="button" onClick={() => setReviewForm({...reviewForm, rating: s})}>
-                        {s <= reviewForm.rating ? "★" : "☆"}
+                      <button key={s} type="button" onClick={() => setReviewForm({...reviewForm, rating: s})} className="transition-transform hover:scale-110">
+                        {s <= reviewForm.rating ? <FaStar className="text-yellow-400" /> : <FaStar className="text-gray-200" />}
                       </button>
                     ))}
                   </div>
                   <textarea 
                     value={reviewForm.comment}
                     onChange={(e) => setReviewForm({...reviewForm, comment: e.target.value})}
-                    placeholder="Describe your experience..."
-                    className="w-full p-4 bg-gray-50 rounded-2xl border-none outline-none focus:ring-2 focus:ring-primary-purple"
-                    rows="3" required
+                    placeholder="Tell us about your experience..."
+                    className="w-full p-6 bg-white rounded-2xl border-none outline-none focus:ring-2 focus:ring-primary-purple shadow-sm"
+                    rows="4" required
                   />
-                  <Button type="submit" disabled={submittingReview} className="rounded-full px-8">
-                    {submittingReview ? "Posting..." : "Post Review"}
+                  <Button type="submit" disabled={submittingReview} className="rounded-full px-12 !py-4 text-lg">
+                    {submittingReview ? <FaSpinner className="animate-spin" /> : "Post Review"}
                   </Button>
                 </form>
               </div>
             </div>
           </div>
 
+          {/* Sidebar Gallery */}
           <div className="lg:col-span-1">
-            <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 sticky top-24">
-              <h3 className="text-lg font-bold mb-4 flex items-center space-x-2"><FaImages /> <span>{t("salondetail.gallery")}</span></h3>
-              <div className="grid grid-cols-2 gap-2">
-                {resolvedSalon.photos?.slice(0, 4).map((photo, idx) => (
-                  <img key={idx} src={photo} className="w-full h-24 object-cover rounded-lg cursor-pointer hover:opacity-80 transition-opacity" onClick={() => setCurrentPhotoIndex(idx)} alt="Gallery" />
+            <div className="bg-white p-8 rounded-[2.5rem] shadow-sm border border-gray-100 sticky top-28">
+              <h3 className="text-xl font-black mb-6 flex items-center gap-3">
+                <FaImages className="text-primary-purple" /> <span>{t("salondetail.gallery")}</span>
+              </h3>
+              <div className="grid grid-cols-2 gap-3">
+                {salon.photos?.map((photo, idx) => (
+                  <img key={idx} src={photo} className="w-full h-28 object-cover rounded-2xl cursor-pointer hover:scale-105 transition-transform" onClick={() => setCurrentPhotoIndex(idx)} alt="Gallery" />
                 ))}
               </div>
             </div>
@@ -210,8 +230,8 @@ const SalonDetailPage = () => {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         service={selectedService}
-        salonId={resolvedSalon?._id || resolvedSalon?.id}
-        salonName={resolvedSalon?.name}
+        salonId={salon?._id}
+        salonName={salon?.name}
         onBookingConfirmed={handleConfirmBooking}
       />
     </div>

@@ -120,3 +120,5 @@ export const addReview = (salonId, reviewData) =>
   API.post(`/api/salons/${salonId}/reviews`, reviewData);
 export const fetchReviews = (salonId) => 
   API.get(`/api/salons/${salonId}/reviews`);
+export const getPlanBySlug = (slug) => API.get(`api/subscription-types/slug/${slug}`);
+export const getSalonBySlug = (slug) => API.get(`api/salons/s/${slug}`);

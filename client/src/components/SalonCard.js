@@ -112,7 +112,7 @@ const SalonCard = ({ salon }) => {
         </div>
 
         <div className="mt-4 flex items-center space-x-2">
-          <Link to={`/salon/${salon._id}`} state={{ salon }} className="w-full">
+          <Link to={`/salon/${salon.slug}`} state={{ salon }} className="w-full">
             <Button variant="gradient" className="w-full !py-2.5 rounded-xl">{t("salonCard.viewAndBook")}</Button>
           </Link>
           <button className="p-3 border-2 border-gray-200 rounded-xl hover:bg-gray-50"><FaRegBookmark /></button>

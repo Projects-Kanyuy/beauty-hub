@@ -10,6 +10,7 @@ const {
   updateSalonService,
   deleteSalonService,
   getMySalon,
+  getSalonBySlug
 } = require("../controllers/salonController");
 const { protect } = require("../middleware/authMiddleware");
 const reviewRouter = require("./reviewRoutes");
@@ -21,14 +22,13 @@ const {
 
 // Public route to get all salons
 router.route("/").get(getSalons);
-
+router.get("/s/:slug", getSalonBySlug);
 // Protected route for an owner to create their profile
 router.route("/").post(protect, createSalon);
 
 // Specific route for the logged-in owner to get their salon.
 // This MUST come BEFORE the dynamic '/:id' route.
 router.route("/mysalon").get(protect, getMySalon);
-
 // Dynamic route to get a single salon's details by its ID.
 router.route("/:id").get(getSalonById);
 

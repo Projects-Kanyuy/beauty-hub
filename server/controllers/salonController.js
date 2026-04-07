@@ -469,8 +469,20 @@ const getMySalon = asyncHandler(async (req, res) => {
   const salon = await Salon.findOne({ owner: req.user._id });
   res.status(200).json(salon || null);
 });
+const getSalonBySlug = asyncHandler(async (req, res) => {
+  const salon = await Salon.findOne({ slug: req.params.slug })
+    .populate("owner", "name email")
+    .populate("reviews");
+
+  if (!salon) {
+    return res.status(404).json({ message: "Salon not found" });
+  }
+
+  res.json({ success: true, data: salon });
+});
 module.exports = {
   getSalons,
+  getSalonBySlug,
   getSalonById,
   createSalon,
   updateSalon,
@@ -478,4 +490,5 @@ module.exports = {
   updateSalonService,
   deleteSalonService,
   getMySalon,
+  
 };

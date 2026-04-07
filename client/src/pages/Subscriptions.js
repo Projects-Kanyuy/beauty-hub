@@ -34,9 +34,9 @@ const Subscriptions = () => {
     setSelectedPlan(plan._id);
     if (user) {
       // Stay in portal context when moving to payment
-       navigate(`/salon-owner/pay?plan=${plan._id}`, { state: { plan } });
+       navigate(`/salon-owner/pay?plan=${plan.slug}`, { state: { plan } });
     } else {
-      navigate(`/register?plan=${plan._id}`, { state: { plan } });
+      navigate(`/register?plan=${plan.slug}`, { state: { plan } });
     }
   };
 
