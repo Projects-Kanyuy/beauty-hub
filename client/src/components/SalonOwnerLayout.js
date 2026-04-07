@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useTranslation } from "react-i18next";
 import {
   FaBars,
   FaCalendarAlt,
@@ -40,7 +39,6 @@ const SidebarLink = ({ to, icon: Icon, children, onClick }) => (
 );
 
 const SalonOwnerLayout = ({ children, activePlan }) => {
-  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const { logout } = useAuth();
   const location = useLocation();

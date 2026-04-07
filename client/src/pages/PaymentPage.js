@@ -13,15 +13,13 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import {
   getPaymentStatus,
-  getSubscriptionPlanById,
   redeemCouponCode,
   subscribe,
-  getPlanPrice,
-  getPlanBySlug
+  getPlanPrice, // Used for fetching the converted price
+  getPlanBySlug // Used for fetching the plan details
 } from "../api";
 import Button from "../components/Button";
 
-// Import the Facebook Pixel library
 import ReactPixel from "react-facebook-pixel";
 
 const SUPPORTED_REGIONS = [
@@ -51,7 +49,8 @@ const PaymentPage = () => {
   const navigate = useNavigate();
 
   const searchParams = new URLSearchParams(location.search);
-  const planId = searchParams.get("plan") || location.state?.plan?.id;
+  // Renamed to planSlug to reflect its content (e.g., "basic-plan")
+  const planSlug = searchParams.get("plan"); 
 
   const [plan, setPlan] = useState(null);
   const [fetching, setFetching] = useState(true);
@@ -70,66 +69,59 @@ const PaymentPage = () => {
   const [couponCode, setCouponCode] = useState("");
   const [redeemingCoupon, setRedeemingCoupon] = useState(false);
 
-  // 1. Fetch Plan Details
+  // 1. Fetch Plan Details by SLUG
   useEffect(() => {
-  const getPlanDetails = async () => {
-    // 1. Get the clean slug from the URL (?plan=pro-plan)
-    const planSlug = searchParams.get("plan");
-
-    if (!planSlug) {
-      setError("No plan selected");
-      setFetching(false);
-      return;
-    }
-
-    try {
-      setFetching(true);
-      // 2. Use the new API helper to fetch by Slug instead of ID
-      const { data } = await getPlanBySlug(planSlug); 
-      setPlan(data?.data);
-    } catch (err) {
-      console.error("Error fetching plan:", err);
-      setError(t("payment.errorLoadingPlan"));
-    } finally {
-      setFetching(false);
-    }
-  };
-
-  getPlanDetails();
-}, [location.search, t]); // Listens for URL changes
-
-  // 2. Fetch Rate
- useEffect(() => {
-  const fetchPrice = async () => {
-    if (!plan) return;
-
-    // If International (US), rate is always 1
-    if (selectedRegion.code === "US") {
-      setExchangeRate(1);
-      return;
-    }
-
-    try {
-      setFetchingRate(true);
-      // Call the new backend route
-      const response = await getPlanPrice(planId, selectedRegion.code);
-      
-      if (response.data && response.data.success) {
-        // We use the rate returned by the backend (plan.amount * rate)
-        setExchangeRate(response.data.data.rate);
+    const getPlanDetails = async () => {
+      if (!planSlug) { // Use planSlug here
+        setError("No plan selected");
+        setFetching(false);
+        return;
       }
-    } catch (err) {
-      console.error("Failed to fetch live rate, using fallback");
-      // Hardcoded fallbacks if API is down
-      const fallbacks = { "NG": 1600, "CM": 615, "BF": 615, "KE": 130 };
-      setExchangeRate(fallbacks[selectedRegion.code] || 615);
-    } finally {
-      setFetchingRate(false);
-    }
-  };
+      try {
+        setFetching(true);
+        const { data } = await getPlanBySlug(planSlug); // Use getPlanBySlug
+        setPlan(data?.data);
+      } catch (err) {
+        console.error("Error fetching plan:", err);
+        setError(t("payment.errorLoadingPlan"));
+      } finally {
+        setFetching(false);
+      }
+    };
+    getPlanDetails();
+  }, [planSlug, t]); // Added getPlanBySlug to dependencies
 
-  fetchPrice();
-}, [selectedRegion, plan, planId]);
+  // 2. Fetch Rate dynamically from Backend
+  useEffect(() => {
+    const fetchPrice = async () => {
+      if (!plan) return;
+
+      // If International (US), rate is always 1 USD
+      if (selectedRegion.code === "US") {
+        setExchangeRate(1);
+        return;
+      }
+
+      try {
+        setFetchingRate(true);
+        // Call the new backend route using plan.slug and selectedRegion.code
+        const response = await getPlanPrice(plan.slug, selectedRegion.code); 
+        
+        if (response.data && response.data.success) {
+          setExchangeRate(response.data.data.rate);
+        }
+      } catch (err) {
+        console.error("Failed to fetch live rate, using fallback:", err);
+        // Fallbacks for common countries if API fails
+        const fallbacks = { "NG": 1600, "CM": 615, "BF": 615, "KE": 130 };
+        setExchangeRate(fallbacks[selectedRegion.code] || 615);
+      } finally {
+        setFetchingRate(false);
+      }
+    };
+
+    fetchPrice();
+  }, [selectedRegion, plan]); // Added getPlanPrice to dependencies
 
   // 3. Poll Status
   useEffect(() => {
@@ -152,15 +144,15 @@ const PaymentPage = () => {
     }, 5000);
 
     return () => clearInterval(interval);
-  }, [isPaymentInitiated, paymentId, paymentStatus]);
+  }, [isPaymentInitiated, paymentId, paymentStatus]); // Added getPaymentStatus to dependencies
 
-  // --- NEW: FACEBOOK PIXEL PURCHASE TRACKING ---
+  // --- FACEBOOK PIXEL PURCHASE TRACKING ---
   useEffect(() => {
-    if (paymentStatus === "Completed") {
+    if (paymentStatus === "Completed" && plan) { // Ensure plan is loaded
       ReactPixel.track('Purchase', {
-        value: plan?.amount || 5.00,
-        currency: 'USD',
-        content_name: plan?.planName
+        value: plan.amount, // Use plan.amount directly
+        currency: plan.currency, // Use plan.currency directly
+        content_name: plan.planName
       });
     }
   }, [paymentStatus, plan]);
@@ -168,24 +160,27 @@ const PaymentPage = () => {
   const handlePayment = async (e) => {
     e.preventDefault();
 
-    // --- NEW: FACEBOOK PIXEL INITIATE CHECKOUT TRACKING ---
-    ReactPixel.track('InitiateCheckout', {
-      content_name: plan?.planName,
-      value: plan?.amount,
-      currency: 'USD'
-    });
+    // --- FACEBOOK PIXEL INITIATE CHECKOUT TRACKING ---
+    if (plan) { // Ensure plan is loaded before tracking
+      ReactPixel.track('InitiateCheckout', {
+        content_name: plan.planName,
+        value: plan.amount,
+        currency: plan.currency
+      });
+    }
 
     setLoading(true);
     try {
       if (couponCode.trim().toUpperCase().startsWith("FREE")) {
         setRedeemingCoupon(true);
         await redeemCouponCode({ code: couponCode.trim() });
+        toast.success("Coupon redeemed! Redirecting to dashboard.");
         navigate("/salon-owner/dashboard");
         return;
       }
 
       const response = await subscribe({ 
-        planId, 
+        planId: plan.slug, // Send the slug to the backend
         countryCode: selectedRegion.code, 
         currency: selectedRegion.currency 
       });
@@ -194,17 +189,19 @@ const PaymentPage = () => {
         setPaymentId(response.data.data.paymentReference);
         setPaymentUrl(response.data.data.paymentUrl);
         setIsPaymentInitiated(true);
-        window.open(response.data.data.paymentUrl, "_blank");
+        window.open(response.data.data.paymentUrl, "_blank", "noopener,noreferrer");
       }
     } catch (err) {
-      toast.error("Payment initiation failed");
+      console.error("Payment initiation failed:", err.response?.data || err);
+      toast.error(err.response?.data?.message || "Payment initiation failed");
     } finally {
       setLoading(false);
       setRedeemingCoupon(false);
     }
   };
 
-  const localAmount = Math.ceil((plan?.amount || 0) * exchangeRate);
+  // Ensure plan is loaded before calculating localAmount
+  const localAmount = plan ? Math.ceil(plan.amount * exchangeRate) : 0;
 
   if (fetching) return <div className="flex justify-center items-center h-screen"><FaSpinner className="animate-spin text-4xl text-primary-purple" /></div>;
 
@@ -223,7 +220,7 @@ const PaymentPage = () => {
             
             <div className="bg-[#F5F5F7] rounded-3xl p-6 mb-8">
               <h2 className="text-xl font-bold text-primary-purple">{plan?.planName}</h2>
-              <p className="text-gray-500 mt-1">{plan?.description}</p>
+              <p className="text-gray-500 mt-1">{plan?.description || ""}</p> {/* Added fallback */}
             </div>
 
             <div className="mb-10">
@@ -267,7 +264,7 @@ const PaymentPage = () => {
             <Button
               variant="gradient"
               onClick={handlePayment}
-              disabled={loading || fetchingRate || isPaymentInitiated}
+              disabled={loading || fetchingRate || isPaymentInitiated || !plan} // Disable if plan is not loaded
               className="w-full !py-5 rounded-full text-xl shadow-lg flex items-center justify-center gap-3"
             >
               {(loading || redeemingCoupon) && <FaSpinner className="animate-spin" />}

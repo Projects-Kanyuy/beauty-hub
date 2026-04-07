@@ -1,11 +1,11 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState, useCallback } from "react"; // Added useCallback
 import { useTranslation } from "react-i18next";
 import {
-  FaArrowLeft, FaImages, FaMapMarkerAlt, FaPhone, FaStar, FaSpinner
+  FaArrowLeft, FaImages, FaMapMarkerAlt, FaStar, FaSpinner
 } from "react-icons/fa";
-import { useLocation, useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom"; // Removed useLocation, no longer needed
 import { toast } from "react-toastify";
-import { createAppointment, addReview, getSalonBySlug } from "../api"; // Added getSalonBySlug
+import { createAppointment, addReview, getSalonBySlug } from "../api"; 
 import { useAuth } from "../context/AuthContext";
 import BookingModal from "../components/BookingModal";
 import Button from "../components/Button";
@@ -14,7 +14,6 @@ const SalonDetailPage = () => {
   const { t } = useTranslation();
   const { id: slug } = useParams(); // 'id' in the route is now our 'slug'
   const { user } = useAuth(); 
-  const location = useLocation();
   const navigate = useNavigate();
 
   const [salon, setSalon] = useState(null);
@@ -26,8 +25,8 @@ const SalonDetailPage = () => {
   const [reviewForm, setReviewForm] = useState({ rating: 5, comment: "", guestName: "" });
   const [submittingReview, setSubmittingReview] = useState(false);
 
-  // 1. Fetch Salon Details by SLUG
-  const fetchSalonData = async () => {
+  // 1. Fetch Salon Details by SLUG (Wrapped in useCallback)
+  const fetchSalonData = useCallback(async () => {
     try {
       setFetching(true);
       const { data } = await getSalonBySlug(slug);
@@ -38,11 +37,11 @@ const SalonDetailPage = () => {
     } finally {
       setFetching(false);
     }
-  };
+  }, [slug]); // Dependencies for useCallback
 
   useEffect(() => {
     fetchSalonData();
-  }, [slug]);
+  }, [fetchSalonData]); // fetchSalonData is now a stable dependency
 
   const handleBookClick = (service) => {
     setSelectedService(service); 
@@ -54,7 +53,12 @@ const SalonDetailPage = () => {
     if (!salon?._id) return;
     setSubmittingReview(true);
     try {
-      await addReview(salon._id, reviewForm);
+      // Assuming addReview needs userId for authenticated reviews
+      const reviewPayload = user 
+        ? { ...reviewForm, user: user._id } 
+        : reviewForm;
+
+      await addReview(salon._id, reviewPayload);
       toast.success("Review posted!");
       setReviewForm({ rating: 5, comment: "", guestName: "" });
       fetchSalonData(); // Refresh data to show new review
@@ -80,7 +84,7 @@ const SalonDetailPage = () => {
       
       const phoneClean = salon?.phone?.replace(/[^0-9]/g, "");
       const whatsappUrl = `https://wa.me/${phoneClean}?text=${encodeURIComponent(bookingData?.chatMessage)}`;
-      window.open(whatsappUrl, "_blank");
+      window.open(whatsappUrl, "_blank", "noopener,noreferrer");
     } catch (err) {
       toast.error(err.response?.data?.message || t("salondetail.bookingFailed"));
     }

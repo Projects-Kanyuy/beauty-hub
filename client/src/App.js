@@ -101,7 +101,7 @@ useEffect(() => {
       }
     };
     getPlan();
-  }, [user?._id]);
+  }, [user, user?._id]);
 
   if (loading) {
     return <div className="min-h-screen flex items-center justify-center font-bold text-primary-purple animate-pulse">Loading System Architecture...</div>;
