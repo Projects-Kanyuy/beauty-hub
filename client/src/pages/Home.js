@@ -18,70 +18,6 @@ const HomePage = () => {
 
   return (
     <div className="bg-white">
-      {/* Hero Section */}
-      {/* <section className="relative bg-gradient-to-b from-slate-900 to-slate-800 text-white py-24 px-4">
-        <div className="container mx-auto text-center">
-          <h1 className="text-5xl md:text-6xl font-bold mb-6 leading-tight">
-            Discover & Book Beauty Services Locally
-          </h1>
-          <p className="text-xl md:text-2xl text-slate-300 mb-12 max-w-3xl mx-auto">
-            Connect with verified salons and beauty professionals in your area.
-            Book appointments with ease and chat directly with service
-            providers.
-          </p>
-
-          <div className="grid grid-cols-3 gap-6 text-center mt-16">
-            <div>
-              <div className="text-3xl font-bold mb-2">1000+</div>
-              <p className="text-slate-400">Salons Listed</p>
-            </div>
-            <div>
-              <div className="text-3xl font-bold mb-2">50K+</div>
-              <p className="text-slate-400">Happy Customers</p>
-            </div>
-            <div>
-              <div className="text-3xl font-bold mb-2">10+</div>
-              <p className="text-slate-400">Countries</p>
-            </div>
-          </div>
-        </div>
-      </section> */}
-
-      {/* Featured Benefits Section */}
-      {/* <section className="bg-slate-50 py-16 px-4">
-        <div className="container mx-auto">
-          <h2 className="text-3xl font-bold text-center mb-12">
-            Why Choose BeautyHeaven
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="bg-white p-8 rounded-lg shadow-sm hover:shadow-md transition-shadow">
-              <FaShieldAlt className="text-4xl text-primary-purple mb-4" />
-              <h3 className="text-xl font-bold mb-3">Verified Salons</h3>
-              <p className="text-gray-600">
-                All salons are verified and authenticated for your peace of
-                mind.
-              </p>
-            </div>
-            <div className="bg-white p-8 rounded-lg shadow-sm hover:shadow-md transition-shadow">
-              <FaMapMarkerAlt className="text-4xl text-primary-pink mb-4" />
-              <h3 className="text-xl font-bold mb-3">Find Nearby</h3>
-              <p className="text-gray-600">
-                Discover salons near you with real-time availability and instant
-                booking.
-              </p>
-            </div>
-            <div className="bg-white p-8 rounded-lg shadow-sm hover:shadow-md transition-shadow">
-              <BsChatDots className="text-4xl text-primary-purple mb-4" />
-              <h3 className="text-xl font-bold mb-3">Direct Chat</h3>
-              <p className="text-gray-600">
-                Chat directly with salon owners to discuss services and special
-                requests.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section> */}
-
       {/* Salons Grid Section */}
       <section className="bg-white py-16 px-4">
         <div className="container mx-auto">
@@ -133,9 +69,14 @@ const HomePage = () => {
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {salons.slice(0, 6).map((salon) => (
-                <SalonCard key={salon._id} salon={salon} />
-              ))}
+              {/* --- SHUFFLE LOGIC APPLIED HERE --- */}
+              {salons
+                .slice() // 1. Make a copy of the array
+                .sort(() => 0.5 - Math.random()) // 2. Randomly sort the copy
+                .slice(0, 6) // 3. Take only the first 6 after shuffling
+                .map((salon) => (
+                  <SalonCard key={salon._id} salon={salon} />
+                ))}
             </div>
           )}
 
@@ -145,7 +86,7 @@ const HomePage = () => {
               <Link to="/salons">
                 <Button
                   variant="gradient"
-                  className="px-8 py-3 flex flex-row items-center justify-center"
+                  className="px-8 py-3 flex flex-row items-center justify-center mx-auto"
                 >
                   {t("homePage.featuredSalons.viewAll")}{" "}
                   <FaArrowRight className="ml-2" />
@@ -166,7 +107,7 @@ const HomePage = () => {
             {t("homePage.ctaSalonOwners.description")}
           </p>
           <Link to="/subscriptions">
-            <Button variant="light" className="px-8 py-3">
+            <Button variant="gradient" className="px-8 py-3 flex items-center justify-center mx-auto">
               {t("homePage.ctaSalonOwners.button")}
             </Button>
           </Link>

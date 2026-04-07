@@ -43,7 +43,7 @@ const Navbar = ({ isLoggedIn, user, handleLogout }) => {
         {/* Logo */}
         <Link to="/" onClick={closeDrawer} className="text-3xl font-extrabold">
           <span className="bg-gradient-to-r from-primary-pink to-primary-purple text-transparent bg-clip-text">
-            BeautyHub
+            BeautyHeaven
           </span>
         </Link>
 
@@ -62,9 +62,21 @@ const Navbar = ({ isLoggedIn, user, handleLogout }) => {
               <NavItem to="/become-salon-owner">
                 {t("header.addBusiness")}
               </NavItem>
-              {/* <NavItem to="/tips">{t("header.tips")}</NavItem>
-              <NavItem to="/about">{t("header.about")}</NavItem>*/}
               <NavItem to="/contact">{t("header.contact")}</NavItem>
+              
+              {/* NEW PROMO LINK FOR DESKTOP */}
+              <li>
+                <NavLink
+                  to="/promo"
+                  className="relative block py-2 font-bold text-primary-purple hover:text-primary-pink transition-colors text-lg"
+                >
+                  Promo Offer
+                  <span className="absolute -top-1 -right-3 flex h-3 w-3">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-pink-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-3 w-3 bg-primary-pink"></span>
+                  </span>
+                </NavLink>
+              </li>
             </>
           )}
         </ul>
@@ -110,7 +122,7 @@ const Navbar = ({ isLoggedIn, user, handleLogout }) => {
 
       {/* Mobile Drawer */}
       {isDrawerOpen && (
-        <div className="lg:hidden border-t border-gray-200">
+        <div className="lg:hidden border-t border-gray-200 bg-white absolute w-full shadow-lg">
           <div className="container mx-auto px-4 sm:px-6 py-4">
             <ul className="flex flex-col space-y-4">
               {isLoggedIn ? (
@@ -145,15 +157,27 @@ const Navbar = ({ isLoggedIn, user, handleLogout }) => {
                   <NavItem to="/become-salon-owner" onClick={closeDrawer}>
                     {t("header.addBusiness")}
                   </NavItem>
-                  <NavItem to="/tips" onClick={closeDrawer}>
-                    {t("header.tips")}
-                  </NavItem>
-                  <NavItem to="/about" onClick={closeDrawer}>
-                    {t("header.about")}
-                  </NavItem>
                   <NavItem to="/contact" onClick={closeDrawer}>
                     {t("header.contact")}
                   </NavItem>
+
+                  {/* NEW PROMO LINK FOR MOBILE */}
+                  <li>
+                    <NavLink
+                      to="/promo"
+                      onClick={closeDrawer}
+                      className="block py-2 font-bold text-primary-purple text-lg flex items-center gap-2"
+                    >
+                      Promo Offer
+                      <span className="relative flex h-3 w-3">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-pink-400 opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-3 w-3 bg-primary-pink"></span>
+                      </span>
+                    </NavLink>
+                  </li>
+                  
+                  <div className="h-px bg-gray-200 my-2"></div>
+
                   <NavItem to="/login" onClick={closeDrawer}>
                     {t("login.signIn")}
                   </NavItem>

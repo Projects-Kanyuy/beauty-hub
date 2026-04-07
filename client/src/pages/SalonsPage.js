@@ -35,10 +35,12 @@ const SalonsPage = () => {
       : ["all"];
 
   useEffect(() => {
-    setSalons(salonsData);
-    setFilteredSalons(salonsData);
+    if (salonsData && salonsData.length > 0) {
+      const shuffledData = [...salonsData].sort(() => Math.random() - 0.5);
+      setSalons(shuffledData);
+      setFilteredSalons(shuffledData);
+    }
   }, [salonsData]);
-
   useEffect(() => {
     let filtered = salons;
 

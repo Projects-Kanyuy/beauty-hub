@@ -57,9 +57,9 @@ const Footer = () => {
                 </Link>
               </li>
               <li>
-                <Link to="/blog" className="hover:text-white">
+               {/* <Link to="/blog" className="hover:text-white">
                   {t("footer.beautyTips")}
-                </Link>
+                </Link>*/}
               </li>
             </ul>
           </div>
@@ -79,9 +79,9 @@ const Footer = () => {
                 </Link>
               </li>
               <li>
-                <Link to="/cookie" className="hover:text-white">
+               {/* <Link to="/cookie" className="hover:text-white">
                   {t("footer.cookies")}
-                </Link>
+                </Link> */}
               </li>
             </ul>
           </div>

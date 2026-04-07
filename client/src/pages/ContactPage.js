@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next";
-import { FaEnvelope, FaMapMarkerAlt, FaPhone } from "react-icons/fa";
+import { FaEnvelope, FaPhone } from "react-icons/fa";
 import Button from "../components/Button";
 
 const ContactPage = () => {
@@ -92,11 +92,11 @@ const ContactPage = () => {
               {t("contact.contactInfo")}
             </h2>
             <div className="flex items-start space-x-4">
-              <FaMapMarkerAlt className="text-3xl text-primary-purple mt-1" />
+              {/*<FaMapMarkerAlt className="text-3xl text-primary-purple mt-1" />
               <div>
                 <h3 className="font-semibold text-lg">{t("contact.office")}</h3>
                 <p className="text-text-muted">{t("contact.officeAddress")}</p>
-              </div>
+              </div>*/}
             </div>
             <div className="flex items-start space-x-4">
               <FaPhone className="text-3xl text-primary-purple mt-1" />

@@ -17,7 +17,6 @@ import AdminProtectedRoute from "./components/routing/AdminProtectedRoute";
 
 // Pages
 import AdminLayout from "./components/AdminLayout";
-import FloatingActions from "./components/FloatingActions";
 import AboutPage from "./pages/AboutPage";
 import AdminAppointments from "./pages/AdminAppointments";
 import AdminCoupons from "./pages/AdminCoupons";
@@ -51,6 +50,8 @@ import SalonSettingsPage from "./pages/SalonSettingsPage";
 import SalonsPage from "./pages/SalonsPage";
 import Subscriptions from "./pages/Subscriptions";
 import LandingPage from "./pages/LandingPage";
+import TermsPage from "./pages/TermsPage";
+import PrivacyPage from "./pages/PrivacyPage";
 import ReactPixel from "react-facebook-pixel";
 
 const MainLayout = ({ children }) => {
@@ -144,7 +145,9 @@ useEffect(() => {
           <Route path="/salons" element={<MainLayout><SalonsPage /></MainLayout>} />
           <Route path="/salon/:id" element={<MainLayout><SalonDetailPage /></MainLayout>} />
           <Route path="/payment" element={<MainLayout><PaymentPage /></MainLayout>} />
-          <Route path="/landing" element={<MainLayout><LandingPage /></MainLayout>} />
+          <Route path="/promo" element={<MainLayout><LandingPage /></MainLayout>} />
+          <Route path="/terms" element={<MainLayout><TermsPage /></MainLayout>} />
+          <Route path="/privacy" element={<MainLayout><PrivacyPage /></MainLayout>} />
 
           <Route path="/login" element={<MainLayout><LoginPage /></MainLayout>} />
           <Route path="/register" element={<MainLayout><RegisterPage /></MainLayout>} />
@@ -192,7 +195,6 @@ useEffect(() => {
 
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
-        <FloatingActions />
       </div>
     </SWRConfig>
   );
