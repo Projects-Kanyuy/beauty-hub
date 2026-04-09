@@ -31,7 +31,8 @@ export const loginUser = (formData) => API.post("/api/users/login", formData);
 export const registerUser = (formData) => API.post("/api/users", formData);
 
 // --- APPOINTMENT API CALLS ---
-export const fetchMySalon = () => API.get("/api/salons/mysalon");
+export const fetchSalon = (pageNumber = 1) => 
+  API.get(`/api/salons?pageNumber=${pageNumber}`);
 export const createSalon = (salonData) => API.post("/api/salons", salonData);
 export const fetchMyApointments = () =>
   API.get("/api/appointments/myappointments");

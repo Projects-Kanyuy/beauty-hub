@@ -3,7 +3,8 @@ import { apiClient } from "./index";
 
 const fetcher = (url) => apiClient.get(url).then((res) => res.data);
 
-export const useSalons = () => useSWR("/api/salons", fetcher);
+export const useSalons = (pageNumber = 1) => 
+  useSWR(`/api/salons?pageNumber=${pageNumber}`, fetcher);
 
 export const useSalon = (id) =>
   useSWR(id ? `/api/salons/${id}` : null, fetcher);

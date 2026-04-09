@@ -15,7 +15,7 @@ const salonSchema = new mongoose.Schema(
   {
     owner: { type: mongoose.Schema.Types.ObjectId, required: true, ref: "User" },
     name: { type: String, required: true },
-    slug: { type: String, unique: true }, // Clean URL field
+    slug: { type: String, unique: true }, 
     description: { type: String, required: true },
     currency: {
       type: String,
@@ -38,13 +38,21 @@ const salonSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+// --- 🚀 PRODUCTION DATABASE INDEXES (Boss's Requirement #3) ---
+// This prevents MongoDB from scanning every file; it creates a "Map" for the data.
+salonSchema.index({ slug: 1 });
+salonSchema.index({ city: 1 });
+salonSchema.index({ isVerified: 1 });
+salonSchema.index({ averageRating: -1 }); // For sorting by top-rated
+salonSchema.index({ createdAt: -1 });    // For sorting by newest
+
 // --- AUTO-GENERATE SLUG BEFORE SAVING ---
 salonSchema.pre("save", function (next) {
   if (this.isModified("name")) {
     this.slug = this.name
       .toLowerCase()
-      .replace(/[^\w ]+/g, "") // Remove special characters
-      .replace(/ +/g, "-");    // Replace spaces with dashes
+      .replace(/[^\w ]+/g, "") 
+      .replace(/ +/g, "-");    
   }
   next();
 });
