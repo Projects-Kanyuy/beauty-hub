@@ -1,16 +1,20 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { useLocation } from "react-router-dom";
 import { FaFilter, FaSearch, FaSpinner, FaArrowLeft, FaArrowRight, FaExclamationTriangle } from "react-icons/fa";
 import { useSalons } from "../api/swr";
 import SalonCard from "../components/SalonCard";
 
 const SalonsPage = () => {
   const { t } = useTranslation();
+    const location = useLocation();
+    const queryParams = new URLSearchParams(location.search);
+  const keyword = queryParams.get("keyword") || "";
   const [pageNumber, setPageNumber] = useState(1); // BOSS REQUIREMENT: PAGINATION
   const [salons, setSalons] = useState([]);
   const [showFilters, setShowFilters] = useState(false);
 
-  const { data: salonsData, isLoading: loading, error, mutate } = useSalons(pageNumber);
+   const { data: salonsData, isLoading: loading, error, mutate } = useSalons(pageNumber, keyword);
 
   useEffect(() => {
     // Correctly extract the array from the paginated object
