@@ -22,37 +22,35 @@ const Salon = require("../models/salonModel");
 // @desc    Get all salons (Paginated, Optimized, and Searchable)
 // @route   GET /api/salons
 // @access  Public
+// @desc    Get all salons (Paginated, Optimized, and Searchable)
 const getSalons = asyncHandler(async (req, res) => {
-  // 1. Pagination Setup (Requirement: Max 12 per page)
   const pageSize = 12; 
   const page = Number(req.query.pageNumber) || 1;
 
-  // 2. Keyword Search Logic
-  // If the user sends ?keyword=vixen, it searches salon names for "vixen"
   const keyword = req.query.keyword
-    ? {
-        name: {
-          $regex: req.query.keyword,
-          $options: "i", // Case-insensitive
-        },
-      }
+    ? { name: { $regex: req.query.keyword, $options: "i" } }
     : {};
 
-  // 3. Database Operations
-  // Get the total count for the frontend pagination UI
   const count = await Salon.countDocuments({ ...keyword });
 
-  // 4. Optimized Query (Payload Reduction)
-  const salons = await Salon.find({ ...keyword })
-    .select("name slug city address photos averageRating isVerified currency") // ONLY send what is needed for the card
+  // 1. Fetch data including services for price calculation
+  const salonsFromDb = await Salon.find({ ...keyword })
+    .select("name slug city address photos averageRating isVerified currency services") 
     .limit(pageSize)
     .skip(pageSize * (page - 1))
-    .sort({ 
-        isVerified: -1,   // Priority 1: Verified salons first
-        createdAt: -1      // Priority 2: Newest salons next
-    });
+    .sort({ isVerified: -1, createdAt: -1 });
 
-  // 5. Production-Ready Response
+  // 2. Map and calculate minPrice on server (Requirement: Fix constant price)
+  const salons = salonsFromDb.map(salon => {
+    const salonObj = salon.toObject();
+    const prices = salonObj.services?.map(s => s.price) || [];
+    // Calculate min price or use fallback
+    salonObj.minPrice = prices.length > 0 ? Math.min(...prices) : 2500; 
+    // Delete huge services array to keep payload small (Boss Requirement: API Optimization)
+    delete salonObj.services; 
+    return salonObj;
+  });
+
   res.json({
     salons,
     page,
