@@ -23,33 +23,88 @@ const Salon = require("../models/salonModel");
 // @route   GET /api/salons
 // @access  Public
 // @desc    Get all salons (Paginated, Optimized, and Searchable)
+// const getSalons = asyncHandler(async (req, res) => {
+//   const pageSize = 12; 
+//   const page = Number(req.query.pageNumber) || 1;
+
+//   const keyword = req.query.keyword
+//     ? { name: { $regex: req.query.keyword, $options: "i" } }
+//     : {};
+
+//   const count = await Salon.countDocuments({ ...keyword });
+
+//   // 1. Fetch data including services for price calculation
+//   const salonsFromDb = await Salon.find({ ...keyword })
+//     .select("name slug city address photos averageRating isVerified currency services") 
+//     .limit(pageSize)
+//     .skip(pageSize * (page - 1))
+//     .sort({ isVerified: -1, createdAt: -1 });
+
+//   // 2. Map and calculate minPrice on server (Requirement: Fix constant price)
+//   const salons = salonsFromDb.map(salon => {
+//     const salonObj = salon.toObject();
+//     const prices = salonObj.services?.map(s => s.price) || [];
+//     // Calculate min price or use fallback
+//     salonObj.minPrice = prices.length > 0 ? Math.min(...prices) : 2500; 
+//     // Delete huge services array to keep payload small (Boss Requirement: API Optimization)
+//     delete salonObj.services; 
+//     return salonObj;
+//   });
+
+//   res.json({
+//     salons,
+//     page,
+//     pages: Math.ceil(count / pageSize),
+//     totalSalons: count,
+//   });
+// });
+
+
+
 const getSalons = asyncHandler(async (req, res) => {
-  const pageSize = 12; 
+  const pageSize = 12;
   const page = Number(req.query.pageNumber) || 1;
 
   const keyword = req.query.keyword
     ? { name: { $regex: req.query.keyword, $options: "i" } }
     : {};
 
+  // Aggregation Pipeline - Much more efficient
+  const salons = await Salon.aggregate([
+    { $match: { ...keyword } },
+
+    // Project only needed fields + calculate minPrice in DB
+    {
+      $project: {
+        name: 1,
+        slug: 1,
+        city: 1,
+        address: 1,
+        photos: 1,
+        averageRating: 1,
+        isVerified: 1,
+        currency: 1,
+        createdAt: 1,
+        minPrice: {
+          $cond: {
+            if: { $gt: [{ $size: "$services" }, 0] },
+            then: { $min: "$services.price" },
+            else: 2500
+          }
+        }
+      }
+    },
+
+    // Sort (isVerified first, then newest)
+    { $sort: { isVerified: -1, createdAt: -1 } },
+
+    // Pagination
+    { $skip: pageSize * (page - 1) },
+    { $limit: pageSize }
+  ]);
+
+  // Get total count (separate query - fast with index)
   const count = await Salon.countDocuments({ ...keyword });
-
-  // 1. Fetch data including services for price calculation
-  const salonsFromDb = await Salon.find({ ...keyword })
-    .select("name slug city address photos averageRating isVerified currency services") 
-    .limit(pageSize)
-    .skip(pageSize * (page - 1))
-    .sort({ isVerified: -1, createdAt: -1 });
-
-  // 2. Map and calculate minPrice on server (Requirement: Fix constant price)
-  const salons = salonsFromDb.map(salon => {
-    const salonObj = salon.toObject();
-    const prices = salonObj.services?.map(s => s.price) || [];
-    // Calculate min price or use fallback
-    salonObj.minPrice = prices.length > 0 ? Math.min(...prices) : 2500; 
-    // Delete huge services array to keep payload small (Boss Requirement: API Optimization)
-    delete salonObj.services; 
-    return salonObj;
-  });
 
   res.json({
     salons,
@@ -81,20 +136,20 @@ const getSalons = asyncHandler(async (req, res) => {
  *       404:
  *         description: Salon not found
  */
-const getSalonById = asyncHandler(async (req, res) => {
-  const salon = await Salon.findById(req.params.id)
-    .populate({
-      path: "reviews",
-      populate: { path: "user", select: "name" } // Populates the user name inside the review
-    });
+// const getSalonById = asyncHandler(async (req, res) => {
+//   const salon = await Salon.findById(req.params.id)
+//     .populate({
+//       path: "reviews",
+//       populate: { path: "user", select: "name" } // Populates the user name inside the review
+//     });
 
-  if (salon) {
-    res.json(salon);
-  } else {
-    res.status(404);
-    throw new Error("Salon not found");
-  }
-});
+//   if (salon) {
+//     res.json(salon);
+//   } else {
+//     res.status(404);
+//     throw new Error("Salon not found");
+//   }
+// });
 
 // /**
 //  * @swagger
@@ -191,6 +246,39 @@ const getSalonById = asyncHandler(async (req, res) => {
  * @access  Private (Owner or Admin)
  */
 // @desc    Create Salon Profile
+
+
+
+const getSalonById = asyncHandler(async (req, res) => {
+  const salon = await Salon.findById(req.params.id)
+    .select(
+      "name slug city address photos averageRating isVerified currency services description workingHours contactNumber email socialLinks createdAt"
+    )
+    .populate({
+      path: "reviews",
+      select: "rating comment createdAt",
+      populate: {
+        path: "user",
+        select: "name avatar",
+      },
+      options: { 
+        sort: { createdAt: -1 },
+        limit: 10
+      }
+    })
+    .lean();
+
+  if (!salon) {
+    res.status(404);
+    throw new Error("Salon not found");
+  }
+
+  salon.minPrice = salon.services?.length > 0 
+    ? Math.min(...salon.services.map(s => s.price || 0)) 
+    : 2500;
+
+  res.json(salon);
+});
 const createSalon = asyncHandler(async (req, res) => {
   const { name, description, address, city, phone, openingHours, photos, currency, ownerId } = req.body;
 
@@ -499,10 +587,32 @@ const deleteSalonService = asyncHandler(async (req, res) => {
  *       404:
  *         description: No salon profile found — owner needs to create one
  */
+// const getMySalon = asyncHandler(async (req, res) => {
+//   const salon = await Salon.findOne({ owner: req.user._id });
+//   res.status(200).json(salon || null);
+// });
+
 const getMySalon = asyncHandler(async (req, res) => {
-  const salon = await Salon.findOne({ owner: req.user._id });
+  const salon = await Salon.findOne({ owner: req.user._id })
+    .select("name slug city address photos averageRating isVerified currency services description workingHours contactNumber email socialLinks createdAt")
+    .populate({
+      path: "reviews",
+      select: "rating comment createdAt",
+      populate: {
+        path: "user",
+        select: "name avatar"
+      },
+      options: { sort: { createdAt: -1 } }
+    })
+    .lean();
+
+  salon.minPrice = salon?.services?.length > 0 
+    ? Math.min(...salon.services.map(s => s.price || 0)) 
+    : 2500;
+
   res.status(200).json(salon || null);
 });
+
 const getSalonBySlug = asyncHandler(async (req, res) => {
   const salon = await Salon.findOne({ slug: req.params.slug })
     .populate("owner", "name email")
