@@ -17,11 +17,12 @@ const reviewRouter = require("./reviewRoutes");
 const {
   requireActiveSubscription,
 } = require("../middleware/subscriptionMiddleware");
+const cacheMiddleware = require("../middleware/cache");
 
 // --- CORRECTED ROUTE ORDER ---
 
 // Public route to get all salons
-router.route("/").get(getSalons);
+router.route("/", cacheMiddleware(120),).get(getSalons);
 router.get("/s/:slug", getSalonBySlug);
 // Protected route for an owner to create their profile
 router.route("/").post(protect, createSalon);

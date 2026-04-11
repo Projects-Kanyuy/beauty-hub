@@ -61,26 +61,41 @@ const Salon = require("../models/salonModel");
 
 
 
-const getSalons = asyncHandler(async (req, res) => {
-  const pageSize = 12;
-  const page = Number(req.query.pageNumber) || 1;
 
+
+const getSalons = asyncHandler(async (req, res) => {
+ 
+  const page = Number(req.query.page) || Number(req.query.pageNumber) || 1;
+  
+  let pageSize = Number(req.query.limit) || Number(req.query.pageSize) || 12;
+
+
+  const MAX_PAGE_SIZE = 50;
+  if (pageSize > MAX_PAGE_SIZE) pageSize = MAX_PAGE_SIZE;
+  if (pageSize < 1) pageSize = 12;
+
+ 
   const keyword = req.query.keyword
-    ? { name: { $regex: req.query.keyword, $options: "i" } }
+    ? { 
+        name: { 
+          $regex: req.query.keyword, 
+          $options: "i" 
+        } 
+      }
     : {};
 
-  // Aggregation Pipeline - Much more efficient
+  // ====================== Main Query ======================
   const salons = await Salon.aggregate([
-    { $match: { ...keyword } },
+    { $match: keyword },
 
-    // Project only needed fields + calculate minPrice in DB
+   
     {
       $project: {
         name: 1,
         slug: 1,
         city: 1,
         address: 1,
-        photos: 1,
+        photos: 1,           
         averageRating: 1,
         isVerified: 1,
         currency: 1,
@@ -95,7 +110,7 @@ const getSalons = asyncHandler(async (req, res) => {
       }
     },
 
-    // Sort (isVerified first, then newest)
+    // Sort: Verified salons first, then newest
     { $sort: { isVerified: -1, createdAt: -1 } },
 
     // Pagination
@@ -103,16 +118,20 @@ const getSalons = asyncHandler(async (req, res) => {
     { $limit: pageSize }
   ]);
 
-  // Get total count (separate query - fast with index)
-  const count = await Salon.countDocuments({ ...keyword });
+  // Get total count for pagination metadata
+  const count = await Salon.countDocuments(keyword);
 
   res.json({
+    success: true,
     salons,
     page,
     pages: Math.ceil(count / pageSize),
     totalSalons: count,
+    pageSize,
+    hasMore: page * pageSize < count
   });
 });
+
 /**
  * @swagger
  * /api/salons/{id}:
