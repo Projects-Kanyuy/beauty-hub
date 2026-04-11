@@ -183,7 +183,7 @@ const LandingPage = () => {
       
       {/* Floating WhatsApp Button */}
       <a 
-        href="https://wa.me/+237679267153" // <-- IMPORTANT: Replace with your number
+        href="https://wa.me/+237687950618" // <-- IMPORTANT: Replace with your number
         target="_blank" 
         rel="noopener noreferrer"
         className="fixed bottom-6 right-6 bg-green-500 text-white p-4 rounded-full shadow-lg flex items-center justify-center hover:bg-green-600 transition-transform hover:scale-110 z-50"
