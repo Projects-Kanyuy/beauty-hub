@@ -4,7 +4,7 @@ import axios from "axios";
 const isProduction = window.location.hostname !== "localhost";
 
 const API_BASE_URL = isProduction 
-  ? "https://beauty-hub-szdl.onrender.com"  // YOUR BACKEND LINK
+  ? "https://beauty-heaven-api.vercel.app/"  // YOUR BACKEND LINK
   : "http://localhost:8000";                // YOUR LOCAL PORT
 
 export const API = axios.create({ baseURL: API_BASE_URL });

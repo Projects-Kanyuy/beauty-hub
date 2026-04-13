@@ -266,3 +266,4 @@ module.exports = async (req, res) => {
   await ensureDbReady();
   return app(req, res);
 };
+module.exports = app;
