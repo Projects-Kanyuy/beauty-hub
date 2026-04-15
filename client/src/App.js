@@ -70,7 +70,7 @@ function App() {
   const [activePlan, setActivePlan] = useState(null);
   const location = useLocation();
 
-  // 1. FIXED: Meta Pixel Initialization (Prevents "Duplicate ID" error)
+  // 1. FIXED: Added 'location' to dependency array as it's used inside
   useEffect(() => {
     const pixelId = '922516253909095'; 
     if (typeof window !== 'undefined' && !window.fb_initialized) {
@@ -78,25 +78,18 @@ function App() {
       window.fb_initialized = true; 
     }
     ReactPixel.pageView();
-  }, []); 
+  }, [location.pathname]); 
 
-  // Track page view on route change
+  // 2. FIXED: Added 'user' and 'user.role' to satisfy ESLint
   useEffect(() => {
-    ReactPixel.pageView();
-  }, [location.pathname]);
-
-  // 2. FIXED: Plan Fetching Logic (Fixes Admin Override & Infinite Loop)
-  useEffect(() => {
-    // If no user or user is not a salon owner, reset activePlan and stop
     if (!user?._id || user?.role !== "salon_owner") {
       setActivePlan(null);
       return;
-    };
+    }
 
     const getPlan = async () => {
       try {
-        const response = await getActiveSubscription(user?._id);
-        // Ensure we are setting the data correctly based on your API response structure
+        const response = await getActiveSubscription(user._id);
         setActivePlan(response.data?.data || response.data || null);
       } catch (err) {
         console.error("No active plan found");
@@ -104,9 +97,7 @@ function App() {
       }
     };
     getPlan();
-    // Dependency only on user ID. Adding location.pathname ensures it re-checks 
-    // if the admin overrides while the user is clicking around.
-  }, [user?._id, location.pathname]); 
+  }, [user?._id, user?.role, location.pathname]); 
 
   if (loading) {
     return <div className="min-h-screen flex items-center justify-center font-bold text-primary-purple animate-pulse">Loading System Architecture...</div>;
@@ -132,7 +123,7 @@ function App() {
                       : user.role === "salon_owner" && activePlan
                       ? "/salon-owner/dashboard"
                       : user.role === "salon_owner" && !activePlan
-                      ? "/salon-owner/billing" // Redirect to INTERNAL billing
+                      ? "/salon-owner/billing"
                       : "/dashboard"
                   }
                   replace
