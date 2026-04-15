@@ -69,39 +69,44 @@ function App() {
   const { user, loading } = useAuth();
   const [activePlan, setActivePlan] = useState(null);
   const location = useLocation();
-  //pixel tracking for facebook ads
-useEffect(() => {
-    const pixelId = '922516253909095'; 
-    const isInitialized = window.fbq && window.fbq.instance;
 
-    if (!isInitialized) {
-      ReactPixel.init(pixelId, { 
-        autoConfig: true, 
-        debug: false 
-      });
+  // 1. FIXED: Meta Pixel Initialization (Prevents "Duplicate ID" error)
+  useEffect(() => {
+    const pixelId = '922516253909095'; 
+    if (typeof window !== 'undefined' && !window.fb_initialized) {
+      ReactPixel.init(pixelId, { autoConfig: true, debug: false });
+      window.fb_initialized = true; 
     }
-    
-    // Always track the page view
     ReactPixel.pageView();
   }, []); 
 
+  // Track page view on route change
   useEffect(() => {
     ReactPixel.pageView();
   }, [location.pathname]);
 
+  // 2. FIXED: Plan Fetching Logic (Fixes Admin Override & Infinite Loop)
   useEffect(() => {
-    if (!user || user?.role !== "salon_owner") return;
+    // If no user or user is not a salon owner, reset activePlan and stop
+    if (!user?._id || user?.role !== "salon_owner") {
+      setActivePlan(null);
+      return;
+    };
 
     const getPlan = async () => {
       try {
-        const plan = await getActiveSubscription(user?._id);
-        setActivePlan(plan);
+        const response = await getActiveSubscription(user?._id);
+        // Ensure we are setting the data correctly based on your API response structure
+        setActivePlan(response.data?.data || response.data || null);
       } catch (err) {
         console.error("No active plan found");
+        setActivePlan(null);
       }
     };
     getPlan();
-  }, [user, user?._id]);
+    // Dependency only on user ID. Adding location.pathname ensures it re-checks 
+    // if the admin overrides while the user is clicking around.
+  }, [user?._id, location.pathname]); 
 
   if (loading) {
     return <div className="min-h-screen flex items-center justify-center font-bold text-primary-purple animate-pulse">Loading System Architecture...</div>;
@@ -114,7 +119,6 @@ useEffect(() => {
         <ToastContainer position="top-right" autoClose={3000} />
 
         <Routes>
-          {/* === ROOT REDIRECTION LOGIC === */}
           <Route
             path="/"
             element={
@@ -124,12 +128,12 @@ useEffect(() => {
                 <Navigate
                   to={
                     user.role === "admin"
-                      ? "/admin/overview" // NEW: Redirect logged-in Admin
+                      ? "/admin/overview"
                       : user.role === "salon_owner" && activePlan
                       ? "/salon-owner/dashboard"
                       : user.role === "salon_owner" && !activePlan
-                      ? "/subscriptions"
-                      : "/dashboard" // Regular Customers
+                      ? "/salon-owner/billing" // Redirect to INTERNAL billing
+                      : "/dashboard"
                   }
                   replace
                 />
@@ -152,7 +156,6 @@ useEffect(() => {
           <Route path="/login" element={<MainLayout><LoginPage /></MainLayout>} />
           <Route path="/register" element={<MainLayout><RegisterPage /></MainLayout>} />
 
-          {/* === CUSTOMER PROTECTED ROUTES === */}
           <Route element={<CustomerProtectedRoute />}>
             <Route path="/dashboard" element={<MainLayout><DashboardPage /></MainLayout>} />
             <Route path="/settings" element={<MainLayout><CustomerSettingsPage /></MainLayout>} />
@@ -161,7 +164,6 @@ useEffect(() => {
             <Route path="/near-me" element={<MainLayout><NearMePage /></MainLayout>} />
           </Route>
 
-          {/* === ADMIN PROTECTED ROUTES === */}
           <Route element={<AdminProtectedRoute />}>
             <Route path="/admin" element={<AdminLayout />}>
               <Route path="overview" element={<AdminOverview />} />
@@ -175,10 +177,9 @@ useEffect(() => {
             </Route>
           </Route>
 
-          {/* === SALON OWNER PROTECTED ROUTES === */}
           <Route element={<SalonOwnerProtectedRoute />}>
             <Route path="/salon-owner/*" element={
-              <SalonOwnerLayout>
+              <SalonOwnerLayout activePlan={activePlan}>
                 <Routes>
                   <Route path="dashboard" element={<SalonDashboardPage />} />
                   <Route path="appointments" element={<SalonAppointmentsPage />} />
