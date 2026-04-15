@@ -122,7 +122,7 @@ function App() {
                       ? "/admin/overview"
                       : user.role === "salon_owner" && activePlan
                       ? "/salon-owner/dashboard"
-                      : user.role === "salon_owner" && !activePlan
+                      : user.role === "salon_owner" && (activePlan || user.isVerified)
                       ? "/salon-owner/billing"
                       : "/dashboard"
                   }

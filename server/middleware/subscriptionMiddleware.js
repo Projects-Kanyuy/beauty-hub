@@ -4,14 +4,16 @@ const Subscription = require("../models/subscriptionModel");
 const requireActiveSubscription = asyncHandler(async (req, res, next) => {
   const userId = req.user?._id;
   const isAdmin = req.user?.role === "admin";
-
+  
   // 1. ADMINISTRATIVE OVERRIDE
-  // If the requester is an admin, let them bypass the subscription check
-  if (isAdmin) {
+  // If the user is an admin OR if the owner has been manually verified/activated
+  // (Assuming 'isVerified' is the field your admin override toggles)
+  if (isAdmin || req.user?.isVerified === true) {
     return next();
   }
 
   // 2. REGULAR USER CHECK
+  // This looks for a document in the Subscriptions collection
   const activeSub = await Subscription.getActiveSubscription(userId);
 
   if (!activeSub) {
