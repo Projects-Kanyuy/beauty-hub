@@ -40,15 +40,15 @@ const SidebarLink = ({ to, icon: Icon, children, onClick }) => (
 
 const SalonOwnerLayout = ({ children, activePlan }) => {
   const [open, setOpen] = useState(false);
-  const { logout } = useAuth();
+  const { logout, user } = useAuth(); // 1. Added 'user' from Context
   const location = useLocation();
 
-  // 1. Identify the internal pages that MUST be visible to unpaid users
+  // 2. Identify the internal pages that MUST be visible to unpaid users
   const isBillingPage = location.pathname.includes("billing");
-  const isPaymentPage = location.pathname.includes("pay"); // Allowed to pay
+  const isPaymentPage = location.pathname.includes("pay"); 
   
-  // 2. Check if the owner has no active plan
-  const hasNoPlan = !activePlan;
+  // 3. FIXED: The owner only has no access if they don't have a plan AND are not verified by admin
+  const hasNoPlan = !activePlan && !user?.isVerified;
 
   return (
     <div className="flex h-screen bg-gray-50 overflow-hidden text-slate-900">
@@ -109,7 +109,7 @@ const SalonOwnerLayout = ({ children, activePlan }) => {
         {/* 
             BLOCKING LOGIC: 
             Show the warning ONLY IF:
-            - User has no plan 
+            - User has no plan AND is not verified by Admin
             - AND User is NOT on the billing page 
             - AND User is NOT on the payment page
         */}
