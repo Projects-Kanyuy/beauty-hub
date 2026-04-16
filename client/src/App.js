@@ -53,6 +53,7 @@ import LandingPage from "./pages/LandingPage";
 import TermsPage from "./pages/TermsPage";
 import PrivacyPage from "./pages/PrivacyPage";
 import ReactPixel from "react-facebook-pixel";
+import BasicPlanPay from "./pages/BasicPlanPay";
 
 const MainLayout = ({ children }) => {
   const { user, logout } = useAuth();
@@ -146,7 +147,7 @@ function App() {
 
           <Route path="/login" element={<MainLayout><LoginPage /></MainLayout>} />
           <Route path="/register" element={<MainLayout><RegisterPage /></MainLayout>} />
-
+            <Route path="/pay-basic" element={<MainLayout><BasicPlanPay /></MainLayout>} />
           <Route element={<CustomerProtectedRoute />}>
             <Route path="/dashboard" element={<MainLayout><DashboardPage /></MainLayout>} />
             <Route path="/settings" element={<MainLayout><CustomerSettingsPage /></MainLayout>} />
