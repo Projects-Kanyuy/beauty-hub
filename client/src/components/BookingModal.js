@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { FaTimes, FaMapMarkerAlt, FaHome, FaImages } from "react-icons/fa";
+import { FaTimes, FaMapMarkerAlt, FaHome } from "react-icons/fa";
 import Button from "./Button";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../context/AuthContext";
