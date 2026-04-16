@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { FaTimes, FaMapMarkerAlt, FaHome } from "react-icons/fa";
+import { FaTimes, FaMapMarkerAlt, FaHome, FaImages } from "react-icons/fa";
 import Button from "./Button";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../context/AuthContext";
@@ -11,6 +11,7 @@ const BookingModal = ({
   salonId,
   salonName,
   onBookingConfirmed,
+  onImageClick, // NEW PROP: To trigger the lightbox from the parent
 }) => {
   const { t } = useTranslation();
   const { user } = useAuth();
@@ -85,36 +86,42 @@ const BookingModal = ({
       )}
 
       <div
-        className={`fixed bottom-[4vh] left-0 right-0 z-[110] bg-white rounded-t-[2.5rem] md:rounded-[2.5rem] shadow-2xl max-w-2xl mx-auto w-full transition-transform duration-500 ${
+        className={`fixed bottom-0 md:bottom-[4vh] left-0 right-0 z-[110] bg-white rounded-t-[2.5rem] md:rounded-[2.5rem] shadow-2xl max-w-2xl mx-auto w-full transition-transform duration-500 ${
           isOpen ? "translate-y-0 opacity-100" : "translate-y-full opacity-0"
         }`}
         style={{ maxHeight: "90vh", overflowY: "auto" }}
       >
-        <div className="sticky top-0 bg-white border-b flex justify-between items-center p-8 rounded-t-[2.5rem]">
+        <div className="sticky top-0 bg-white border-b flex justify-between items-center p-6 md:p-8 rounded-t-[2.5rem] z-20">
           <h2 className="text-2xl font-black tracking-tight">{t("booking.title")}</h2>
           <button onClick={onClose} className="text-gray-400 hover:text-red-500 text-2xl transition-colors"><FaTimes /></button>
         </div>
 
-        <div className="p-8">
-          {/* --- UPDATED SERVICE SUMMARY WITH IMAGE --- */}
-          <div className="bg-gradient-to-r from-primary-purple to-primary-pink text-white p-6 rounded-2xl mb-8 shadow-lg flex items-center gap-6">
-            
-            {/* DISPLAY THE FIRST SERVICE IMAGE IF IT EXISTS */}
-            {service.photos && service.photos.length > 0 && (
-              <img 
-                src={service.photos[0]} 
-                className="w-24 h-24 rounded-xl object-cover border-2 border-white/20 shadow-md flex-shrink-0"
-                alt="Service"
-              />
-            )}
-
-            <div>
-              <h3 className="text-xl font-bold">{service.name}</h3>
-              <p className="text-sm opacity-90 mt-1 line-clamp-2">{service.description}</p>
-              <p className="text-3xl font-black mt-3">
-                {service.currency || 'XAF'} {service.price}
-              </p>
+        <div className="p-6 md:p-8">
+          {/* --- UPDATED SERVICE SUMMARY WITH SCROLLABLE IMAGES --- */}
+          <div className="bg-gradient-to-br from-purple-600 to-indigo-700 text-white rounded-3xl mb-8 shadow-xl overflow-hidden">
+            <div className="p-6">
+                <h3 className="text-xl font-bold">{service.name}</h3>
+                <p className="text-purple-100 text-sm mt-1 line-clamp-1 opacity-80">{service.description}</p>
+                <p className="text-3xl font-black mt-2">
+                    {service.currency || 'XAF'} {service.price?.toLocaleString()}
+                </p>
             </div>
+            
+            {/* HORIZONTAL IMAGE LIST */}
+            {service.photos && service.photos.length > 0 && (
+                <div className="flex gap-3 overflow-x-auto p-6 pt-0 scrollbar-hide">
+                    {service.photos.map((photo, index) => (
+                        <div 
+                          key={index} 
+                          onClick={() => onImageClick(service.photos, index)}
+                          className="relative flex-shrink-0 w-24 h-24 rounded-xl overflow-hidden border-2 border-white/20 cursor-zoom-in hover:scale-105 transition-transform"
+                        >
+                            <img src={photo} className="w-full h-full object-cover" alt={`${service.name} ${index}`} />
+                            <div className="absolute inset-0 bg-black/10 hover:bg-transparent transition-colors" />
+                        </div>
+                    ))}
+                </div>
+            )}
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
@@ -143,10 +150,8 @@ const BookingModal = ({
               </div>
             </div>
 
-            <div className="bg-blue-50 border border-blue-100 p-4 rounded-2xl text-sm text-blue-800 font-medium">{t("booking.afterBooking")}</div>
-
             <div className="flex gap-4 pt-4">
-              <Button variant="gradient" type="submit" disabled={loading} className="flex-1 !py-5 rounded-full text-lg shadow-xl">
+              <Button variant="gradient" type="submit" disabled={loading} className="flex-1 !py-5 rounded-full text-lg shadow-xl font-bold">
                 {loading ? t("booking.loading") : t("booking.submit")}
               </Button>
             </div>

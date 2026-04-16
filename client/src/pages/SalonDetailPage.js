@@ -255,6 +255,7 @@ const SalonDetailPage = () => {
         salonId={salon?._id}
         salonName={salon?.name}
         onBookingConfirmed={handleConfirmBooking}
+        onImageClick={(images, index) => openGallery(images, index)}
       />
     </div>
   );
