@@ -3,8 +3,23 @@ import { apiClient } from "./index";
 
 const fetcher = (url) => apiClient.get(url).then((res) => res.data);
 
-export const useSalons = (pageNumber = 1, keyword = "") => 
-  useSWR(`/api/salons?pageNumber=${pageNumber}&keyword=${keyword}`, fetcher);
+// export const useSalons = (pageNumber = 1, keyword = "") => 
+//   useSWR(`/api/salons?pageNumber=${pageNumber}&keyword=${keyword}`, fetcher);
+
+export const useSalons = (pageNumber = 1, keyword = "", address = "", city = "") => {
+
+  const queryParams = new URLSearchParams();
+  
+  queryParams.append("pageNumber", pageNumber);
+  
+  if (keyword?.trim()) queryParams.append("keyword", keyword.trim());
+  if (address?.trim()) queryParams.append("address", address.trim());
+  if (city?.trim()) queryParams.append("city", city.trim());
+
+  const url = `/api/salons?${queryParams.toString()}`;
+
+  return useSWR(url, fetcher);
+};
 
 export const useSalon = (id) =>
   useSWR(id ? `/api/salons/${id}` : null, fetcher);

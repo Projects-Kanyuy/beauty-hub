@@ -60,35 +60,34 @@ const Salon = require("../models/salonModel");
 // });
 
 
-
-
-
-const getSalons = asyncHandler(async (req, res) => {
+const getSalonss = asyncHandler(async (req, res) => {
  
   const page = Number(req.query.page) || Number(req.query.pageNumber) || 1;
-  
   let pageSize = Number(req.query.limit) || Number(req.query.pageSize) || 12;
-
 
   const MAX_PAGE_SIZE = 50;
   if (pageSize > MAX_PAGE_SIZE) pageSize = MAX_PAGE_SIZE;
   if (pageSize < 1) pageSize = 12;
 
- 
-  const keyword = req.query.keyword
-    ? { 
-        name: { 
-          $regex: req.query.keyword, 
-          $options: "i" 
-        } 
-      }
-    : {};
+  const keyword = req.query.keyword?.trim();
 
   // ====================== Main Query ======================
-  const salons = await Salon.aggregate([
-    { $match: keyword },
+  const matchStage = keyword 
+    ? {
+        $match: {
+          $or: [
+            { name:  { $regex: keyword, $options: "i" } },
+            { city:  { $regex: keyword, $options: "i" } },
+            // Uncomment the line below if you also want to search in address
+            // { address: { $regex: keyword, $options: "i" } }
+          ]
+        }
+      }
+    : { $match: {} };   // No filter if no keyword
 
-   
+  const salons = await Salon.aggregate([
+    matchStage,
+
     {
       $project: {
         name: 1,
@@ -118,8 +117,16 @@ const getSalons = asyncHandler(async (req, res) => {
     { $limit: pageSize }
   ]);
 
-  // Get total count for pagination metadata
-  const count = await Salon.countDocuments(keyword);
+  // Get total count for pagination metadata (use same match condition)
+  const count = keyword 
+    ? await Salon.countDocuments({
+        $or: [
+          { name:  { $regex: keyword, $options: "i" } },
+          { city:  { $regex: keyword, $options: "i" } },
+          // { address: { $regex: keyword, $options: "i" } }
+        ]
+      })
+    : await Salon.countDocuments({});
 
   res.json({
     success: true,
@@ -131,6 +138,226 @@ const getSalons = asyncHandler(async (req, res) => {
     hasMore: page * pageSize < count
   });
 });
+
+const getSalons = asyncHandler(async (req, res) => {
+  const page = Number(req.query.pageNumber) || 1;
+  let pageSize = Number(req.query.pageSize) || 12;
+  if (pageSize > 50) pageSize = 50;
+  if (pageSize < 1) pageSize = 12;
+
+  const keyword = req.query.keyword?.trim();
+  const lat = parseFloat(req.query.lat);
+  const lng = parseFloat(req.query.lng);
+
+  let salons = [];
+  let totalCount = 0;
+
+  // ==================== NEAR ME - Location based (Safest version for Nigeria) ====================
+  if (!isNaN(lat) && !isNaN(lng)) {
+    const MAX_DISTANCE_METERS = 500 * 1000; // Maximum 500km (prevents Cameroon salons)
+
+    const matchQuery = keyword ? {
+      $or: [
+        { name: { $regex: keyword, $options: "i" } },
+        { city: { $regex: keyword, $options: "i" } }
+      ]
+    } : {};
+
+    salons = await Salon.aggregate([
+      {
+        $geoNear: {
+          near: { type: "Point", coordinates: [lng, lat] }, // [longitude, latitude] - VERY IMPORTANT
+          distanceField: "distance",
+          maxDistance: MAX_DISTANCE_METERS,
+          spherical: true,
+          query: matchQuery
+        }
+      },
+      {
+        $project: {
+          name: 1,
+          slug: 1,
+          city: 1,
+          address: 1,
+          photos: 1,
+          averageRating: 1,
+          isVerified: 1,
+          currency: 1,
+          distance: { $round: [{ $divide: ["$distance", 1000] }, 1] }, // distance in km
+          minPrice: {
+            $cond: {
+              if: { $gt: [{ $size: "$services" }, 0] },
+              then: { $min: "$services.price" },
+              else: 2500
+            }
+          }
+        }
+      },
+      { $sort: { isVerified: -1, distance: 1 } },   // Verified first, then closest
+      { $skip: pageSize * (page - 1) },
+      { $limit: pageSize }
+    ]);
+
+    // Count for pagination
+    totalCount = await Salon.countDocuments({
+      location: {
+        $geoWithin: {
+          $centerSphere: [[lng, lat], 500 / 6378.1]
+        }
+      }
+    });
+  } 
+  // ==================== NORMAL SEARCH (Name or City) - No location ====================
+  else if (keyword) {
+    salons = await Salon.aggregate([
+      {
+        $match: {
+          $or: [
+            { name: { $regex: keyword, $options: "i" } },
+            { city: { $regex: keyword, $options: "i" } }
+          ]
+        }
+      },
+      {
+        $project: {
+          name: 1,
+          slug: 1,
+          city: 1,
+          address: 1,
+          photos: 1,
+          averageRating: 1,
+          isVerified: 1,
+          currency: 1,
+          minPrice: {
+            $cond: {
+              if: { $gt: [{ $size: "$services" }, 0] },
+              then: { $min: "$services.price" },
+              else: 2500
+            }
+          }
+        }
+      },
+      { $sort: { isVerified: -1, createdAt: -1 } },
+      { $skip: pageSize * (page - 1) },
+      { $limit: pageSize }
+    ]);
+
+    totalCount = await Salon.countDocuments({
+      $or: [
+        { name: { $regex: keyword, $options: "i" } },
+        { city: { $regex: keyword, $options: "i" } }
+      ]
+    });
+  } 
+  // ==================== SHOW ALL SALONS ====================
+  else {
+    salons = await Salon.aggregate([
+      { $match: {} },
+      {
+        $project: {
+          name: 1,
+          slug: 1,
+          city: 1,
+          address: 1,
+          photos: 1,
+          averageRating: 1,
+          isVerified: 1,
+          currency: 1,
+          minPrice: {
+            $cond: {
+              if: { $gt: [{ $size: "$services" }, 0] },
+              then: { $min: "$services.price" },
+              else: 2500
+            }
+          }
+        }
+      },
+      { $sort: { isVerified: -1, createdAt: -1 } },
+      { $skip: pageSize * (page - 1) },
+      { $limit: pageSize }
+    ]);
+
+    totalCount = await Salon.countDocuments({});
+  }
+
+  res.json({
+    success: true,
+    salons,
+    page,
+    pages: Math.ceil(totalCount / pageSize),
+    totalSalons: totalCount,
+    pageSize,
+  });
+});
+
+// const getSalons = asyncHandler(async (req, res) => {
+ 
+//   const page = Number(req.query.page) || Number(req.query.pageNumber) || 1;
+  
+//   let pageSize = Number(req.query.limit) || Number(req.query.pageSize) || 12;
+
+
+//   const MAX_PAGE_SIZE = 50;
+//   if (pageSize > MAX_PAGE_SIZE) pageSize = MAX_PAGE_SIZE;
+//   if (pageSize < 1) pageSize = 12;
+
+ 
+//   const keyword = req.query.keyword
+//     ? { 
+//         name: { 
+//           $regex: req.query.keyword, 
+//           $options: "i" 
+//         } 
+//       }
+//     : {};
+
+//   // ====================== Main Query ======================
+//   const salons = await Salon.aggregate([
+//     { $match: keyword },
+
+   
+//     {
+//       $project: {
+//         name: 1,
+//         slug: 1,
+//         city: 1,
+//         address: 1,
+//         photos: 1,           
+//         averageRating: 1,
+//         isVerified: 1,
+//         currency: 1,
+//         createdAt: 1,
+//         minPrice: {
+//           $cond: {
+//             if: { $gt: [{ $size: "$services" }, 0] },
+//             then: { $min: "$services.price" },
+//             else: 2500
+//           }
+//         }
+//       }
+//     },
+
+//     // Sort: Verified salons first, then newest
+//     { $sort: { isVerified: -1, createdAt: -1 } },
+
+//     // Pagination
+//     { $skip: pageSize * (page - 1) },
+//     { $limit: pageSize }
+//   ]);
+
+//   // Get total count for pagination metadata
+//   const count = await Salon.countDocuments(keyword);
+
+//   res.json({
+//     success: true,
+//     salons,
+//     page,
+//     pages: Math.ceil(count / pageSize),
+//     totalSalons: count,
+//     pageSize,
+//     hasMore: page * pageSize < count
+//   });
+// });
 
 /**
  * @swagger
