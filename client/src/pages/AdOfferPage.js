@@ -44,7 +44,10 @@ const AdOfferPage = () => {
             </span>
           </h1>
           <p className="text-base md:text-xl text-gray-500 font-medium max-w-2xl mx-auto leading-relaxed px-2">
-            Are you in the skincare or beauty business and want to reach new clients every day? We help you build your digital home.
+          Are you into skincare or beauty business and want to get more customers online?
+We will help you create a professional profile that will act as your website, catalog, and price list, so customers can see your services and contact you easily.
+We will do this for just $5.
+After that, we will also help you promote your business for FREE for one month.Click the link below to chat with us on WhatsApp and get started now!
           </p>
 
           {/* WHATSAPP BUTTON IMMEDIATELY AFTER TEXT */}
