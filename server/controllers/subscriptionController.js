@@ -7,6 +7,7 @@ const { createPaymentLink, login, getFiatRate } = require("../services/swychrSer
 const Coupon = require("../models/couponModel");
 const convertCurrency = require("../utils/currencyConverter");
 const axios = require("axios");
+const User = require("../models/userModel");
 /**
  * @desc    Initiate Subscription with Dynamic Currency Conversion
  * @route   POST /api/subscriptions/subscribe
@@ -312,12 +313,87 @@ const getConvertedPrice = asyncHandler(async (req, res) => {
     }
   });
 });
+// @desc    Public Subscription by Phone (No Token Required)
+const publicSubscribe = asyncHandler(async (req, res) => {
+  const { planId, countryCode, currency, phone } = req.body;
 
+  if (!planId || !countryCode || !currency || !phone) {
+    return res.status(400).json({ message: "Missing required fields" });
+  }
+
+  const cleanPhone = phone.replace("+", "").trim();
+
+  // FIX: Rename variable to foundUser to ensure it is defined before usage
+  const foundUser = await User.findOne({ 
+    $or: [{ phone: cleanPhone }, { phone: `+${cleanPhone}` }] 
+  });
+
+  if (!foundUser) {
+    res.status(404);
+    throw new Error("No account found with this phone number. Please register first.");
+  }
+
+  // Set the promo price here as well
+  const promoUsdAmount = 5;
+
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
+  try {
+    const plan = await SubscriptionType.findOne({ slug: planId }).session(session);
+    if (!plan) throw new Error("Plan not found");
+
+    const token = await login();
+    const rateValue = await getFiatRate(token, countryCode, 1);
+    const finalAmount = Math.ceil(promoUsdAmount * rateValue);
+
+    const [createdSubscription] = await Subscription.create(
+      [{ user: foundUser._id, plan: plan._id, durationMonths: 1 }],
+      { session }
+    );
+
+    const [createdPayment] = await Payment.create(
+      [{ 
+        entity: "Subscription", 
+        entityId: createdSubscription._id, 
+        userId: foundUser._id, 
+        amount: finalAmount, 
+        currency 
+      }],
+      { session }
+    );
+
+    const payload = {
+      country_code: countryCode,
+      name: foundUser.name,
+      email: foundUser.email || "customer@beautyheaven.site",
+      mobile: cleanPhone,
+      amount: finalAmount,
+      currency: currency,
+      transaction_id: createdPayment._id.toString(),
+      description: `Promo Pay - ${plan.planName}`,
+    };
+
+    const swychrResponse = await createPaymentLink(token, payload);
+    const paymentUrl = swychrResponse.data?.payment_link || swychrResponse.payment_link;
+
+    await Payment.findByIdAndUpdate(createdPayment._id, { $set: { paymentUrl } }).session(session);
+    
+    await session.commitTransaction();
+    res.json({ success: true, data: { paymentUrl } });
+  } catch (error) {
+    await session.abortTransaction();
+    res.status(500).json({ message: error.message });
+  } finally {
+    session.endSession();
+  }
+});
 module.exports = {
   subscribe,
   getMySubscriptionHistory,
   getActiveSubscription,
   createCouponCode,
   redeemCouponCode,
-  getConvertedPrice
+  getConvertedPrice,
+  publicSubscribe
 };

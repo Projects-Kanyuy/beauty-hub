@@ -5,7 +5,7 @@ const FloatingActions = () => {
   const { t } = useTranslation();
 
   // Your exact WhatsApp number and message logic
-  const whatsappNumber = "+237652301511";
+  const whatsappNumber = "+2376879506181";
   const defaultMsg = t("whatsappMessage");
   const whatsappLink = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(
     defaultMsg

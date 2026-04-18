@@ -71,6 +71,9 @@ export const getActiveSubscription = (userId) =>
 
 export const getPaymentStatus = (paymentId) =>
   API.get(`/api/payments/${paymentId}/check-payment-status`);
+export const getPublicPlanPrice = (planId, countryCode) => 
+  API.get(`/api/subscriptions/public-price/${planId}/${countryCode}`);
+
 
 export const redeemCouponCode = (body) =>
   API.post("/api/subscriptions/redeem-coupon-code", body);
@@ -111,6 +114,8 @@ export const getAllPayments = () =>
   API.get("/api/payments"); 
 export const getAllCoupons = () => 
   API.get("/api/subscriptions/coupons");
+export const publicSubscribe = (data) => 
+  API.post("/api/subscriptions/public-subscribe", data);
 export const createCoupon = (data) => 
   API.post("/api/admin/create-coupon-code", data);
 

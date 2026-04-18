@@ -8,7 +8,8 @@ const {
   getActiveSubscription,
   createCouponCode,
   redeemCouponCode,
-  getConvertedPrice
+  getConvertedPrice,
+  publicSubscribe
 } = require("../controllers/subscriptionController");
 
 router
@@ -16,6 +17,8 @@ router
   .get(protect, getMySubscriptionHistory);
 
 router.route("/subscribe").post(protect, subscribe);
+router.post("/public-subscribe", publicSubscribe);
+router.get("/public-price/:planId/:countryCode", getConvertedPrice);
 
 router
   .route("/:userId/get-active-subscription")
