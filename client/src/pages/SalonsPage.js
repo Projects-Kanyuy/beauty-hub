@@ -264,24 +264,9 @@
 //   );
 // };
 
-// export default SalonsPage;
+// export default SalonsPage
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react"; // Added useCallback
 import { useTranslation } from "react-i18next";
 import { useSearchParams } from "react-router-dom";
 import { 
@@ -309,18 +294,17 @@ const SalonsPage = () => {
   const [pageNumber, setPageNumber] = useState(1);
   const [salons, setSalons] = useState([]);
   const [showFilters, setShowFilters] = useState(false);
-  const [searchInput, setSearchInput] = useState(keyword);   // Controlled input for keyword
+  const [searchInput, setSearchInput] = useState(keyword);
 
   // Location states
   const [isGettingLocation, setIsGettingLocation] = useState(false);
   const [showLocationNotice, setShowLocationNotice] = useState(false);
 
-  // Updated hook call with all parameters
   const { data: salonsData, isLoading: loading, error, mutate } = useSalons(
     pageNumber,
     keyword,
-    "",           // address (you can expand later)
-    "",           // city
+    "",           
+    "",           
     lat,
     lng,
     radius
@@ -332,17 +316,8 @@ const SalonsPage = () => {
     }
   }, [salonsData]);
 
-  // Auto-detect location on first visit (only if no filters)
-  useEffect(() => {
-    const hasFilter = keyword || (lat && lng);
-    if (!hasFilter) {
-      getUserLocation();
-    } else if (lat && lng) {
-      setShowLocationNotice(true);
-    }
-  }, []);
-
-  const getUserLocation = () => {
+  // FIXED: Wrapped in useCallback to satisfy ESLint dependency rules
+  const getUserLocation = useCallback(() => {
     if (!navigator.geolocation) {
       alert("Geolocation is not supported by your browser.");
       return;
@@ -353,7 +328,6 @@ const SalonsPage = () => {
     navigator.geolocation.getCurrentPosition(
       (position) => {
         const { latitude, longitude } = position.coords;
-
         const params = new URLSearchParams();
         params.set("lat", latitude.toFixed(6));
         params.set("lng", longitude.toFixed(6));
@@ -368,7 +342,17 @@ const SalonsPage = () => {
         setIsGettingLocation(false);
       }
     );
-  };
+  }, [setSearchParams]);
+
+  // FIXED: Added dependencies to effect
+  useEffect(() => {
+    const hasFilter = keyword || (lat && lng);
+    if (!hasFilter) {
+      getUserLocation();
+    } else if (lat && lng) {
+      setShowLocationNotice(true);
+    }
+  }, [keyword, lat, lng, getUserLocation]);
 
   // Handle manual keyword search
   const handleSearch = (e) => {
@@ -385,7 +369,7 @@ const SalonsPage = () => {
     }
 
     setSearchParams(params);
-    setShowLocationNotice(!!(lat && lng));   // Keep notice only if location is active
+    setShowLocationNotice(!!(lat && lng));   
   };
 
   // Reset page on filter change
@@ -406,7 +390,6 @@ const SalonsPage = () => {
         </div>
       </section>
 
-      {/* Search Bar */}
       <section className="bg-white border-b sticky top-0 z-40 py-4 px-6 shadow-sm">
         <div className="container mx-auto">
           <form onSubmit={handleSearch} className="flex flex-col md:flex-row gap-4">
@@ -425,7 +408,7 @@ const SalonsPage = () => {
               type="button"
               onClick={getUserLocation}
               disabled={isGettingLocation}
-              className="px-6 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-2xl flex items-center gap-2 transition-all disabled:opacity-70"
+              className="px-6 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-2xl flex items-center gap-2 transition-all disabled:opacity-70 h-14 md:h-auto"
             >
               {isGettingLocation ? <FaSpinner className="animate-spin" /> : <FaLocationArrow />}
               Near Me
@@ -434,14 +417,14 @@ const SalonsPage = () => {
             <button 
               type="button"
               onClick={() => setShowFilters(!showFilters)} 
-              className="px-6 bg-gray-50 rounded-2xl font-bold flex items-center gap-2"
+              className="px-6 bg-gray-50 rounded-2xl font-bold flex items-center gap-2 h-14 md:h-auto"
             >
               <FaFilter /> {t("salons.filters")}
             </button>
 
             <button 
               type="submit"
-              className="px-8 bg-primary-purple hover:bg-purple-700 text-white font-bold rounded-2xl transition-all"
+              className="px-8 bg-primary-purple hover:bg-purple-700 text-white font-bold rounded-2xl transition-all h-14 md:h-auto"
             >
               Search
             </button>
@@ -449,7 +432,6 @@ const SalonsPage = () => {
         </div>
       </section>
 
-      {/* Location Notice */}
       {showLocationNotice && lat && lng && (
         <div className="bg-emerald-50 border-b border-emerald-100 py-3 px-6">
           <div className="container mx-auto flex items-center gap-3 text-emerald-700 text-sm">
@@ -489,12 +471,10 @@ const SalonsPage = () => {
                 <SalonCard 
                   key={salon._id} 
                   salon={salon} 
-                  distance={salon.distance} 
                 />
               ))}
             </div>
 
-            {/* Pagination */}
             {salonsData?.pages > 1 && (
               <div className="mt-20 flex justify-center items-center gap-6">
                 <button 
