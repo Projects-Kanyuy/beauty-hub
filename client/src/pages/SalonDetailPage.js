@@ -137,11 +137,6 @@ const SalonDetailPage = () => {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
           <div className="lg:col-span-2 space-y-12">
-            
-            {/* Services Card */}
-            {/* <div className="bg-white p-8 md:p-10 rounded-[2.5rem] shadow-sm border border-gray-100">
-              <h2 className="text-3xl font-black mb-8 tracking-tight">{t("salondetail.services")}</h2>
-              <div className="space-y-8">
             <h2 className="text-3xl font-black mb-8 tracking-tight">Services</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {salon.services?.map((service) => (
@@ -172,71 +167,7 @@ const SalonDetailPage = () => {
                     </div>
                   </div>
                 ))}
-<<<<<<< HEAD
-              </div>
-            </div> */}
-
-            {/* Services Card */}
-<div className="bg-white p-8 md:p-10 rounded-[2.5rem] shadow-sm border border-gray-100">
-  <h2 className="text-3xl font-black mb-8 tracking-tight">{t("salondetail.services")}</h2>
-  
-  <div className="space-y-12"> {/* Increased spacing between services */}
-    {salon.services?.map((service) => (
-      <div key={service._id} className="group border-b border-gray-100 pb-12 last:border-0 last:pb-0">
-        
-        {/* Photos Gallery - Beautiful & Responsive */}
-        {service.photos && service.photos.length > 0 && (
-          <div className="mb-6">
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-              {service.photos.map((photo, index) => (
-                <div 
-                  key={index}
-                  className="relative aspect-square overflow-hidden rounded-2xl shadow-sm group/photo"
-                >
-                  <img 
-                    src={photo} 
-                    alt={`${service.name} - ${index + 1}`}
-                    className="w-full h-full object-cover transition-transform duration-500 group-hover/photo:scale-110"
-                    loading="lazy"
-                  />
-                  {/* Optional subtle overlay on hover */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent opacity-0 group-hover/photo:opacity-100 transition-opacity" />
-                </div>
-              ))}
-
             </div>
-          </div>
-        )}
-
-        {/* Service Info & Booking */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-          <div className="flex-1">
-            <h3 className="font-bold text-2xl text-gray-900 group-hover:text-primary-purple transition-colors">
-              {service.name}
-            </h3>
-            <p className="text-gray-500 mt-2 leading-relaxed">{service.description}</p>
-          </div>
-          
-          <div className="flex items-center gap-6">
-            <div className="text-right">
-              <p className="text-sm font-bold text-gray-400 uppercase tracking-widest">Starting at</p>
-              <p className="font-black text-2xl text-primary-purple">
-                {salon.currency} {service.price}
-              </p>
-            </div>
-            <Button 
-              variant="gradient" 
-              className="!py-3 !px-10 rounded-full text-lg shadow-lg active:scale-95" 
-              onClick={() => handleBookClick(service)}
-            >
-              {t("salondetail.book")}
-            </Button>
-          </div>
-        </div>
-      </div>
-    ))}
-  </div>
-</div>
 
             {/* Reviews Section ... */}
              <div className="bg-white p-8 md:p-10 rounded-[3rem] shadow-sm border border-gray-100">
