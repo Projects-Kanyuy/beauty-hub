@@ -142,9 +142,6 @@ const getSalonss = asyncHandler(async (req, res) => {
 const getSalons = asyncHandler(async (req, res) => {
   const page = Number(req.query.pageNumber) || 1;
   let pageSize = Number(req.query.pageSize) || 12;
-  if (pageSize > 50) pageSize = 50;
-  if (pageSize < 1) pageSize = 12;
-
   const keyword = req.query.keyword?.trim();
   const lat = parseFloat(req.query.lat);
   const lng = parseFloat(req.query.lng);
@@ -152,132 +149,84 @@ const getSalons = asyncHandler(async (req, res) => {
   let salons = [];
   let totalCount = 0;
 
-  // ==================== NEAR ME - Location based (Safest version for Nigeria) ====================
-  if (!isNaN(lat) && !isNaN(lng)) {
-    const MAX_DISTANCE_METERS = 500 * 1000; // Maximum 500km (prevents Cameroon salons)
+  // 🚀 GLOBAL FILTER: Only show salons that are VERIFIED
+  const baseQuery = { isVerified: true };
 
-    const matchQuery = keyword ? {
-      $or: [
+  // ==================== NEAR ME ====================
+  if (!isNaN(lat) && !isNaN(lng)) {
+    const MAX_DISTANCE_METERS = 500 * 1000;
+    const matchQuery = { ...baseQuery }; // Include filter here
+    if (keyword) {
+      matchQuery.$or = [
         { name: { $regex: keyword, $options: "i" } },
         { city: { $regex: keyword, $options: "i" } }
-      ]
-    } : {};
+      ];
+    }
 
     salons = await Salon.aggregate([
       {
         $geoNear: {
-          near: { type: "Point", coordinates: [lng, lat] }, // [longitude, latitude] - VERY IMPORTANT
+          near: { type: "Point", coordinates: [lng, lat] },
           distanceField: "distance",
           maxDistance: MAX_DISTANCE_METERS,
           spherical: true,
-          query: matchQuery
+          query: matchQuery // 👈 Filter applied here
         }
       },
       {
         $project: {
-          name: 1,
-          slug: 1,
-          city: 1,
-          address: 1,
-          photos: 1,
-          averageRating: 1,
-          isVerified: 1,
-          currency: 1,
-          distance: { $round: [{ $divide: ["$distance", 1000] }, 1] }, // distance in km
-          minPrice: {
-            $cond: {
-              if: { $gt: [{ $size: "$services" }, 0] },
-              then: { $min: "$services.price" },
-              else: 2500
-            }
-          }
+          name: 1, slug: 1, city: 1, address: 1, photos: 1,
+          averageRating: 1, isVerified: 1, currency: 1,
+          distance: { $round: [{ $divide: ["$distance", 1000] }, 1] },
+          minPrice: { $cond: { if: { $gt: [{ $size: "$services" }, 0] }, then: { $min: "$services.price" }, else: 2500 } }
         }
       },
-      { $sort: { isVerified: -1, distance: 1 } },   // Verified first, then closest
+      { $sort: { distance: 1 } },
       { $skip: pageSize * (page - 1) },
       { $limit: pageSize }
     ]);
-
-    // Count for pagination
-    totalCount = await Salon.countDocuments({
-      location: {
-        $geoWithin: {
-          $centerSphere: [[lng, lat], 500 / 6378.1]
-        }
-      }
-    });
+    totalCount = await Salon.countDocuments(matchQuery);
   } 
-  // ==================== NORMAL SEARCH (Name or City) - No location ====================
+  // ==================== NORMAL SEARCH ====================
   else if (keyword) {
-    salons = await Salon.aggregate([
-      {
-        $match: {
-          $or: [
-            { name: { $regex: keyword, $options: "i" } },
-            { city: { $regex: keyword, $options: "i" } }
-          ]
-        }
-      },
-      {
-        $project: {
-          name: 1,
-          slug: 1,
-          city: 1,
-          address: 1,
-          photos: 1,
-          averageRating: 1,
-          isVerified: 1,
-          currency: 1,
-          minPrice: {
-            $cond: {
-              if: { $gt: [{ $size: "$services" }, 0] },
-              then: { $min: "$services.price" },
-              else: 2500
-            }
-          }
-        }
-      },
-      { $sort: { isVerified: -1, createdAt: -1 } },
-      { $skip: pageSize * (page - 1) },
-      { $limit: pageSize }
-    ]);
-
-    totalCount = await Salon.countDocuments({
+    const matchQuery = {
+      ...baseQuery, // 👈 Filter applied here
       $or: [
         { name: { $regex: keyword, $options: "i" } },
         { city: { $regex: keyword, $options: "i" } }
       ]
-    });
-  } 
-  // ==================== SHOW ALL SALONS ====================
-  else {
+    };
     salons = await Salon.aggregate([
-      { $match: {} },
+      { $match: matchQuery },
       {
         $project: {
-          name: 1,
-          slug: 1,
-          city: 1,
-          address: 1,
-          photos: 1,
-          averageRating: 1,
-          isVerified: 1,
-          currency: 1,
-          minPrice: {
-            $cond: {
-              if: { $gt: [{ $size: "$services" }, 0] },
-              then: { $min: "$services.price" },
-              else: 2500
-            }
-          }
+          name: 1, slug: 1, city: 1, address: 1, photos: 1,
+          averageRating: 1, isVerified: 1, currency: 1,
+          minPrice: { $cond: { if: { $gt: [{ $size: "$services" }, 0] }, then: { $min: "$services.price" }, else: 2500 } }
         }
       },
-      { $sort: { isVerified: -1, createdAt: -1 } },
+      { $sort: { createdAt: -1 } },
       { $skip: pageSize * (page - 1) },
       { $limit: pageSize }
     ]);
-
-    totalCount = await Salon.countDocuments({});
+    totalCount = await Salon.countDocuments(matchQuery);
+  } 
+  // ==================== SHOW ALL ====================
+  else {
+    salons = await Salon.aggregate([
+      { $match: baseQuery }, // 👈 Filter applied here
+      {
+        $project: {
+          name: 1, slug: 1, city: 1, address: 1, photos: 1,
+          averageRating: 1, isVerified: 1, currency: 1,
+          minPrice: { $cond: { if: { $gt: [{ $size: "$services" }, 0] }, then: { $min: "$services.price" }, else: 2500 } }
+        }
+      },
+      { $sort: { createdAt: -1 } },
+      { $skip: pageSize * (page - 1) },
+      { $limit: pageSize }
+    ]);
+    totalCount = await Salon.countDocuments(baseQuery);
   }
 
   res.json({
@@ -286,7 +235,6 @@ const getSalons = asyncHandler(async (req, res) => {
     page,
     pages: Math.ceil(totalCount / pageSize),
     totalSalons: totalCount,
-    pageSize,
   });
 });
 

@@ -108,7 +108,11 @@ const manualActivateSubscription = asyncHandler(async (req, res) => {
     { upsert: true, new: true }
   );
 
-  res.status(200).json({ success: true, message: "Manual access granted", data: subscription });
+  // 🚀 RESTORE VISIBILITY: Re-verify the user and the salon
+  await User.findByIdAndUpdate(userId, { isVerified: true });
+  await Salon.findOneAndUpdate({ owner: userId }, { isVerified: true });
+
+  res.status(200).json({ success: true, message: "Manual access granted and Salon listed", data: subscription });
 });
 
 /**
@@ -126,20 +130,22 @@ const getSystemOverview = asyncHandler(async (req, res) => {
 const restrictUserAccess = asyncHandler(async (req, res) => {
   const { userId } = req.params;
 
-  // We find the user's subscription and flip it to 'Suspended'
-  // This instantly blocks them via the middleware
+  // 1. Suspend the subscription
   const subscription = await Subscription.findOneAndUpdate(
     { user: userId },
     { status: "Suspended" },
     { new: true }
   );
 
-  // Also, un-verify the user so they can't even log in if you want to be strict
+  // 2. Un-verify the user
   await User.findByIdAndUpdate(userId, { isVerified: false });
+
+  // 3. 🚀 CRITICAL: Un-verify the salon so it disappears from the directory
+  await Salon.findOneAndUpdate({ owner: userId }, { isVerified: false });
 
   res.json({
     success: true,
-    message: "User access has been restricted",
+    message: "User access restricted and salon unlisted",
     data: subscription,
   });
 });

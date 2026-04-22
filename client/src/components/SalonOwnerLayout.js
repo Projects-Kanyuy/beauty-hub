@@ -40,19 +40,26 @@ const SidebarLink = ({ to, icon: Icon, children, onClick }) => (
 
 const SalonOwnerLayout = ({ children, activePlan }) => {
   const [open, setOpen] = useState(false);
-  const { logout, user } = useAuth(); // 1. Added 'user' from Context
+  const { logout, user } = useAuth();
   const location = useLocation();
 
-  // 2. Identify the internal pages that MUST be visible to unpaid users
+  // 1. Pages that MUST always be visible (Billing & Pay)
   const isBillingPage = location.pathname.includes("billing");
   const isPaymentPage = location.pathname.includes("pay"); 
   
-  // 3. FIXED: The owner only has no access if they don't have a plan AND are not verified by admin
-  const hasNoPlan = !activePlan && !user?.isVerified;
+  // 2. STATED-BASED BLOCKADE LOGIC
+  // We check if the plan is actually Active. 
+  // If activePlan is an object like { status: "Pending" }, this will correctly block it.
+  const isPlanValid = activePlan && (activePlan.status === "Active" || activePlan.status === "Completed");
+  
+  // 3. ADMIN OVERRIDE CHECK
+  // If admin has manually verified (user.isVerified), they bypass the blockade entirely.
+  const hasAccess = isPlanValid || user?.isVerified;
 
   return (
-    <div className="flex h-screen bg-gray-50 overflow-hidden text-slate-900">
-      {/* Mobile toggle */}
+    <div className="flex h-screen bg-gray-50 overflow-hidden text-slate-900 font-sans">
+      
+      {/* Mobile Menu Trigger */}
       {!open && (
         <button
           onClick={() => setOpen(true)}
@@ -62,9 +69,17 @@ const SalonOwnerLayout = ({ children, activePlan }) => {
         </button>
       )}
 
-      {/* Sidebar */}
+      {/* Sidebar Overlay (Mobile) */}
+      {open && (
+        <div 
+          onClick={() => setOpen(false)} 
+          className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[60] lg:hidden"
+        />
+      )}
+
+      {/* ▓ Sidebar */}
       <aside
-        className={`fixed lg:static top-0 left-0 h-full w-64 z-50 p-6 flex flex-col
+        className={`fixed lg:static top-0 left-0 h-full w-64 z-[65] p-6 flex flex-col
           bg-gradient-to-b from-purple-800 to-purple-900 text-white transition-transform duration-500
           ${open ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}`}
       >
@@ -77,13 +92,12 @@ const SalonOwnerLayout = ({ children, activePlan }) => {
           </button>
         </div>
 
-        <nav className="flex-1 space-y-1 overflow-y-auto">
+        <nav className="flex-1 space-y-1 overflow-y-auto scrollbar-hide">
           <SidebarLink to="/salon-owner/dashboard" icon={FaTachometerAlt}>Dashboard</SidebarLink>
           <SidebarLink to="/salon-owner/appointments" icon={FaCalendarAlt}>Appointments</SidebarLink>
           <SidebarLink to="/salon-owner/profile" icon={FaStore}>Salon Profile</SidebarLink>
           <SidebarLink to="/salon-owner/services" icon={FaConciergeBell}>Services</SidebarLink>
           
-          {/* Billing Link is always visible */}
           <SidebarLink to="/salon-owner/billing" icon={FaCreditCard}>
             Subscription & Billing
           </SidebarLink>
@@ -93,46 +107,48 @@ const SalonOwnerLayout = ({ children, activePlan }) => {
           <SidebarLink to="/salon-owner/analytics" icon={FaChartLine}>Analytics</SidebarLink>
           <SidebarLink to="/salon-owner/settings" icon={FaCog}>Settings</SidebarLink>
 
-          <button onClick={logout} className="w-full mt-6 flex items-center gap-3 px-4 py-3 rounded-xl text-purple-200 hover:bg-red-500/20 hover:text-red-100 transition-all font-bold">
+          <button 
+            onClick={logout} 
+            className="w-full mt-6 flex items-center gap-3 px-4 py-3 rounded-xl text-purple-200 hover:bg-red-500/20 hover:text-red-100 transition-all font-bold"
+          >
             <FaSignOutAlt size={18} /> Logout
           </button>
         </nav>
         
-        <div className="mt-auto pt-6 border-t border-white/10">
+        <div className="mt-auto pt-6 border-t border-white/10 text-white">
           <LanguageSwitcher />
         </div>
       </aside>
 
       {/* Main Content Area */}
-      <main className="flex-1 overflow-y-auto p-6 md:p-10 relative">
+      <main className="flex-1 overflow-y-auto p-4 md:p-10 relative bg-[#FAF9F6]">
         
-        {/* 
-            BLOCKING LOGIC: 
-            Show the warning ONLY IF:
-            - User has no plan AND is not verified by Admin
-            - AND User is NOT on the billing page 
-            - AND User is NOT on the payment page
-        */}
-        {hasNoPlan && !isBillingPage && !isPaymentPage ? (
+        {/* THE BLOCKADE: Check if access is denied and we aren't on allowed pages */}
+        {!hasAccess && !isBillingPage && !isPaymentPage ? (
           <div className="flex items-center justify-center min-h-[80vh]">
-            <div className="max-w-xl w-full bg-white border-2 border-yellow-100 p-10 rounded-[3rem] shadow-2xl text-center">
+            <div className="max-w-xl w-full bg-white border-2 border-yellow-50 p-10 rounded-[3rem] shadow-2xl text-center animate-in zoom-in duration-500">
                 <div className="w-20 h-20 bg-yellow-50 rounded-full flex items-center justify-center mx-auto mb-6 text-yellow-600 text-3xl">
                    ⚠️
                 </div>
                 <h2 className="text-3xl font-black text-gray-900 tracking-tight">Account Inactive</h2>
-                <p className="text-gray-500 mt-4 text-lg leading-relaxed">
+                <p className="text-gray-500 mt-4 text-lg leading-relaxed font-medium">
                     Your access to business tools is restricted. Please select a subscription plan to activate your salon and start receiving bookings.
                 </p>
-                <Link to="/salon-owner/billing">
-                  <button className="mt-8 bg-purple-600 text-white px-12 py-4 rounded-full font-black text-lg shadow-xl hover:bg-purple-700 hover:scale-105 transition-all">
-                    Choose Your Plan &rarr;
-                  </button>
-                </Link>
+                <div className="mt-10">
+                  <Link to="/salon-owner/billing">
+                    <button className="bg-purple-600 text-white px-12 py-4 rounded-full font-black text-lg shadow-xl hover:bg-purple-700 hover:scale-105 transition-all">
+                      Choose Your Plan &rarr;
+                    </button>
+                  </Link>
+                </div>
+                <p className="text-gray-400 text-xs mt-6 font-bold uppercase tracking-widest">
+                  Need help? Contact support@beautyheaven.site
+                </p>
             </div>
           </div>
         ) : (
-          /* Render the actual page content (Dashboard, Billing, or Pay) */
-          <div className="animate-in fade-in duration-500">
+          /* Actual Dashboard Pages */
+          <div className="animate-in fade-in duration-700 h-full">
             {children}
           </div>
         )}
