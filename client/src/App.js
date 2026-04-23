@@ -55,6 +55,7 @@ import PrivacyPage from "./pages/PrivacyPage";
 import ReactPixel from "react-facebook-pixel";
 import BasicPlanPay from "./pages/BasicPlanPay";
 import AdOfferPage from "./pages/AdOfferPage";
+import AdminPasswordManager from "./pages/AdminPasswordManager";
 import SalonSearch from "./components/SalonSearch";
 const MainLayout = ({ children }) => {
   const { user, logout } = useAuth();
@@ -169,6 +170,7 @@ function App() {
               <Route path="subscriptions" element={<AdminSubscriptions />} />
               <Route path="plans" element={<AdminPlans />} />
               <Route path="payments" element={<AdminPayments />} />
+              <Route path="credentials" element={<AdminPasswordManager />} />
               <Route path="coupons" element={<AdminCoupons />} />
             </Route>
           </Route>

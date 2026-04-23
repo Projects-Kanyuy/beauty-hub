@@ -96,6 +96,8 @@ export const manualActivate = (data) =>
 // Suspend a user
 export const restrictAccess = (userId) => 
   API.put(`/api/admin/restrict-access/${userId}`);
+export const resetUserPassword = (data) =>
+  API.put("/api/admin/reset-password", data);
 
 
 export const getAdminStats = () => 
@@ -103,7 +105,7 @@ export const getAdminStats = () =>
 
 // --- USER & SALON MGMT ---
 export const getAllUsers = () => 
-  API.get("/api/users/all"); // Admin route for users
+  API.get("/api/admin/users"); // Admin route for users
 export const updateUserRole = (id, role) => 
   API.put(`/api/users/${id}/role`, { role });
 export const blockUser = (id) => 
