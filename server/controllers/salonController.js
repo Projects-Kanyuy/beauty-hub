@@ -818,6 +818,47 @@ const getSalonBySlug = asyncHandler(async (req, res) => {
 
   res.json({ success: true, data: salon });
 });
+
+
+
+
+const searchSalonsByService = async (req, res) => {
+  try {
+    const { q } = req.query;
+console.log(q)
+    if (!q) {
+      return res.status(400).json({
+        success: false,
+        message: "Search query is required",
+      });
+    }
+
+    const salons = await Salon.find({
+      services: {
+        $elemMatch: {
+          name: { $regex: q, $options: "i" }, // 🔥 case-insensitive search
+        },
+      },
+    })
+      .populate("reviews") // optional
+      .sort({ averageRating: -1 });
+console.log(salons)
+    res.json({
+      success: true,
+      count: salons.length,
+      salons,
+    });
+  } catch (error) {
+    console.log(error)
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+
+
 module.exports = {
   getSalons,
   getSalonBySlug,
@@ -828,5 +869,6 @@ module.exports = {
   updateSalonService,
   deleteSalonService,
   getMySalon,
+  searchSalonsByService
   
 };

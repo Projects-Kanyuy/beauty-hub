@@ -10,7 +10,8 @@ const {
   updateSalonService,
   deleteSalonService,
   getMySalon,
-  getSalonBySlug
+  getSalonBySlug,
+  searchSalonsByService
 } = require("../controllers/salonController");
 const { protect } = require("../middleware/authMiddleware");
 const reviewRouter = require("./reviewRoutes");
@@ -22,6 +23,7 @@ const cacheMiddleware = require("../middleware/cache");
 // --- CORRECTED ROUTE ORDER ---
 
 // Public route to get all salons
+router.use("/search", searchSalonsByService)
 router.route("/", cacheMiddleware(120),).get(getSalons);
 router.get("/s/:slug", getSalonBySlug);
 // Protected route for an owner to create their profile

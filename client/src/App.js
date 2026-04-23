@@ -55,6 +55,7 @@ import PrivacyPage from "./pages/PrivacyPage";
 import ReactPixel from "react-facebook-pixel";
 import BasicPlanPay from "./pages/BasicPlanPay";
 import AdOfferPage from "./pages/AdOfferPage";
+import SalonSearch from "./components/SalonSearch";
 const MainLayout = ({ children }) => {
   const { user, logout } = useAuth();
   return (
@@ -142,6 +143,7 @@ function App() {
           <Route path="/salon/:id" element={<MainLayout><SalonDetailPage /></MainLayout>} />
           <Route path="/payment" element={<MainLayout><PaymentPage /></MainLayout>} />
           <Route path="/promo" element={<MainLayout><LandingPage /></MainLayout>} />
+          <Route path="/search" element={<MainLayout><SalonSearch /></MainLayout>} />
           <Route path="/terms" element={<MainLayout><TermsPage /></MainLayout>} />
           <Route path="/privacy" element={<MainLayout><PrivacyPage /></MainLayout>} />
 

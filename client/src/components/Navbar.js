@@ -77,6 +77,18 @@ const Navbar = ({ isLoggedIn, user, handleLogout }) => {
                   </span>
                 </NavLink>
               </li>
+              <li>
+                <NavLink
+                  to="/search"
+                  className="relative block py-2 font-bold text-primary-purple hover:text-primary-pink transition-colors text-lg"
+                >
+                  Search
+                  <span className="absolute -top-1 -right-3 flex h-3 w-3">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-pink-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-3 w-3 bg-primary-pink"></span>
+                  </span>
+                </NavLink>
+              </li>
             </>
           )}
         </ul>
@@ -169,6 +181,19 @@ const Navbar = ({ isLoggedIn, user, handleLogout }) => {
                       className="block py-2 font-bold text-primary-purple text-lg flex items-center gap-2"
                     >
                       Promo Offer
+                      <span className="relative flex h-3 w-3">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-pink-400 opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-3 w-3 bg-primary-pink"></span>
+                      </span>
+                    </NavLink>
+                  </li>
+                  <li>
+                    <NavLink
+                      to="/search"
+                      onClick={closeDrawer}
+                      className="block py-2 font-bold text-primary-purple text-lg flex items-center gap-2"
+                    >
+                      Search
                       <span className="relative flex h-3 w-3">
                         <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-pink-400 opacity-75"></span>
                         <span className="relative inline-flex rounded-full h-3 w-3 bg-primary-pink"></span>
