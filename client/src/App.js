@@ -56,6 +56,8 @@ import ReactPixel from "react-facebook-pixel";
 import BasicPlanPay from "./pages/BasicPlanPay";
 import AdOfferPage from "./pages/AdOfferPage";
 import SalonSearch from "./components/SalonSearch";
+import VideoUpload from "./components/video/VideoUpload";
+import Feed from "./components/video/VideoFeed";
 const MainLayout = ({ children }) => {
   const { user, logout } = useAuth();
   return (
@@ -144,6 +146,7 @@ function App() {
           <Route path="/payment" element={<MainLayout><PaymentPage /></MainLayout>} />
           <Route path="/promo" element={<MainLayout><LandingPage /></MainLayout>} />
           <Route path="/search" element={<MainLayout><SalonSearch /></MainLayout>} />
+          <Route path="/video" element={<MainLayout><Feed /></MainLayout>} />
           <Route path="/terms" element={<MainLayout><TermsPage /></MainLayout>} />
           <Route path="/privacy" element={<MainLayout><PrivacyPage /></MainLayout>} />
 
@@ -185,6 +188,7 @@ function App() {
                   <Route path="reviews" element={<SalonReviewsPage />} />
                   <Route path="analytics" element={<SalonAnalyticsPage />} />
                   <Route path="settings" element={<SalonSettingsPage />} />
+                  <Route path="post-video" element={<VideoUpload />} />
                    <Route path="billing" element={<Subscriptions />} /> 
                    <Route path="pay" element={<PaymentPage />} /> 
                 </Routes>

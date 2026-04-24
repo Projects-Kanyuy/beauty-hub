@@ -89,6 +89,18 @@ const Navbar = ({ isLoggedIn, user, handleLogout }) => {
                   </span>
                 </NavLink>
               </li>
+              <li>
+                <NavLink
+                  to="/video"
+                  className="relative block py-2 font-bold text-primary-purple hover:text-primary-pink transition-colors text-lg"
+                >
+                Video
+                  <span className="absolute -top-1 -right-3 flex h-3 w-3">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-pink-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-3 w-3 bg-primary-pink"></span>
+                  </span>
+                </NavLink>
+              </li>
             </>
           )}
         </ul>
@@ -198,7 +210,7 @@ const Navbar = ({ isLoggedIn, user, handleLogout }) => {
                         <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-pink-400 opacity-75"></span>
                         <span className="relative inline-flex rounded-full h-3 w-3 bg-primary-pink"></span>
                       </span>
-                    </NavLink>
+                    </NavLink>d
                   </li>
                   
                   <div className="h-px bg-gray-200 my-2"></div>

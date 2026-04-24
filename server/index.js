@@ -151,6 +151,7 @@ const analyticsRoutes = require("./routes/analyticsRoutes");
 const messageRoutes = require("./routes/messageRoutes");
 const paymentRoutes = require("./routes/paymentRoutes.js");
 const adminRoutes = require("./routes/adminRoutes");
+const videoRoutes = require("./routes/videoRoute.js");
 const { notFound, errorHandler } = require("./middleware/errorMiddleware");
 
 // Swagger
@@ -226,7 +227,7 @@ app.use("/api/analytics", analyticsRoutes);
 app.use("/api/messages", messageRoutes);
 app.use("/api/payments", paymentRoutes);
 app.use("/api/admin", adminRoutes);
-
+app.use("/api/videos", videoRoutes);
 // Error Handling (must be last)
 app.use(notFound);
 app.use(errorHandler);
