@@ -9,6 +9,7 @@ import {
   FaTags,
   FaTimes,
   FaUsers,
+  FaKey
 } from "react-icons/fa";
 import { FaLayerGroup } from "react-icons/fa6";
 import { Link, NavLink } from "react-router-dom";
@@ -133,6 +134,9 @@ const AdminSidebar = () => {
           >
             Subscriptions
           </SidebarLink>
+          <SidebarLink to="/admin/credentials" icon={FaKey}>
+  Password Manager
+</SidebarLink>
 
           <SidebarLink to="/admin/plans" icon={FaLayerGroup} onClick={closeSidebar}>
             Plans

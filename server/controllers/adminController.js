@@ -6,6 +6,7 @@ const Appointment = require("../models/appointmentModel");
 const Payment = require("../models/paymentModel");
 const SubscriptionType = require("../models/subscriptionTypeModel");
 const sendEmail = require('../utils/emailService');
+const bcrypt = require("bcryptjs");
 /**
  * @desc    Get Real System Stats for Overview Page
  */
@@ -149,6 +150,28 @@ const restrictUserAccess = asyncHandler(async (req, res) => {
     data: subscription,
   });
 });
+// @desc    Admin manually sets a new password for a user
+// @route   PUT /api/admin/reset-password
+const resetUserPassword = asyncHandler(async (req, res) => {
+  const { userId, newPassword } = req.body;
+
+  const user = await User.findById(userId);
+  if (!user) {
+    res.status(404);
+    throw new Error("User not found");
+  }
+
+  // Set the password as plain text
+  // The 'pre-save' hook in your User model will automatically hash this 
+  user.password = newPassword; 
+  
+  await user.save();
+
+  res.status(200).json({ 
+    success: true, 
+    message: `Password updated for ${user.name}` 
+  });
+});
 module.exports = {
   getSystemStats,
   getAllUsers,
@@ -156,5 +179,6 @@ module.exports = {
   getAllAppointments, // Added
   getSystemOverview,
   manualActivateSubscription,
-  restrictUserAccess
+  restrictUserAccess,
+  resetUserPassword
 };
