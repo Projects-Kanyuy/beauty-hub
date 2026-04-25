@@ -79,7 +79,6 @@ import { ClipLoader } from "react-spinners";
 import { useRef } from "react";
 export default function Feed() {
   const [videos, setVideos] = useState([]);
-  const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
 
 

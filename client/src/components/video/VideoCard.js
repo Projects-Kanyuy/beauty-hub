@@ -163,7 +163,7 @@
 
 
 // components/VideoCard.jsx
-import { useState, useEffect } from "react";
+import { useState} from "react";
 import { FaHeart, FaComment, FaShare } from "react-icons/fa";
 import { AiOutlineClose } from "react-icons/ai";
 import { getFingerprint } from "../../utils/FingerPrints";

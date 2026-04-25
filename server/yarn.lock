@@ -395,10 +395,10 @@ express-async-handler@^1.2.0:
   resolved "https://registry.npmjs.org/express-async-handler/-/express-async-handler-1.2.0.tgz"
   integrity sha512-rCSVtPXRmQSW8rmik/AIb2P0op6l7r1fMW538yyvTMltCO4xQEWMmobfrIxN2V1/mVrgxB8Az3reYF6yUZw37w==
 
-express-rate-limit@^8.4.0:
-  version "8.4.0"
-  resolved "https://registry.npmjs.org/express-rate-limit/-/express-rate-limit-8.4.0.tgz"
-  integrity sha512-gDK8yiqKxrGta+3WtON59arrrw6GLmadA1qoFgYXzdcch8fmKDID2XqO8itsi3f1wufXYPT51387dN6cvVBS3Q==
+express-rate-limit@^8.4.1:
+  version "8.4.1"
+  resolved "https://registry.npmjs.org/express-rate-limit/-/express-rate-limit-8.4.1.tgz"
+  integrity sha512-NGVYwQSAyEQgzxX1iCM978PP9AdO/hW93gMcF6ZwQCm+rFvLsBH6w4xcXWTcliS8La5EPRN3p9wzItqBwJrfNw==
   dependencies:
     ip-address "10.1.0"
 
