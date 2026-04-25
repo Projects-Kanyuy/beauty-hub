@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { API } from "../api";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
-import { FaLock, FaStore, FaUser, FaKey } from "react-icons/fa";
+import { FaLock, FaStore, FaUser, FaKey, FaSpinner } from "react-icons/fa";
 
 const ForgotPasswordPage = () => {
   const navigate = useNavigate();
