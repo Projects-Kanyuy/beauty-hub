@@ -62,7 +62,7 @@ const Navbar = ({ isLoggedIn, user, handleLogout }) => {
               <NavItem to="/become-salon-owner">
                 {t("header.addBusiness")}
               </NavItem>
-              <NavItem to="/contact">{t("header.contact")}</NavItem>
+              {/* <NavItem to="/contact">{t("header.contact")}</NavItem>*/}
               
               {/* NEW PROMO LINK FOR DESKTOP */}
               <li>
@@ -181,9 +181,9 @@ const Navbar = ({ isLoggedIn, user, handleLogout }) => {
                   <NavItem to="/become-salon-owner" onClick={closeDrawer}>
                     {t("header.addBusiness")}
                   </NavItem>
-                  <NavItem to="/contact" onClick={closeDrawer}>
+                 {/* <NavItem to="/contact" onClick={closeDrawer}>
                     {t("header.contact")}
-                  </NavItem>
+                  </NavItem>*/}
 
                   {/* NEW PROMO LINK FOR MOBILE */}
                   <li>

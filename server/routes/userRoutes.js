@@ -7,6 +7,7 @@ const {
   updateUserProfile,
   verifyEmail,
   resendVerification,
+  selfResetPassword
 } = require("../controllers/userController");
 const { protect } = require("../middleware/authMiddleware");
 // When a POST request comes to '/', use the registerUser controller
@@ -17,4 +18,5 @@ router.post("/login", authUser);
 router.route("/profile").put(protect, updateUserProfile);
 router.get("/verify/:token", verifyEmail);
 router.post("/verify/resend", resendVerification);
+router.put("/self-reset-password", selfResetPassword);
 module.exports = router;

@@ -289,6 +289,38 @@ const updateUserProfile = asyncHandler(async (req, res) => {
     throw new Error("User not found");
   }
 });
+// @desc    Self-Service Password Reset (Security Check)
+// @route   PUT /api/users/self-reset-password
+const selfResetPassword = asyncHandler(async (req, res) => {
+  const { identifier, salonName, newPassword } = req.body;
+
+  // 1. Find the user by Username or Email
+  const user = await User.findOne({ 
+    $or: [{ username: identifier }, { email: identifier }] 
+  });
+
+  if (!user) {
+    res.status(404);
+    throw new Error("User account not found.");
+  }
+
+  // 2. SECURITY CHECK: Find the salon belonging to this user
+  const Salon = require("../models/salonModel"); // Import here to avoid circular dependency
+  const salon = await Salon.findOne({ owner: user._id });
+
+  // Compare input Salon Name with Database (case-insensitive)
+  if (!salon || salon.name.toLowerCase() !== salonName.toLowerCase()) {
+    res.status(401);
+    throw new Error("Security check failed: Salon name does not match this account.");
+  }
+
+  // 3. Update Password
+  user.password = newPassword; 
+  await user.save();
+
+  res.json({ success: true, message: "Identity verified! Password updated successfully." });
+});
+
 
 module.exports = {
   registerUser,
@@ -296,4 +328,5 @@ module.exports = {
   updateUserProfile,
   verifyEmail,
   resendVerification,
+  selfResetPassword
 };

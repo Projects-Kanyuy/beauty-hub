@@ -59,6 +59,7 @@ import AdminPasswordManager from "./pages/AdminPasswordManager";
 import SalonSearch from "./components/SalonSearch";
 import VideoUpload from "./components/video/VideoUpload";
 import Feed from "./components/video/VideoFeed";
+import ForgotPasswordPage from ".pages/ForgotPasswordPage";
 const MainLayout = ({ children }) => {
   const { user, logout } = useAuth();
   return (
@@ -155,6 +156,7 @@ function App() {
           <Route path="/register" element={<MainLayout><RegisterPage /></MainLayout>} />
             <Route path="/pay-basic" element={<MainLayout><BasicPlanPay /></MainLayout>} />
             <Route path="/offer" element={<MainLayout><AdOfferPage /></MainLayout>} />
+            <Route path="/forgot-password" element={<MainLayout><ForgotPasswordPage /></MainLayout>} />
 
           <Route element={<CustomerProtectedRoute />}>
             <Route path="/dashboard" element={<MainLayout><DashboardPage /></MainLayout>} />
