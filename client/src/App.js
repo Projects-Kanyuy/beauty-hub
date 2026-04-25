@@ -59,7 +59,7 @@ import AdminPasswordManager from "./pages/AdminPasswordManager";
 import SalonSearch from "./components/SalonSearch";
 import VideoUpload from "./components/video/VideoUpload";
 import Feed from "./components/video/VideoFeed";
-import ForgotPasswordPage from ".pages/ForgotPasswordPage";
+import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 const MainLayout = ({ children }) => {
   const { user, logout } = useAuth();
   return (
