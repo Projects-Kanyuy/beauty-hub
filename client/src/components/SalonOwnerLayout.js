@@ -106,6 +106,7 @@ const SalonOwnerLayout = ({ children, activePlan }) => {
           <SidebarLink to="/salon-owner/reviews" icon={FaStar}>Reviews</SidebarLink>
           <SidebarLink to="/salon-owner/analytics" icon={FaChartLine}>Analytics</SidebarLink>
           <SidebarLink to="/salon-owner/post-video" icon={FaChartLine}>Post a video</SidebarLink>
+          <SidebarLink to="/salon-owner/my-videos" icon={FaChartLine}>my videos</SidebarLink>
           <SidebarLink to="/salon-owner/settings" icon={FaCog}>Settings</SidebarLink>
 
           <button 

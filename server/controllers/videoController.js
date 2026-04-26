@@ -19,7 +19,7 @@ const createVideo = async (req, res) => {
       return res.status(400).json({ message: "Video URL required" });
     }
 
-    const video = await Video.create({ videoUrl, caption });
+    const video = await Video.create({ videoUrl, caption,  user: req.user.id || req.user._id, });
     res.status(201).json(video);
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -132,6 +132,60 @@ const shareVideo = async (req, res) => {
 };
 
 
+
+const deleteMyVideo = async (req, res) => {
+  const { videoId } = req.params;
+  const userId = req.user.id || req.user._id; // Support both id and _id
+
+  try {
+    const video = await Video.findById(videoId);
+
+    if (!video) {
+      return res.status(404).json({ message: "Video not found" });
+    }
+
+    // ✅ Ownership check
+    if (video.user.toString() !== userId.toString()) {
+      return res.status(403).json({ message: "Not authorized to delete this video" });
+    }
+
+    // Delete interactions
+    await Interaction.deleteMany({ video: videoId });
+
+    // Delete video
+    await Video.findByIdAndDelete(videoId);
+
+    res.json({
+      success: true,
+      message: "Video deleted successfully",
+    });
+
+  } catch (err) {
+    console.error("Delete video error:", err);
+    res.status(500).json({ message: err.message });
+  }
+};
+
+// 🎥 Get My Videos
+const getMyVideos = async (req, res) => {
+  try {
+    const userId = req.user.id || req.user._id; // Support both id and _id
+
+    const videos = await Video.find({ user: userId })
+      .sort({ createdAt: -1 });
+
+    res.status(200).json({
+      success: true,
+      count: videos.length,
+      videos,
+    });
+  } catch (err) {
+    console.error("Get my videos error:", err);
+    res.status(500).json({ message: err.message });
+  }
+};
+
+
 module.exports = {
   createVideo,
   getVideos,
@@ -139,4 +193,6 @@ module.exports = {
   commentVideo,
   getComments,
   shareVideo,
+  deleteMyVideo,
+  getMyVideos,
 };

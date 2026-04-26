@@ -1,5 +1,5 @@
 // components/VideoUpload.jsx
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import axios from "axios";
 import { API } from "../../api";
 import { toast } from "react-toastify";
@@ -9,6 +9,23 @@ export default function VideoUpload() {
   const [preview, setPreview] = useState(null);
   const [caption, setCaption] = useState("");
   const [loading, setLoading] = useState(false);
+
+    const [user, setUser] = useState(null);
+  
+    // ✅ Load user from localStorage ONCE
+    useEffect(() => {
+      const storedUser = localStorage.getItem("userInfo");
+      if (storedUser) {
+        try {
+          setUser(JSON.parse(storedUser));
+        } catch (err) {
+          console.error("Invalid userInfo in localStorage");
+        }
+      }
+    }, []);
+  
+    const token = user?.token;
+  
 
   const cloudName = process.env.REACT_APP_CLOUDINARY_CLOUD_NAME || "dw76uqccg";
   const uploadPreset = process.env.REACT_APP_CLOUDINARY_UPLOAD_PRESET|| "Beauty_vid";
@@ -42,6 +59,8 @@ export default function VideoUpload() {
       await API.post("/api/videos", {
         videoUrl: cloudRes.data.secure_url,
         caption,
+      }, {
+          headers: { Authorization: `Bearer ${token}` },
       });
 
       toast.success("Video uploaded successfully 🎉");

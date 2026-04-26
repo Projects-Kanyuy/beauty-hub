@@ -2,6 +2,11 @@ const mongoose = require("mongoose");
 
 const videoSchema = new mongoose.Schema(
   {
+    user: {
+  type: mongoose.Schema.Types.ObjectId,
+  ref: "User",
+  required: true,
+},
     videoUrl: {
       type: String, // Cloudinary URL
       required: true,

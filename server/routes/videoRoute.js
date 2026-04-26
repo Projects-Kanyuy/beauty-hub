@@ -12,16 +12,25 @@ const {
   commentVideo,
   getComments,
   shareVideo,
+  getMyVideos,
+  deleteMyVideo,
 } = require("../controllers/videoController");
-const interactionLimiter = require("../middleware/rateLimiter").interactionLimiter;
-
+const interactionLimiter = require("../middleware/rateLimiter")
+const { protect } = require("../middleware/authMiddleware");
 const router = express.Router();
 
-router.post("/", createVideo);
+
+
+
+router.post("/", protect, createVideo);
 router.get("/", getVideos);
 
 router.post("/like", interactionLimiter, likeVideo);
 router.post("/comment", interactionLimiter, commentVideo);
+
+
+router.get('/my-videos', protect, getMyVideos);          // ✅ GET MY VIDEOS
+router.delete('/my-videos/:videoId', protect, deleteMyVideo);
 
 router.get("/:videoId/comments", getComments);
 

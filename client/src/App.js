@@ -60,6 +60,7 @@ import SalonSearch from "./components/SalonSearch";
 import VideoUpload from "./components/video/VideoUpload";
 import Feed from "./components/video/VideoFeed";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage";
+import MyVideos from "./components/video/MyVideos";
 const MainLayout = ({ children }) => {
   const { user, logout } = useAuth();
   return (
@@ -193,6 +194,7 @@ function App() {
                   <Route path="analytics" element={<SalonAnalyticsPage />} />
                   <Route path="settings" element={<SalonSettingsPage />} />
                   <Route path="post-video" element={<VideoUpload />} />
+                  <Route path="my-videos" element={<MyVideos />} />
                    <Route path="billing" element={<Subscriptions />} /> 
                    <Route path="pay" element={<PaymentPage />} /> 
                 </Routes>
