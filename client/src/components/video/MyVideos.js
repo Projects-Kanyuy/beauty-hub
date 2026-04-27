@@ -1,5 +1,5 @@
 /* eslint-disable no-unused-vars */
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react"; // 1. Added useCallback
 import { Trash2, Play, Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
 import { toast } from "react-toastify";
@@ -25,34 +25,34 @@ const MyVideos = () => {
 
   const token = user?.token;
 
-  // ✅ Fetch videos only when token is available
-  const fetchMyVideos = async () => {
+  // ✅ Wrap fetchMyVideos in useCallback to solve the dependency error
+  const fetchMyVideos = useCallback(async () => {
+    if (!token) return; // Guard clause
+
     try {
       setLoading(true);
-
       const res = await API.get("/api/videos/my-videos", {
         headers: { Authorization: `Bearer ${token}` },
       });
-
       setVideos(res.data.videos || []);
     } catch (err) {
       toast.error("Failed to load your videos");
     } finally {
       setLoading(false);
     }
-  };
+  }, [token]); // Function is only recreated if token changes
 
+  // ✅ Dependency error is now solved
   useEffect(() => {
-    if (token) {
-      fetchMyVideos();
-    }
-  }, [token]);
+    fetchMyVideos();
+  }, [fetchMyVideos]);
 
   // ✅ Delete video
   const handleDelete = async (videoId) => {
+    if (!window.confirm("Are you sure you want to delete this video?")) return;
+
     try {
       setDeletingId(videoId);
-
       await API.delete(`/api/videos/my-videos/${videoId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -75,13 +75,12 @@ const MyVideos = () => {
           My Videos 🎬
         </h1>
 
-        {/* Loading */}
+        {/* Loading State */}
         {loading ? (
           <div className="flex justify-center items-center py-20">
             <Loader2 className="animate-spin h-12 w-12 text-indigo-600" />
           </div>
         ) : videos.length === 0 ? (
-
           /* Empty State */
           <div className="text-center py-20">
             <div className="text-6xl mb-4">🎥</div>
@@ -89,9 +88,7 @@ const MyVideos = () => {
               You haven’t uploaded any videos yet
             </p>
           </div>
-
         ) : (
-
           /* Videos Grid */
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             {videos.map((video) => (
@@ -108,12 +105,12 @@ const MyVideos = () => {
 
                 {/* Overlay */}
                 <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex flex-col justify-between p-3">
-                  
                   {/* Delete Button */}
                   <div className="flex justify-end">
                     <button
                       onClick={() => handleDelete(video._id)}
                       className="bg-red-600 hover:bg-red-700 text-white p-2 rounded-full shadow"
+                      disabled={deletingId === video._id}
                     >
                       {deletingId === video._id ? (
                         <Loader2 className="animate-spin h-5 w-5" />
@@ -125,20 +122,18 @@ const MyVideos = () => {
 
                   {/* Video Info */}
                   <div>
-                    <p className="text-white text-sm line-clamp-2">
+                    <p className="text-white text-sm line-clamp-2 font-medium">
                       {video.caption || "No caption"}
                     </p>
-
-                    <div className="flex items-center gap-3 text-xs text-gray-200 mt-2">
+                    <div className="flex items-center gap-3 text-xs text-gray-200 mt-2 font-semibold">
                       <span>❤️ {video.likesCount || 0}</span>
                       <span>💬 {video.commentsCount || 0}</span>
-                      <span>🔁 {video.sharesCount || 0}</span>
                     </div>
                   </div>
                 </div>
 
                 {/* Play Icon */}
-                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none group-hover:hidden transition">
                   <Play className="text-white opacity-70" size={40} />
                 </div>
               </motion.div>
