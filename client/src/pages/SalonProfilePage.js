@@ -133,6 +133,8 @@ const SalonProfilePage = () => {
                 <option value="KES">KES (Kenya)</option>
                 <option value="TZS">TZS (Tanzania)</option>
                 <option value="ZMW">ZMW (Zimbabwe)</option>
+                <option value="RWF">RWF (Rwanda)</option>
+                <option value="ZMW">ZMW (Zambia)</option>
               </select>
             </div>
           </div>
