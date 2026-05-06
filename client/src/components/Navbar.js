@@ -64,13 +64,13 @@ const Navbar = ({ isLoggedIn, user, handleLogout }) => {
                 </>
               ) : (
                 <>
-                  <NavItem to="/dashboard">{t("header.dashboard")}</NavItem>
-                  <NavItem to="/favorites">{t("header.favorites")}</NavItem>
-                  <NavItem to="/compare">{t("header.compare")}</NavItem>
+                  <NavItem to="/salon-owner/dashboard">{t("ownerSidebar.portal")}</NavItem>
+                  <NavItem to="/salon-owner/billing">{t("ownerSidebar.billing")}</NavItem>
+                  <NavItem to="/salon-owner/post-video">{t("ownerSidebar.postVideo")}</NavItem>
                 </>
               )}
               <NavItem to="/video">🎬 Videos</NavItem>
-              <NavItem to="/salons">🔍 {t("header.promo")}</NavItem>
+              <NavItem to="/promo">🔍 {t("header.promo")}</NavItem>
             </>
           ) : (
             <>
@@ -140,46 +140,73 @@ const Navbar = ({ isLoggedIn, user, handleLogout }) => {
       </nav>
 
       {/* 5. Mobile Drawer */}
-      {isDrawerOpen && (
-        <div className="xl:hidden border-t border-gray-100 bg-white absolute w-full shadow-2xl animate-in slide-in-from-top duration-300">
-          <div className="container mx-auto px-6 py-8">
-             <div className="mb-8 p-4 bg-gray-50 rounded-2xl flex items-center justify-between">
-        <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">
-          {t("settings.language") || "Language"}
-        </span>
-        <LanguageSwitcher /> 
-      </div>
-            <ul className="flex flex-col space-y-5">
+  {isDrawerOpen && (
+        <div className="lg:hidden border-t border-gray-200 bg-white absolute w-full shadow-lg">
+          <div className="container mx-auto px-4 sm:px-6 py-4">
+            <ul className="flex flex-col space-y-4">
               {isLoggedIn ? (
                 <>
-                  <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">Account Access</p>
-                  {user?.role === "salon_owner" ? (
-                    <>
-                       <NavItem to="/salon-owner/dashboard" onClick={closeDrawer}>🚀 Dashboard</NavItem>
-                       <NavItem to="/salon-owner/post-video" onClick={closeDrawer}>🎬 Post Video</NavItem>
-                    </>
-                  ) : (
-                    <NavItem to="/dashboard" onClick={closeDrawer}>{t("header.dashboard")}</NavItem>
-                  )}
-                  <NavItem to="/video" onClick={closeDrawer}>🔥 Trending Videos</NavItem>
-                  <NavItem to="/salons" onClick={closeDrawer}>📍 Find Salons</NavItem>
-                  <button onClick={handleLogout} className="w-full text-left py-3 text-red-500 font-black uppercase text-sm tracking-widest border-t border-gray-50 pt-6">
+                  <NavItem to="/salon-owner/dashboard">{t("ownerSidebar.portal")}</NavItem>
+                  <NavItem to="/salon-owner/billing">{t("ownerSidebar.billing")}</NavItem>
+                  <NavItem to="/salon-owner/post-video">{t("ownerSidebar.postVideo")}</NavItem>
+                  <button
+                    onClick={() => {
+                      handleLogout();
+                      closeDrawer();
+                    }}
+                    className="w-full mt-4 px-5 py-2.5 rounded-lg font-bold text-white bg-gray-800 hover:bg-gray-900 transition-colors text-left"
+                  >
                     {t("header.logout")}
                   </button>
                 </>
               ) : (
                 <>
-                  <NavItem to="/" onClick={closeDrawer}>{t("header.home")}</NavItem>
-                  <NavItem to="/become-salon-owner" onClick={closeDrawer}>{t("header.addBusiness")}</NavItem>
-                  <NavItem to="/promo" onClick={closeDrawer}>{t("header.promo")}</NavItem>
-                  <NavItem to="/salons" onClick={closeDrawer}>📍 {t("header.promo")}</NavItem>
-                  <div className="h-px bg-gray-100 my-2"></div>
-                  <Link to="/login" onClick={closeDrawer} className="w-full py-4 text-center font-black text-gray-900 border-2 border-gray-100 rounded-2xl">
+                  <NavItem to="/" onClick={closeDrawer}>
+                    {t("header.home")}
+                  </NavItem>
+                  <NavItem to="/become-salon-owner" onClick={closeDrawer}>
+                    {t("header.addBusiness")}
+                  </NavItem>
+                  <NavItem to="/contact" onClick={closeDrawer}>
+                    {t("header.contact")}
+                  </NavItem>
+
+                  {/* NEW PROMO LINK FOR MOBILE */}
+                  <li>
+                    <NavLink
+                      to="/promo"
+                      onClick={closeDrawer}
+                      className="block py-2 font-bold text-primary-purple text-lg flex items-center gap-2"
+                    >
+                      Promo Offer
+                      <span className="relative flex h-3 w-3">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-pink-400 opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-3 w-3 bg-primary-pink"></span>
+                      </span>
+                    </NavLink>
+                  </li>
+                  <li>
+                    <NavLink
+                      to="/search"
+                      onClick={closeDrawer}
+                      className="block py-2 font-bold text-primary-purple text-lg flex items-center gap-2"
+                    >
+                      Search
+                      <span className="relative flex h-3 w-3">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-pink-400 opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-3 w-3 bg-primary-pink"></span>
+                      </span>
+                    </NavLink>
+                  </li>
+                  
+                  <div className="h-px bg-gray-200 my-2"></div>
+
+                  <NavItem to="/login" onClick={closeDrawer}>
                     {t("login.signIn")}
-                  </Link>
-                  <Link to="/register" onClick={closeDrawer} className="w-full py-4 text-center font-black text-white bg-primary-purple rounded-2xl shadow-xl">
+                  </NavItem>
+                  <NavItem to="/register" onClick={closeDrawer}>
                     {t("login.createAccount")}
-                  </Link>
+                  </NavItem>
                 </>
               )}
             </ul>
